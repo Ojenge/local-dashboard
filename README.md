@@ -17,4 +17,4 @@ Features:
     - Web interface accessible @ local.brck.com
     - Content?
     - Compute?
-    - Password change view
+    - Password change viewI
