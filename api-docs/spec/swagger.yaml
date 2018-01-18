@@ -99,6 +99,19 @@ tags:
     description: >
       The system represents the current state of the device including but not
       limited to connection status, uptime, storage status, battery status. 
+  - name: Network
+    description: >
+      The network state reports on the state of network connections available
+      on the interface and provides endpoints to manage them.
+
+      Note that the data available will depend on the type of interface.
+
+      WAN connection payloads will include a `wan` section.
+
+      Ethernet connection payloads will include a `ethernet` section
+
+      Note that for Ethernet connections, when `dhcp_enabled` is flagged as `true`,
+      network_information will be disregarded except `dns_servers` when provided.
 securityDefinitions:
   XAuthTokenKey:
     name: X-Auth-Token-Key
@@ -106,3 +119,10 @@ securityDefinitions:
     in: header
 security:
   - XAuthTokenKey: []
+parameters:
+  connectionId:
+    name: id
+    in: path
+    type: string
+    required: true
+    description: The unique ID of the device.

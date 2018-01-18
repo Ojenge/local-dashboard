@@ -1,0 +1,12 @@
+type: object
+properties:
+  wan:
+    type: object
+    properties:
+      pin:
+        type: string
+        pattern: '\d{4}|'
+        description: PIN to use to unlock the SIM (When SIM is locked)
+        example: "1234"
+  ethernet:
+    $ref: '#/definitions/EthernetStatus'

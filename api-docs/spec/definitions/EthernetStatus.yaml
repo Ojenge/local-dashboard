@@ -1,0 +1,25 @@
+type: object
+properties:
+  dhcp_enabled:
+    type: boolean
+    description: Reports the DHCP configuration for the interface
+  network_info:
+    type: object
+    description: IP Configuration info (static IP configuration) for the interface
+    properties:
+      static_ip:
+        type: string
+        description: Static IP configured for this connection
+        example: "10.10.10.10"
+      default_route:
+        type: string
+        description: Default route for this connection
+        example: "10.10.10.1"
+      subnet_mask:
+        type: string
+        description: Subnet mask for this connection
+        example: "255.255.255.0"
+      dns_servers:
+        type: string
+        description: DNS server(s) for this connection (IP or hostnames)
+        example: "8.8.8.8,mydns.com"

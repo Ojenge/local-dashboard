@@ -1,7 +1,7 @@
 get:
   tags:
     - System
-  summary: Retrieves the SupaBRCK system state
+  summary: Get system state
   responses:
     200:
       description: The system state was retrieved without error
@@ -10,7 +10,7 @@ get:
 patch:
   tags:
     - System
-  summary: Update device settings
+  summary: Configure system
   parameters:
     - name: changes
       in: body

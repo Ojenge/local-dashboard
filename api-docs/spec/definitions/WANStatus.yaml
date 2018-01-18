@@ -1,0 +1,44 @@
+type: object
+properties:
+  sim_locked:
+    type: boolean
+    description: Reports the SIM PIN status
+  apn_configured:
+    type: boolean
+    description: Reports the APN configuration status for this SIM
+  network_info:
+    type: object
+    properties:
+      operator:
+        type: string
+        description: Network operator name
+        example: Operator Name
+      imei:
+        type: string
+        description: SIM IMEI
+        example: 350089999084990
+      cell_id:
+        type: string
+        description: Network Cell ID
+        example: 300300
+      lac:
+        type: string
+        description: Local Area Code
+        example: 300
+      mnc:
+        type: string
+        description: Mobile Network Code
+        example: 304
+      mcc:
+        type: string
+        description: Mobile Country Code
+        example: 639
+      network_type:
+        type: string
+        description: Mobile Network Type
+        enum:
+          - 2G
+          - 3G
+          - EDGE
+          - LTE
+          - WCDMA

@@ -1,0 +1,5 @@
+type: string
+description: Connection Type
+enum:
+- WAN
+- ETHERNET
