@@ -13,7 +13,7 @@ It is composed of two components:
 The API is developed using Flask and packaged for deployment on a SupaBRCK
 using opkg.
 
-The API documentation is built on Swagger and lives in `api-documentation`
+The API documentation is built on Swagger and lives in `api-docs`
 
 
 # Releases

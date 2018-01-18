@@ -1,0 +1,7 @@
+type: string
+description: The configuration mode for the device
+enum:
+- MATATU
+- RETAIL
+- ALWAYS_ON
+- SOLAR_POWERED

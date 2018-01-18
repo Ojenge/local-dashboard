@@ -1,0 +1,15 @@
+type: object
+properties:
+  state:
+    type: string
+    description: The current state of the battery
+    enum:
+    - CHARGING
+    - DISCHARGING
+    - CHARGED
+    - UNKNOWN
+  battery_level:
+    type: integer
+    description: The battery level on the device
+    minimum: 0
+    maximum: 100

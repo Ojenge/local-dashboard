@@ -1,0 +1,12 @@
+type: object
+properties:
+  available_space:
+    type: integer
+    description: The storage space available on the device in `bytes`
+    minimum: 0
+  used_space:
+    type: integer
+    description: The storage space used on the device in `bytes`
+  total_space:
+    type: integer
+    description: The total storage space available on the device in `bytes`

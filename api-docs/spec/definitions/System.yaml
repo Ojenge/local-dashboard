@@ -1,0 +1,21 @@
+type: object
+properties:
+  id:
+    type: string
+    description: The unique ID of the device
+  battery:
+    description: The battery status of the unit
+    $ref: '#/definitions/BatteryStatus'
+  storage:
+    description: The storage status of the unit
+    $ref: '#/definitions/StorageStatus'
+  mode:
+    $ref: '#/definitions/DeviceMode'
+  soc_on:
+    $ref: '#/definitions/StateOfCharge'
+  soc_off:
+    $ref: '#/definitions/StateOfCharge'
+  turn_on_time:
+    $ref: '#/definitions/Time'
+  turn_off_time:
+    $ref: '#/definitions/Time'
