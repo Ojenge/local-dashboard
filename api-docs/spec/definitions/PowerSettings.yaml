@@ -1,0 +1,10 @@
+type: object
+properties:
+  soc_on:
+    $ref: '#/definitions/StateOfCharge'
+  soc_off:
+    $ref: '#/definitions/StateOfCharge'
+  turn_on_time:
+    $ref: '#/definitions/Time'
+  turn_off_time:
+    $ref: '#/definitions/Time'

@@ -2,19 +2,6 @@ type: object
 properties:
   mode:
     $ref: '#/definitions/DeviceMode'
-  soc_on:
-    description: SOC on setting (device turns on if the SOC is above this value)
-    $ref: '#/definitions/StateOfCharge'
-    required: false
-  soc_off:
-    description: SOC on setting (device turns off if the SOC is below this value)
-    $ref: '#/definitions/StateOfCharge'
-    required: false
-  turn_on_time:
-    description: Turn on time for the device (MATATU Mode)
-    $ref: '#/definitions/Time'
-    required: false
-  turn_off_time:
-    description: Turn off time for the device (MATATU Mode)
-    $ref: '#/definitions/Time'
-    required: false
+  power:
+    $ref: '#/definitions/PowerSettings'
+

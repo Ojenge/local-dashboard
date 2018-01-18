@@ -1,0 +1,33 @@
+type: object
+properties:
+  connected:
+    type: boolean
+    description: Flag indicating whether the BRCK has an active internet connection
+  connection:
+    type: object
+    description: Details of the active internet connection
+    properties:
+      connection_type:
+        type: string
+        description: Type of active internet connection on the BRCK
+        enum:
+          - WAN
+          - ETHERNET
+          - WIFI
+      up_speed:
+        type: integer
+        description: Network uplink speed of active internet connection (in bytes)
+        example: 1000000
+      down_speed:
+        type: integer
+        description: Network downlink speed of active internet connection (in bytes)
+        example: 1000000
+      signal_strengh:
+        type: integer
+        description: Signal strength of the connection (percentage)
+        minimum: 0
+        maximum: 100
+        example: 77
+  connected_clients:
+    type: integer
+    description: Number of wireless clients connected to the BRCK
