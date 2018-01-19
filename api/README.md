@@ -13,6 +13,10 @@ mkvirtuenv dash
 pip install -r dev_requirements.txt
 ```
 
+### Runtime dependencies
+
+- brck-sdk
+
 
 ### Running tests
 
