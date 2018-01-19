@@ -43,7 +43,7 @@ def test_system_api(client):
         assert v is not None
 
 
-def test_system_api_mock(client):
+def test_system_battery_api(client):
     with mock.patch('local_api.apiv1.utils.run_command', return_value=True):
         with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
             resp = client.get('/api/v1/system')

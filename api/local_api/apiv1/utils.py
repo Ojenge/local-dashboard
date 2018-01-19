@@ -25,6 +25,22 @@ def read_file(path):
     return contents
 
 
+def get_device_mode():
+    """Returns the device mode
+
+    May be one of
+
+    - MATATU
+    - ALWAYS_ON
+    - RETAIL
+    - SOLAR_POWERED
+    - UNKNOWN
+
+    :return: str
+    """
+    return 'UNKNOWN'
+
+
 def get_storage_status(mount_point='/storage/data'):
     """Gets the disk storage status of a BRCK device in bytes.
 
@@ -76,3 +92,22 @@ def get_battery_status():
         battery_level=battery_level
     )
     return state
+
+
+def get_power_config():
+    """Gets the power configuration on the BRCK
+
+    Example:
+
+        {
+            'soc_on': 0,
+            'soc_off': 0,
+            'turn_on_time': "00:00",
+            'turn_off_time': "00:00"
+        }
+
+    Depending on the device mode, the configuration determines
+    power on and power off behaviour.
+    :return: dict
+    """
+    return {}

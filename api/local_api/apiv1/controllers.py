@@ -8,6 +8,7 @@ from flask import Blueprint, jsonify
 
 from utils import get_storage_status
 from utils import get_battery_status
+from utils import get_device_mode
 
 api_blueprint = Blueprint('apiv1', __name__)
 
@@ -51,7 +52,10 @@ def system_api():
     :return: string
     """
     state = dict(
+        mode=get_device_mode(),
         storage=get_storage_status(),
-        battery=get_battery_status()
+        battery=get_battery_status(),
+        power=get_power_config(),
+        network=get_network_status()
     )
     return jsonify(state)

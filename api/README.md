@@ -29,6 +29,14 @@ Running tests locally will largely test the sanity of your python code.
 Mocking is implemented for functions requiring a live device environment.
 
 
+### TODOS
+
+- [x] Battery status API
+- [ ] Connection status API
+- [x] Storage status API
+- [ ] SOC/Turn-on/Turn-off configuration API
+- [ ]
+
 ### Generating a release
 
 TBD
