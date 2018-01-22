@@ -5,10 +5,14 @@ Utilities for interacting with the filesystem.
 """
 
 import os
+import re
+
 from brck.utils import run_command
 from brck.utils import uci_get
 from brck.utils import uci_set
+from brck.utils import uci_commit
 
+from schema import Validator
 
 LOG = __import__('logging').getLogger()
 
@@ -17,7 +21,7 @@ STATE_ERROR = 'ERROR'
 STATE_UNKNOWN = 'UNKNOWN'
 DEVICE_MODES = ['MATATU', 'ALWAYS_ON', 'RETAIL', 'SOLAR_POWERED']
 
-
+REGEX_TIME = re.compile('^(0[0-9]|1[0-9]|2[0-3]):(0[0-9]|[1-5][0-9])$')
 
 def get_uci_state(option, command='show'):
     """Gets the uci state stored at `option`
@@ -181,9 +185,9 @@ def get_network_status():
     :return: dict
     """
     num_clients = 0
-    chilli_list = run_command(['chilli_query', 'list'], output=True)
+    chilli_list = run_command(['connected_clients', 'list'], output=True)
     if chilli_list:
-        num_clients = chilli_list.splitlines().__len__()
+        num_clients = (chilli_list.splitlines().__len__() - 1)
     uci_state = get_uci_state('network.wan')
     net_type = uci_state.get('network.wan.proto', STATE_UNKNOWN).upper()
     state = dict(
@@ -218,10 +222,37 @@ def get_system_state():
 def configure_system(config):
     """Configures the system
     """
+    mconfig = {}
     mode = config.get('mode')
-    if mode in DEVICE_MODES:
-        pass
-    else:
-        return(422, dict(errors=dict(mode='Invalid mode')))
-    uci_set('brck.soc.mode', mode)
+    if mode:
+        mconfig['mode'] = mode
+        uci_set('brck.power.mode', config['mode'])
+    power = config.get('power', {})
+    mconfig.update(power)
+    validator = Validator(mconfig)
+    has_time = 'on_time' in mconfig or 'off_time' in mconfig
+    has_soc = 'soc_on' in mconfig or 'soc_off' in mconfig
+    if mode:
+        validator.ensure_inclusion('mode', DEVICE_MODES)
+    if power:
+        if has_time:
+            validator.required_together('on_time', 'off_time')
+            validator.ensure_format('on_time', REGEX_TIME)
+            validator.ensure_format('off_time', REGEX_TIME)
+            validator.ensure_less_than('on_time', 'off_time')
+        if has_soc:
+            validator.required_together('soc_on', 'soc_off')
+            validator.ensure_range('soc_on', 1, 99, int)
+            validator.ensure_range('soc_off', 1, 99, int)
+            validator.ensure_less_than('soc_off', 'soc_on')
+    if not validator.is_valid:
+        return (422, validator.errors)
+    if has_time:
+        uci_set('brck.power.on_time', mconfig['on_time'])
+        uci_set('brck.power.off_time', mconfig['off_time'])
+    if has_soc:
+        uci_set('brck.power.soc_on', mconfig['soc_on'])
+        uci_set('brck.power.soc_off', mconfig['soc_off'])
+    # Only commit uci if no errors
+    uci_commit('brck.soc')
     return (200, 'OK')

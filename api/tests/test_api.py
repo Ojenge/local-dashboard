@@ -23,14 +23,15 @@ network.wan.device='ppp0'
 network.wan.ifname='3g-wan'
 network.wan.connected='0'"""
 
-DUMMY_CHILLY_RESP = """34-13-E8-3E-D0-7D 192.168.180.2 dnat 5a65a0a200000001 0 - 0/0 0/0 0/0 0/0 0 0 0/0 0/0 -
-78-F8-82-D0-E3-84 192.168.180.3 dnat 5a659c2000000002 0 - 0/0 0/0 0/0 0/0 0 0 0/0 0/0 -"""
+DUMMY_CHILLY_RESP = """Station                Connected time 	Signal         	Inactive time  	RX bytes       	TX Bytes       
+34:13:e8:3e:d0:7d      1044           	-27            	10             	680540         	1229742"""
+
 
 DUMMY_SIGNAL_RESP = "24"
 
 EXPECTED_NETWORK_RESP = dict(
     connected=False,
-    connected_clients=2,
+    connected_clients=1,
     connection=dict(
         connection_type='3G',
         up_speed=0,
@@ -41,7 +42,6 @@ EXPECTED_NETWORK_RESP = dict(
 
 @pytest.fixture
 def client(request):
-    print request
     client =  local_api.app.test_client()
     return client
 
@@ -93,9 +93,15 @@ def test_network_status_api(client):
                 assert payload['network'] == EXPECTED_NETWORK_RESP
 
 
-def test_patch_system(client):
+def test_patch_system_ok(client):
     test_payload = dict(
         mode='ALWAYS_ON',
+        power=dict(
+            on_time='06:00',
+            off_time='22:00',
+            soc_on=15,
+            soc_off=5
+        )
     )
     with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.uci_set', return_value=True):
@@ -110,3 +116,29 @@ def test_patch_system(client):
                     assert 'mode' in payload
                     assert 'battery' in payload
                     assert 'network' in payload
+
+
+def test_patch_system_not_ok(client):
+    test_payload = dict(
+        mode='ALWAYS_ON',
+        power=dict(
+            on_time='06:00',
+            off_time='22:00',
+            soc_on=15,
+            soc_off=25
+        )
+    )
+    with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
+        with mock.patch('local_api.apiv1.utils.uci_set', return_value=True):
+            with mock.patch('local_api.apiv1.utils.run_command',
+                side_effect=[True, DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+                with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
+                    resp = client.patch('/api/v1/system',
+                        data=json.dumps(test_payload),
+                        content_type='application/json')
+                    payload = load_json(resp)
+                    assert 'errors' in payload
+                    errors = payload['errors']
+                    assert 'soc_off' in errors
+                    assert 'soc_on' in errors
+                    assert(resp.status_code == 422)
