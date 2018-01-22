@@ -15,7 +15,48 @@ STATE_ERROR = 'ERROR'
 STATE_UNKNOWN = 'UNKNOWN'
 
 
+
+def get_uci_state(option, command='show'):
+    """Gets the uci state stored at `option`
+
+    :param str option: the name of the uci option
+    :param str command: the command to run on state (`show` or `get`)
+    :param bool expand_options: whether the response should be expanded
+    :return: dict of the state
+    """
+    cmd_list = ['uci', '-P']
+    cmd_list.append('/var/state')
+
+    cmd_list.append(command)
+    cmd_list.append(option)
+
+    response = run_command(cmd_list, output=True)
+    out = dict()
+    if not(response is False) and len(response):
+        out.update([l.replace("'", "").split('=') for l in response.splitlines()])
+    return out
+
+
+def get_signal_strength():
+    """Get wireless signal strength (Mobile)
+
+    :return: int (percentage 0-100)
+    """
+    signal_strengh = 0
+    resp = run_command(['querymodem', 'signal'])
+    try:
+        signal_strengh = int(resp or '')
+    except ValueError:
+        LOG.error("Failed to load signal strength: QueryModem Response: %s", resp)
+    return signal_strengh
+
+
 def read_file(path):
+    """Reads the file contents at `path`
+
+    :param str path: the the path to read
+    :return: str contents of the file or False if file reading failed
+    """
     contents = False
     try:
         with open(path) as f:
@@ -111,3 +152,43 @@ def get_power_config():
     :return: dict
     """
     return {}
+
+
+def get_network_status():
+    """Gets the network state of the BRCK
+
+    This is a summarized view of the connection state of the BRCK
+
+    Sample Response:
+            {
+            "connected": true,
+            "connection": {
+            "connection_type": "WAN",
+            "up_speed": 1000000,
+            "down_speed": 1000000,
+            "signal_strengh": 77
+            },
+            "connected_clients": 0
+            }
+
+    :return: dict
+    """
+    num_clients = 0
+    chilli_list = run_command(['chilli_query', 'list'], output=True)
+    if chilli_list:
+        num_clients = chilli_list.splitlines().__len__()
+    uci_state = get_uci_state('network.wan')
+    net_type = uci_state.get('network.wan.proto', STATE_UNKNOWN).upper()
+    state = dict(
+        connected=uci_state.get('network.wan.connected', '') == '1',
+        connected_clients=num_clients,
+        connection=dict(
+            connection_type=net_type,
+            up_speed=0,
+            down_speed=0,
+            signal_strength=get_signal_strength()
+        )
+    )
+    return state
+
+

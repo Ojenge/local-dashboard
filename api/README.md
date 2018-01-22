@@ -21,7 +21,11 @@ pip install -r dev_requirements.txt
 ### Running tests
 
 ```bash
-python -m pytest
+make test
+
+# OR (for more verbose test result)
+
+python -m pytest -vv
 ```
 
 Running tests locally will largely test the sanity of your python code.
@@ -32,10 +36,12 @@ Mocking is implemented for functions requiring a live device environment.
 ### TODOS
 
 - [x] Battery status API
-- [ ] Connection status API
+- [x] Connection status API
 - [x] Storage status API
 - [ ] SOC/Turn-on/Turn-off configuration API
-- [ ]
+- [ ] Plex
+- [ ] FTP
+- [ ] Authentication
 
 ### Generating a release
 
