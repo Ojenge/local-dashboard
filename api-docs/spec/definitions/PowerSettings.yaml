@@ -4,7 +4,7 @@ properties:
     $ref: '#/definitions/StateOfCharge'
   soc_off:
     $ref: '#/definitions/StateOfCharge'
-  turn_on_time:
+  on_time:
     $ref: '#/definitions/Time'
-  turn_off_time:
+  off_time:
     $ref: '#/definitions/Time'
