@@ -6,6 +6,8 @@ Utilities for interacting with the filesystem.
 
 import os
 from brck.utils import run_command
+from brck.utils import uci_get
+from brck.utils import uci_set
 
 
 LOG = __import__('logging').getLogger()
@@ -13,6 +15,7 @@ LOG = __import__('logging').getLogger()
 STATE_OK = 'OK'
 STATE_ERROR = 'ERROR'
 STATE_UNKNOWN = 'UNKNOWN'
+DEVICE_MODES = ['MATATU', 'ALWAYS_ON', 'RETAIL', 'SOLAR_POWERED']
 
 
 
@@ -79,7 +82,11 @@ def get_device_mode():
 
     :return: str
     """
-    return 'UNKNOWN'
+    resp = uci_get('brck.soc.mode')
+    mode = STATE_UNKNOWN
+    if resp and len(mode):
+        return mode
+    return mode
 
 
 def get_storage_status(mount_point='/storage/data'):
@@ -192,3 +199,29 @@ def get_network_status():
     return state
 
 
+def get_system_state():
+        mode = get_device_mode()
+        storage_state = get_storage_status()
+        battery_state = get_battery_status()
+        power_state = get_power_config()
+        network_state = get_network_status()
+        state = dict(
+            mode=mode,
+            storage=storage_state,
+            battery=battery_state,
+            power=power_state,
+            network=network_state
+        )
+        return state
+
+
+def configure_system(config):
+    """Configures the system
+    """
+    mode = config.get('mode')
+    if mode in DEVICE_MODES:
+        pass
+    else:
+        return(422, dict(errors=dict(mode='Invalid mode')))
+    uci_set('brck.soc.mode', mode)
+    return (200, 'OK')
