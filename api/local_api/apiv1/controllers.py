@@ -41,6 +41,15 @@ def handle_bad_data_error(error):
     return response
 
 
+class Ping(MethodView):
+    
+    def get(self):
+        """Provides a PING API
+        """
+        return jsonify(dict(about='SupaBRCK Local Dashboard',
+                            version='0.1'))
+
+
 class SystemAPI(MethodView):
 
     def get(self):
@@ -67,6 +76,9 @@ class SystemAPI(MethodView):
         else:
             raise APIErrorData('Invalid Data', errors, 422)
 
+api_blueprint.add_url_rule('/ping',
+                           view_func=Ping.as_view('ping'),
+                           methods=[GET])
 api_blueprint.add_url_rule('/system',
                            view_func=SystemAPI.as_view('system_api'),
                            methods=[GET, PATCH])

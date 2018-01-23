@@ -1,8 +1,51 @@
 import React, { Component } from 'react';
 
 import Header from './Header';
+import Loading from './Loading'
+import Connector from '../utils/API';
 
 class Dashboard extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      connected: false,
+      loading: false,
+      net_error: false,
+      has_data: false
+    }
+  }
+
+  componentDidMount() {
+    Connector.ping(this.connectionCallback);
+  }
+
+  connectionCallback = (err, res) => {
+    if (err || !res.ok){
+      this.setState({
+        connected: false,
+        net_error: true
+      })
+    } else {
+      this.setState({
+        connected: true
+      });
+      Connector.get_system(this.systemCallback);
+    }
+  }
+
+  systemCallback = (err, res) => {
+    if(err || !res.ok) {
+      this.setState({
+        net_error: true
+      });
+    } else {
+      this.setState({ 
+        system: res.body,
+        has_data: true
+      });
+    }
+  }
 
   renderBody = () => {
     return(
@@ -15,7 +58,7 @@ class Dashboard extends Component {
               </span>
               <div class="info-box-content">
                 <h4>CONNECTION SIGNAL</h4>
-                <p>Ethernet</p>
+                <p>{ this.state.system.network.connection.connection_type }</p>
               </div>
             </div>
           </div>
@@ -73,15 +116,59 @@ class Dashboard extends Component {
               </div>
             </div>
           </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="box">
+                <div class="box-header with-border">
+                  <h3 class="box-title">Storage</h3>
+                </div>
+                <div class="box-body">
+                  <p>Your SupaBRCK has 2568GB of storage. To access web, go to local.brck (192.168.88.1:8080)</p>
+                  <div class="progress">
+                    <div class="progress-bar progress-bar-yellow" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style={{width: '60%'}}>1.5GB used
+                      <span class="sr-only">60% Complete (warning)</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="box">
+                <div class="box-header with-border">
+                  <h3 class="box-title">Plex</h3>
+                </div>
+                <div class="box-body">
+
+                  <p>Your SupaBRCK is enabled with a dual core x86 processor. We have pre-installed plex for you. To find out more go to www...</p>
+
+                  <div class="toggle-component ">
+                    <label class="toggle">
+                      <input type="checkbox" onclick="toggle(this,event)" />
+                      <div data-off="Off" data-on="On"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
     );
   }
 
   render() {
-    return [
-      <Header>Dashboard</Header>,
-      this.renderBody()
-    ];
+    return (
+      <div>
+        <Header>Dashboard</Header>
+        {(this.state.connected)
+          ? null
+          : <Loading key={"view-loading"} message={"Trying to connect to your SupaBRCK"} /> }
+        {(this.state.has_data)
+          ? this.renderBody()
+          : null }
+      </div>
+    );
   }
 }
 
