@@ -8,7 +8,7 @@ const TIMEOUT = {
     deadline: 5000
 };
 
-const Connector = {
+const API = {
     'ping': function(cb){
         request.get(BASE_URL + '/ping')
             .type('json')
@@ -21,8 +21,15 @@ const Connector = {
             .type('json')
             .accept('json')
             .timeout(TIMEOUT)
-            .end(cb)
+            .end(cb);
+    },
+    'get_sim_connections': function(cb) {
+        request.get(BASE_URL + '/networks/sim')
+            .type('json')
+            .accept('json')
+            .timeout(TIMEOUT)
+            .end(cb);
     }
 }
 
-export default Connector;
+export default API;

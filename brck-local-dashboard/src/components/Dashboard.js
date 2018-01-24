@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import Header from './Header';
 import Loading from './Loading'
-import Connector from '../utils/API';
+import API from '../utils/API';
 
 var Humanize = require('humanize-plus');
 
@@ -19,7 +19,7 @@ class Dashboard extends Component {
   }
 
   componentDidMount() {
-    Connector.ping(this.connectionCallback);
+    API.ping(this.connectionCallback);
   }
 
   connectionCallback = (err, res) => {
@@ -32,7 +32,7 @@ class Dashboard extends Component {
       this.setState({
         connected: true
       });
-      Connector.get_system(this.systemCallback);
+      API.get_system(this.systemCallback);
     }
   }
 
