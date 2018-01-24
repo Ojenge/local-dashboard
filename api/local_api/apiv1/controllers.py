@@ -9,6 +9,7 @@ from flask.views import MethodView
 
 from utils import get_system_state
 from utils import configure_system
+from sim import get_wan_connections
 
 api_blueprint = Blueprint('apiv1', __name__)
 
@@ -76,6 +77,23 @@ class SystemAPI(MethodView):
         else:
             raise APIErrorData('Invalid Data', errors, 422)
 
+
+class WANAPI(MethodView):
+    
+    def get(self):
+        """Returns a list of active WAN connections.
+
+        This depends on the number of SIM slots available on the SupaBRCK.
+        
+        :return: string JSON list of WAN connections on device. 
+        """
+        connections = get_wan_connections()
+        return jsonify(connections)
+
+
+api_blueprint.add_url_rule('/networks/sim',
+                           view_func=WANAPI.as_view('sim'),
+                           methods=[GET])
 api_blueprint.add_url_rule('/ping',
                            view_func=Ping.as_view('ping'),
                            methods=[GET])
