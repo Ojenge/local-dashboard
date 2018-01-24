@@ -4,6 +4,8 @@ import Header from './Header';
 import Loading from './Loading'
 import Connector from '../utils/API';
 
+var Humanize = require('humanize-plus');
+
 class Dashboard extends Component {
 
   constructor(props) {
@@ -47,6 +49,30 @@ class Dashboard extends Component {
     }
   }
 
+  renderBatteryInfo = (level) => {
+    var containerClass = "info-box-icon bg-green";
+    var levelTag = Math.round(level / 25);
+    if (level === 100) {
+      levelTag = 3;
+    }
+    if (levelTag <= 1) {
+      containerClass = "info-box-icon bg-red";
+    }
+    var iconClass = "fa fa-battery-" + levelTag + " big-icon";
+    return (
+      <span class={containerClass}>
+        <i class={iconClass} />
+      </span>
+    );
+  }
+
+  humanizeSpeed = (speed_in_bits) => {
+    // Humanize plus acts on file size with a minimum size of bytes
+    var humanizeBits = speed_in_bits * 8;
+    var speedStr = Humanize.fileSize(humanizeBits).toLowerCase();
+    return Humanize.titleCase(speedStr) + '/s';
+  }
+
   renderBody = () => {
     return(
       <div class="content container-fluid">
@@ -66,12 +92,10 @@ class Dashboard extends Component {
 
           <div class="col-md-6">
             <div class="info-box">
-              <span class="info-box-icon bg-green">
-                <i class="fa fa-battery-0 big-icon"/>
-              </span>
+              { this.renderBatteryInfo(this.state.system.battery.battery_level) }
               <div class="info-box-content">
                 <h4>CHARGE LEVEL</h4>
-                <p>100%</p>
+                <p>{ this.state.system.battery.battery_level }%</p>
               </div>
             </div>
           </div>
@@ -88,13 +112,13 @@ class Dashboard extends Component {
                   <ul>
                     <li>
                       <i class="fa fa-chevron-circle-up "></i>
-                      <span class="speed">20.6 KB/s</span> 
+                      <span class="speed">{ this.humanizeSpeed(this.state.system.network.connection.up_speed * 8) }</span> 
                       <br/>
                       <span class="traffic">Upload</span>
                     </li>
                     <li>
                       <i class="fa fa-chevron-circle-down"></i>
-                      <span class="speed">20.6 KB/s</span>
+                      <span class="speed">{ this.humanizeSpeed(this.state.system.network.connection.down_speed * 8) }</span> 
                       <br/>
                       <span class="traffic">Download</span>
                     </li>
@@ -111,7 +135,7 @@ class Dashboard extends Component {
                 </span>
                 <div class="info-box-content">
                   <h4>DEVICES CONNECTED</h4>
-                  <p>23</p>
+                  <p>{ this.state.system.network.connected_clients }</p>
                 </div>
               </div>
             </div>
