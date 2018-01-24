@@ -73,6 +73,20 @@ class Dashboard extends Component {
     return Humanize.titleCase(speedStr) + '/s';
   }
 
+  getStorageUsage = () => {
+    if (this.state.storage_usage === null) {
+      var usage = (this.state.system.storage.used_space / 
+                   this.state.system.storage.total_space) * 100;
+      if (isNaN(NaN)) {
+        usage = 0;
+      }
+      this.setState({
+        storage_usage: Math.round(usage)
+      });
+    }
+    return this.state.storage_usage;
+  }
+
   renderBody = () => {
     return(
       <div class="content container-fluid">
@@ -148,10 +162,10 @@ class Dashboard extends Component {
                   <h3 class="box-title">Storage</h3>
                 </div>
                 <div class="box-body">
-                  <p>Your SupaBRCK has 2568GB of storage. To access web, go to local.brck (192.168.88.1:8080)</p>
+                  <p>Your SupaBRCK has <strong>{ Humanize.fileSize(this.state.system.storage.total_space) }</strong> of storage. To access web, go to local.brck (192.168.88.1:8080)</p>
                   <div class="progress">
-                    <div class="progress-bar progress-bar-yellow" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style={{width: '60%'}}>1.5GB used
-                      <span class="sr-only">60% Complete (warning)</span>
+                    <div class="progress-bar progress-bar-yellow" role="progressbar" aria-valuenow={this.getStorageUsage()} aria-valuemin="0" aria-valuemax="100" style={{width: this.getStorageUsage() + '%'}}>1.5GB used
+                      <span class="sr-only">{this.getStorageUsage()}% Complete (warning)</span>
                     </div>
                   </div>
                 </div>
