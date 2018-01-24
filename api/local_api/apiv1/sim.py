@@ -47,7 +47,7 @@ def get_wan_connections():
         available = False
         connected = False
         if file_resp != False and file_resp == '1':
-            connection_available =True
+            available = True
         c_data = dict(
             id=c_id,
             name=name,
