@@ -1,11 +1,11 @@
 get:
   tags:
     - Network
-  summary: Get network connections
+  summary: Get ethernet network connections
   responses:
     200:
       description: Network state retrieved successfully
       schema:
         type: array
         items:
-          $ref: '#/definitions/ConnectionState'
+          $ref: '#/definitions/ConnectionStateEthernet'

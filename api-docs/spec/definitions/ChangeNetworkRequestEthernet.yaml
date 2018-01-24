@@ -1,0 +1,4 @@
+type: object
+properties:
+  configuration:
+    $ref: '#/definitions/EthernetStatus'

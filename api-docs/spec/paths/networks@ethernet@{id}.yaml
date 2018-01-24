@@ -3,18 +3,18 @@ parameters:
 patch:
   tags:
     - Network
-  summary: Updates network connection.
+  summary: Configure ethernet connection.
   parameters:
     - name: changes
       in: body
       required: true
       schema:
-        $ref: '#/definitions/ChangeNetworkRequest'
+        $ref: '#/definitions/ChangeNetworkRequestEthernet'
   responses:
     200:
       description: Network was updated successfully
       schema:
-        $ref: '#/definitions/ConnectionState'
+        $ref: '#/definitions/ConnectionStateEthernet'
     400:
       description: The network update failed
       schema:

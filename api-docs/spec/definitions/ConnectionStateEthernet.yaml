@@ -1,0 +1,20 @@
+type: object
+properties:
+  id:
+    type: string
+    description: Unique identifier for the connection interface device
+    example: ETHERNET1
+  name:
+    type: string
+    description: Connection name
+    example: ETHERNET 1
+  connection_type:
+    $ref: '#/definitions/InterfaceType'
+  connection_available:
+    type: boolean
+    description: The media connection state for this interface (SIM/Cable connection)
+  connected:
+    type: boolean
+    description: The connection status for this interface
+  info:
+    $ref: '#/definitions/EthernetStatus'

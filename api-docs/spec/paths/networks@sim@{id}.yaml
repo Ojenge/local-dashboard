@@ -1,0 +1,21 @@
+parameters:
+  - $ref: '#/parameters/connectionId'
+patch:
+  tags:
+    - Network
+  summary: Configure WAN connection.
+  parameters:
+    - name: changes
+      in: body
+      required: true
+      schema:
+        $ref: '#/definitions/ChangeNetworkRequestWAN'
+  responses:
+    200:
+      description: Network was updated successfully
+      schema:
+        $ref: '#/definitions/ConnectionStateWAN'
+    400:
+      description: The network update failed
+      schema:
+        $ref: '#/definitions/Error'
