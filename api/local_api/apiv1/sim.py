@@ -1,12 +1,21 @@
 # -*- coding: utf-8 -*-
 
+import re
+
+from brck.utils import run_command
+
 from utils import read_file
+from utils import get_uci_state
+
 
 SIM_STATUS_FILES = [
     '/sys/class/gpio/gpio339/value',
     '/sys/class/gpio/gpio340/value',
     '/sys/class/gpio/gpio341/value'
 ]
+
+REG_SIM_LOCK = re.compile('^.*(PIN|PUK).*$')
+
 
 def get_wan_connections():
     """Returns list of SIM connections
@@ -48,12 +57,26 @@ def get_wan_connections():
         connected = False
         if file_resp != False and file_resp == '1':
             available = True
+        info = {}
+        if available:
+            uci_state = get_uci_state('network.wan')
+            connected = uci_state.get('network.wan.connected', '') == '1'
+            info['apn_configured'] = bool(uci_state.get('network.wan.apn'))
+            if not connected:
+                sim_status = run_command(['querymodem', 'check_pin'],
+                                         output=True)
+                if REG_SIM_LOCK.match(sim_status):
+                    info['sim_locked'] = True
+                else:
+                    info['sim_locked'] = False
+            else:
+                 info['sim_locked'] = False
         c_data = dict(
             id=c_id,
             name=name,
             available=available,
             connected=connected,
-            info={}
+            info=info
         )
         conns.append(c_data)
     return conns

@@ -36,7 +36,7 @@ EXPECTED_NETWORK_RESP = dict(
         connection_type='3G',
         up_speed=0,
         down_speed=0,
-        signal_strength=24
+        signal_strength=100
     )
 )
 
@@ -84,7 +84,7 @@ def test_system_battery_api(client):
 def test_network_status_api(client):
     with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.run_command',
-            side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+            side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, '31']):
             with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                 resp = client.get('/api/v1/system')
                 assert(resp.status_code == 200)

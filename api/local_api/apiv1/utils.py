@@ -49,13 +49,16 @@ def get_signal_strength():
 
     :return: int (percentage 0-100)
     """
-    signal_strengh = 0
-    resp = run_command(['querymodem', 'signal'])
+    signal_strength = 0
+    resp = run_command(['querymodem', 'signal'], output=True)
+    print '$$$$$$$$$$$$$$$ // SIGNAL // %r' % (resp)
     try:
-        signal_strengh = int(resp or '')
+        rssi = int(resp or '')
+        if (rssi >= 0 and rssi <= 31):
+            signal_strength = (rssi * 827 + 127) >> 8
     except ValueError:
         LOG.error("Failed to load signal strength: QueryModem Response: %s", resp)
-    return signal_strengh
+    return signal_strength
 
 
 def read_file(path):
