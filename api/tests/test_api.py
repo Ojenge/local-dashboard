@@ -72,7 +72,7 @@ def test_system_api(client):
 def test_system_battery_api(client):
     with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.run_command',
-            side_effect=[True, DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+            side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
             with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                 resp = client.get('/api/v1/system')
                 assert(resp.status_code == 200)
@@ -84,7 +84,7 @@ def test_system_battery_api(client):
 def test_network_status_api(client):
     with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.run_command',
-            side_effect=[True, DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+            side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
             with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                 resp = client.get('/api/v1/system')
                 assert(resp.status_code == 200)
@@ -106,7 +106,7 @@ def test_patch_system_ok(client):
     with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.uci_set', return_value=True):
             with mock.patch('local_api.apiv1.utils.run_command',
-                side_effect=[True, DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+                side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
                 with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                     resp = client.patch('/api/v1/system',
                         data=json.dumps(test_payload),
@@ -131,7 +131,7 @@ def test_patch_system_not_ok(client):
     with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.uci_set', return_value=True):
             with mock.patch('local_api.apiv1.utils.run_command',
-                side_effect=[True, DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+                side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
                 with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                     resp = client.patch('/api/v1/system',
                         data=json.dumps(test_payload),

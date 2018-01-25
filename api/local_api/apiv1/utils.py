@@ -67,7 +67,7 @@ def read_file(path):
     contents = False
     try:
         with open(path) as f:
-            contents = f.read()
+            contents = f.read().strip()
     except IOError:
         LOG.error('Failed to read file at %s', path)
     return contents
@@ -129,16 +129,13 @@ def get_battery_status():
 
     :return: dict
     """
-    battery_level = 0
-    state = 'UNKNOWN'
-    check_resp = run_command('check_battery', output=False)
-    if check_resp:
-        state = read_file('/tmp/battery/status') or STATE_UNKNOWN
-        capacity = read_file('/tmp/battery/capacity')
-        try:
-            battery_level = int(capacity)
-        except ValueError:
-            LOG.error('Failed to ready battery capacity | Returned: %s', capacity)
+    state = read_file('/tmp/battery/status') or STATE_UNKNOWN
+    battery_level = read_file('/tmp/battery/capacity') or 0
+    try:
+        battery_level = int(battery_level)
+    except ValueError:
+        battery_level = 0
+        LOG.error('Failed to ready battery capacity | Returned: %s', capacity)
     state = dict(
         state=state.upper(),
         battery_level=battery_level
