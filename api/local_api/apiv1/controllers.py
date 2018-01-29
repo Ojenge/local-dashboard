@@ -7,6 +7,8 @@ API Controllers for the local dashboard
 from flask import Blueprint, jsonify, request, abort, make_response
 from flask.views import MethodView
 
+from flask_login import login_required
+
 from utils import get_system_state
 from utils import configure_system
 from sim import get_wan_connections
@@ -44,6 +46,8 @@ def handle_bad_data_error(error):
 
 class Ping(MethodView):
     
+    decorators = [login_required]
+
     def get(self):
         """Provides a PING API
         """
