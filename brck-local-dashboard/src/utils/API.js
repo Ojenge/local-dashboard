@@ -1,7 +1,7 @@
 var request = require('superagent');
 
 
-const BASE_URL = 'http://localhost:9009/api/v1';
+const BASE_URL = '/api/v1';
 
 const TIMEOUT = {
     response: 3000,

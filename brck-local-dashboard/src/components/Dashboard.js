@@ -74,14 +74,14 @@ class Dashboard extends Component {
   }
 
   getStorageUsage = () => {
-    if (this.state.storage_usage === null) {
+    if (this.state.storage_usage === undefined) {
       var usage = (this.state.system.storage.used_space / 
                    this.state.system.storage.total_space) * 100;
-      if (isNaN(NaN)) {
+      if (isNaN(usage)) {
         usage = 0;
       }
       this.setState({
-        storage_usage: Math.round(usage)
+        storage_usage: usage
       });
     }
     return this.state.storage_usage;
