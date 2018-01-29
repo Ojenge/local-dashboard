@@ -5,7 +5,6 @@ from binascii import hexlify
 
 from flask import current_app as app
 from flask import request
-from flask import jsonify
 
 from local_api.apiv1.utils import get_request_log
 from local_api.apiv1.errors import APIError
@@ -19,11 +18,11 @@ def unauthorized():
                      get_request_log(request))
     raise APIError(message="Unauthorized",
                    errors=["Unauthorized access."],
-                   status_code=401)    
+                   status_code=401)
 
 
 def generate_key():
-    """Generates an authentication key once 
+    """Generates an authentication key once.
     """
     auth_key = None
     if AUTH_KEY_ENV in app.config:
@@ -57,11 +56,11 @@ class User(object):
         return unicode(self.login)
 
 
-def load_user(request):
+def load_user(r):
     """Loads authenticated used from API key.
     """
     _user = None
-    key = request.headers.get(AUTH_HEADER)
+    key = r.headers.get(AUTH_HEADER)
     if key == os.environ.get(AUTH_KEY_ENV, generate_key()):
         return User('username')
     return _user

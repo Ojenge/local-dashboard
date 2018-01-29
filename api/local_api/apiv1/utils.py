@@ -31,7 +31,7 @@ def get_request_log(r):
 
     :return: string
     """
-    return "%s|%s|%s".format(r.remote_addr, r.path, r.user_agent)
+    return "%s|%s|%s" % (r.remote_addr, r.path, r.user_agent)
 
 
 
@@ -150,7 +150,7 @@ def get_battery_status():
         battery_level = int(battery_level)
     except ValueError:
         battery_level = 0
-        LOG.error('Failed to ready battery capacity | Returned: %s', capacity)
+        LOG.error('Failed to ready battery capacity | Returned: %s', battery_level)
     state = dict(
         state=state.upper(),
         battery_level=battery_level
@@ -216,19 +216,19 @@ def get_network_status():
 
 
 def get_system_state():
-        mode = get_device_mode()
-        storage_state = get_storage_status()
-        battery_state = get_battery_status()
-        power_state = get_power_config()
-        network_state = get_network_status()
-        state = dict(
-            mode=mode,
-            storage=storage_state,
-            battery=battery_state,
-            power=power_state,
-            network=network_state
-        )
-        return state
+    mode = get_device_mode()
+    storage_state = get_storage_status()
+    battery_state = get_battery_status()
+    power_state = get_power_config()
+    network_state = get_network_status()
+    state = dict(
+        mode=mode,
+        storage=storage_state,
+        battery=battery_state,
+        power=power_state,
+        network=network_state
+    )
+    return state
 
 
 def configure_system(config):

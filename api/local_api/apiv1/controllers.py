@@ -4,15 +4,15 @@
 API Controllers for the local dashboard
 """
 
-from flask import Blueprint, jsonify, request, abort, make_response
+from flask import Blueprint, jsonify, request
 from flask.views import MethodView
 
 from flask_login import login_required
 
-from utils import get_system_state
-from utils import configure_system
-from errors import APIError
-from sim import get_wan_connections
+from .utils import get_system_state
+from .utils import configure_system
+from .errors import APIError
+from .sim import get_wan_connections
 
 api_blueprint = Blueprint('apiv1', __name__)
 
@@ -33,10 +33,15 @@ def handle_bad_data_error(error):
     return response
 
 
-class Ping(MethodView):
-    
+class ProtectedView(MethodView):
+    """Protected view requiring authorization
+    """
+
     decorators = [login_required]
 
+
+class Ping(ProtectedView):
+    
     def get(self):
         """Provides a PING API
         """
@@ -44,7 +49,7 @@ class Ping(MethodView):
                             version='0.1'))
 
 
-class SystemAPI(MethodView):
+class SystemAPI(ProtectedView):
 
     def get(self):
         """Returns a JSON struct of the system API
@@ -71,7 +76,7 @@ class SystemAPI(MethodView):
             raise APIError('Invalid Data', errors, 422)
 
 
-class WANAPI(MethodView):
+class WANAPI(ProtectedView):
     
     def get(self):
         """Returns a list of active WAN connections.

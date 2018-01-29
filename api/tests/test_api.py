@@ -40,23 +40,40 @@ EXPECTED_NETWORK_RESP = dict(
     )
 )
 
+TEST_AUTH_KEY = 'TEST'
+
 @pytest.fixture
 def client(request):
-    client =  local_api.app.test_client()
-    return client
+    local_api.app.config['AUTHORIZED_KEY'] = TEST_AUTH_KEY
+    t_client = local_api.app.test_client()
+    return t_client
+
+
+@pytest.fixture
+def headers():
+    return {'X-Auth-Token-Key': TEST_AUTH_KEY}
+
 
 def load_json(response):
     """Load JSON from response"""
     return json.loads(response.data.decode('utf8'))
 
 
+def test_unauthorized(client):
+    resp = client.get('/api/v1/ping')
+    assert resp.status_code == 401
 
-def test_system_api(client):
-    resp = client.get('/api/v1/system')
-    assert(resp.status_code == 200)
+
+def test_ping(client, headers):
+    resp = client.get('/api/v1/ping', headers=headers)
+    assert resp.status_code == 200
+
+
+def test_system_api(client, headers):
+    resp = client.get('/api/v1/system', headers=headers)
+    assert resp.status_code == 200
     payload = load_json(resp)
-    assert(isinstance(payload, dict))
-    print payload
+    assert isinstance(payload, dict)
     assert 'storage' in payload
     storage_payload = payload['storage']
     for k in ['total_space', 'used_space', 'available_space']:
@@ -69,31 +86,31 @@ def test_system_api(client):
         assert v is not None
 
 
-def test_system_battery_api(client):
+def test_system_battery_api(client, headers):
     with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.run_command',
             side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
             with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
-                resp = client.get('/api/v1/system')
+                resp = client.get('/api/v1/system', headers=headers)
                 assert(resp.status_code == 200)
                 payload = load_json(resp)
                 assert 'battery' in payload
                 assert payload['battery'] == dict(state='CHARGING', battery_level=98)
 
 
-def test_network_status_api(client):
+def test_network_status_api(client, headers):
     with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.run_command',
-            side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, '31']):
+                        side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, '31']):
             with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
-                resp = client.get('/api/v1/system')
-                assert(resp.status_code == 200)
+                resp = client.get('/api/v1/system', headers=headers)
+                assert resp.status_code == 200
                 payload = load_json(resp)
                 assert 'network' in payload
                 assert payload['network'] == EXPECTED_NETWORK_RESP
 
 
-def test_patch_system_ok(client):
+def test_patch_system_ok(client, headers):
     test_payload = dict(
         mode='ALWAYS_ON',
         power=dict(
@@ -106,19 +123,20 @@ def test_patch_system_ok(client):
     with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.uci_set', return_value=True):
             with mock.patch('local_api.apiv1.utils.run_command',
-                side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+                            side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
                 with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                     resp = client.patch('/api/v1/system',
-                        data=json.dumps(test_payload),
-                        content_type='application/json')
-                    assert(resp.status_code == 200)
+                                        data=json.dumps(test_payload),
+                                        content_type='application/json',
+                                        headers=headers)
+                    assert resp.status_code == 200
                     payload = load_json(resp)
                     assert 'mode' in payload
                     assert 'battery' in payload
                     assert 'network' in payload
 
 
-def test_patch_system_not_ok(client):
+def test_patch_system_not_ok(client, headers):
     test_payload = dict(
         mode='ALWAYS_ON',
         power=dict(
@@ -131,14 +149,15 @@ def test_patch_system_not_ok(client):
     with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.uci_set', return_value=True):
             with mock.patch('local_api.apiv1.utils.run_command',
-                side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+                            side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
                 with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                     resp = client.patch('/api/v1/system',
-                        data=json.dumps(test_payload),
-                        content_type='application/json')
+                                        data=json.dumps(test_payload),
+                                        content_type='application/json',
+                                        headers=headers)
                     payload = load_json(resp)
                     assert 'errors' in payload
                     errors = payload['errors']
                     assert 'soc_off' in errors
                     assert 'soc_on' in errors
-                    assert(resp.status_code == 422)
+                    assert resp.status_code == 422
