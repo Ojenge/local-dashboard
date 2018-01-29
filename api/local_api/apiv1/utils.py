@@ -23,6 +23,18 @@ DEVICE_MODES = ['MATATU', 'ALWAYS_ON', 'RETAIL', 'SOLAR_POWERED']
 
 REGEX_TIME = re.compile('^(0[0-9]|1[0-9]|2[0-3]):(0[0-9]|[1-5][0-9])$')
 
+
+def get_request_log(r):
+    """Gets request metadata as a string for logging
+
+    Includes: user agent, remote address, path
+
+    :return: string
+    """
+    return "%s|%s|%s".format(r.remote_addr, r.path, r.user_agent)
+
+
+
 def get_uci_state(option, command='show'):
     """Gets the uci state stored at `option`
 

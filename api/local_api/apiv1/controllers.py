@@ -11,6 +11,7 @@ from flask_login import login_required
 
 from utils import get_system_state
 from utils import configure_system
+from errors import APIError
 from sim import get_wan_connections
 
 api_blueprint = Blueprint('apiv1', __name__)
@@ -22,23 +23,11 @@ PATCH = 'PATCH'
 HTTP_OK = 200
 
 
-class APIErrorData(Exception):
-    
-
-    def __init__(self, message='Error', payload={}, status_code=400):
-        Exception.__init__(self)
-        self.status_code = status_code
-        self.payload = payload
-
-    def to_dict(self):
-        r = {}
-        r['message'] = self.message
-        r['errors'] = self.payload
-        return r
-
-
-@api_blueprint.app_errorhandler(APIErrorData)
+@api_blueprint.app_errorhandler(APIError)
 def handle_bad_data_error(error):
+    """API Error handler
+    :return: flask.Response
+    """
     response = jsonify(error.to_dict())
     response.status_code = error.status_code
     return response
@@ -79,7 +68,7 @@ class SystemAPI(MethodView):
         if status_code == HTTP_OK:
             return jsonify(get_system_state())
         else:
-            raise APIErrorData('Invalid Data', errors, 422)
+            raise APIError('Invalid Data', errors, 422)
 
 
 class WANAPI(MethodView):

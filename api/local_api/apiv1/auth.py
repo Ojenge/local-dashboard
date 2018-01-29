@@ -4,10 +4,22 @@ import os
 from binascii import hexlify
 
 from flask import current_app as app
+from flask import request
+from flask import jsonify
 
+from local_api.apiv1.utils import get_request_log
+from local_api.apiv1.errors import APIError
 
 AUTH_KEY_ENV = 'AUTHORIZED_KEY'
 AUTH_HEADER = 'X-Auth-Token-Key'
+
+
+def unauthorized():
+    app.logger.error("Unauthorized Access|%s",
+                     get_request_log(request))
+    raise APIError(message="Unauthorized",
+                   errors=["Unauthorized access."],
+                   status_code=401)    
 
 
 def generate_key():
