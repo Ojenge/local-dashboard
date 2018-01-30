@@ -12,7 +12,9 @@ from brck.utils import uci_get
 from brck.utils import uci_set
 from brck.utils import uci_commit
 
-from schema import Validator
+from .schema import Validator
+from .soc import get_soc_settings
+
 
 LOG = __import__('logging').getLogger()
 
@@ -158,25 +160,6 @@ def get_battery_status():
     return state
 
 
-def get_power_config():
-    """Gets the power configuration on the BRCK
-
-    Example:
-
-        {
-            'soc_on': 0,
-            'soc_off': 0,
-            'turn_on_time': "00:00",
-            'turn_off_time': "00:00"
-        }
-
-    Depending on the device mode, the configuration determines
-    power on and power off behaviour.
-    :return: dict
-    """
-    return {}
-
-
 def get_network_status():
     """Gets the network state of the BRCK
 
@@ -219,7 +202,7 @@ def get_system_state():
     mode = get_device_mode()
     storage_state = get_storage_status()
     battery_state = get_battery_status()
-    power_state = get_power_config()
+    power_state = get_soc_settings()
     network_state = get_network_status()
     state = dict(
         mode=mode,
