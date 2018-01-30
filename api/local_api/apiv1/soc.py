@@ -2,6 +2,7 @@
 
 import os
 import serial
+from datetime import datetime
 
 """
 {'AlarmPwrOnHour': 6,
@@ -20,6 +21,7 @@ import serial
 LOG = __import__('logging').getLogger()
 DEVICE = '/dev/ttyACM0'
 TIMEOUT = 3
+TIME_FORMAT = '%H:%M'
 
 
 def read_serial():
@@ -45,7 +47,7 @@ def read_serial():
 
 
 def get_soc_settings():
-    """Gets SOC settings in API-format
+    """Gets SOC settings in API-compatible format.
 
     :return: dict
     """
@@ -64,7 +66,39 @@ def get_soc_settings():
     return soc_settings
 
 
-def set_soc_setting(payload):
-    """Configures SOC Settings
+
+def payload_to_command(payload):
+    """Converts API payload to serial command
     """
-    pass
+    soc_on = payload['soc_on']
+    soc_off = payload['soc_off']
+    on_date = datetime.strptime(payload['on_time'], TIME_FORMAT)
+    off_date = datetime.strptime(payload['off_time'], TIME_FORMAT)
+    auto_start = payload.get('auto_start', 0)
+    command = 'WRC%d,%d,%d,%d,%d,%d,%d' % (soc_on, soc_off,
+                                           on_date.hour, on_date.minute,
+                                           off_date.hour, off_date.minute,
+                                           auto_start)
+    return command
+
+
+def set_soc(payload):
+    """Configures SOC Settings
+
+    :return: bool
+    """
+    command = payload_to_command(payload)
+    status = False
+    port = None
+    try:        
+        port = serial.Serial(DEVICE, timeout=TIMEOUT)
+        port.write(command)
+        status = True
+    except serial.serialutil.SerialException as exc:
+        LOG.error("Failed to connect to serial port: %r", exc)
+    except Exception as exc:
+        LOG.error("Failed to write port configuration with error: %r", exc)
+    finally:
+        if isinstance(port, serial.Serial):
+            port.close()
+    return status

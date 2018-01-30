@@ -32,3 +32,8 @@ def test_get_soc_settings():
                     side_effect=[DUMMY_SOC_RESPONSE]):
         settings = soc.get_soc_settings()
         assert settings == EXPECTED_SOC_SETTINGS
+
+
+def test_soc_command():
+    command = 'WRC15,5,6,0,20,1,0'
+    assert soc.payload_to_command(EXPECTED_SOC_SETTINGS) == command
