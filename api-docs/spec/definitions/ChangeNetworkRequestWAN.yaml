@@ -8,3 +8,6 @@ properties:
         pattern: '\d{4}|'
         description: PIN to use to unlock the SIM (When SIM is locked)
         example: "1234"
+      network:
+        $ref: '#/definitions/WanIPConfig'
+        optional: true

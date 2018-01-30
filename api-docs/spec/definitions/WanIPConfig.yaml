@@ -1,0 +1,11 @@
+type: object
+properties:
+  apn:
+    type: string
+    description: Access Point name
+  username:
+    type: string
+    description: Access Point username
+  password:
+    type: string
+    description: Access Point password
