@@ -16,6 +16,9 @@ class Validator(object):
     def is_valid(self):
         return len(self.errors) == 0
 
+    def add_error(self, key, message):
+        self.errors[key] = message
+
     def ensure_exists(self, key, message=None):
         if key not in self.data and key not in self.errors:
             self.errors[key] = message or '{} required'.format(key)
@@ -31,7 +34,7 @@ class Validator(object):
         for k in keys:
             if (not k in self.errors) and (not self.data.get(k)):
                 missing.append([k, 'required'])
-        if missing < keys:
+        if len(missing) < len(keys):
             self.errors.update(missing)
     
     def ensure_range(self, key, min, max, type=None):

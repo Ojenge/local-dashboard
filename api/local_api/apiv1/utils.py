@@ -266,5 +266,5 @@ def configure_system(config):
         uci_set('brck.power.soc_on', mconfig['soc_on'])
         uci_set('brck.power.soc_off', mconfig['soc_off'])
     # Only commit uci if no errors
-    uci_commit('brck.soc')
+    uci_commit('brck.power')
     return (200, 'OK')

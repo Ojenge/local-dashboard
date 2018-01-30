@@ -146,7 +146,7 @@ def test_patch_system_not_ok(client, headers):
             soc_off=25
         )
     )
-    with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
+    with mock.patch('local_api.apiv1.utils.uci_get', side_effect=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.uci_set', return_value=True):
             with mock.patch('local_api.apiv1.utils.run_command',
                             side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
@@ -161,3 +161,43 @@ def test_patch_system_not_ok(client, headers):
                     assert 'soc_off' in errors
                     assert 'soc_on' in errors
                     assert resp.status_code == 422
+
+
+def test_get_sim_networks(client, headers):
+    resp = client.get('/api/v1/networks/sim/',
+                      headers=headers)
+    assert resp.status_code == 200
+    payload = load_json(resp)
+    assert payload[0]['id'] == 'SIM1'
+    assert payload[1]['id'] == 'SIM2'
+    assert payload[2]['id'] == 'SIM3'
+
+
+def test_get_sim_network(client, headers):
+    resp = client.get('/api/v1/networks/sim/SIM1',
+                      headers=headers)
+    assert resp.status_code == 200
+    payload = load_json(resp)
+    assert payload['id'] == 'SIM1'
+    assert payload['name'] == 'SIM 1'
+
+
+def test_patch_sim(client, headers):
+    test_payload = dict(
+        configuration=dict(
+            pin="1234",
+            network=dict(
+                apn="internet"
+            )
+        )
+    )
+    with mock.patch('local_api.apiv1.sim.run_command', side_effect=['OK']):
+        with mock.patch('local_api.apiv1.sim.uci_set', side_effect=[True]):
+            with mock.patch('local_api.apiv1.sim.uci_commit', side_effect=[True]):
+                resp = client.patch('/api/v1/networks/sim/SIM1',
+                                    content_type='application/json',
+                                    data=json.dumps(test_payload),
+                                    headers=headers)
+                payload = load_json(resp)
+                print payload
+                assert resp.status_code == 200
