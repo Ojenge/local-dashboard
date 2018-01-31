@@ -12,7 +12,10 @@ EXPECTED_SOC_SETTINGS = {
     'soc_on': 15,
     'soc_off': 5,
     'on_time': '06:00',
-    'off_time': '20:01'
+    'off_time': '20:01',
+    'delay_off': 0,
+    'delay_off_minutes': 0,
+    'retail': 0,
 }
 
 
@@ -35,5 +38,5 @@ def test_get_soc_settings():
 
 
 def test_soc_command():
-    command = 'WRC15,5,6,0,20,1,0'
+    command = 'WRC15,5,6,0,20,1,0,0,0,0'
     assert soc.payload_to_command(EXPECTED_SOC_SETTINGS) == command

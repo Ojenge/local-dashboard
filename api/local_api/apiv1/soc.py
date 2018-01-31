@@ -59,6 +59,9 @@ def get_soc_settings():
         soc_settings['off_time'] = '{d[PowerOffHour]:02d}:{d[PowerOffMinute]:02d}'.format(d=parsed)
         soc_settings['soc_on'] = parsed['SocPwrOnLevel']
         soc_settings['soc_off'] = parsed['SocPwrOffLevel']
+        soc_settings['delay_off'] = parsed['DelayedOffTimerEnable']
+        soc_settings['delay_off_minutes'] = parsed['DelayOffTimerMinutes']
+        soc_settings['retail'] = parsed['RetailMode']
     except SyntaxError as e:
         LOG.error("Failed to parse SOC settings. Syntax error: %r", e)
     except Exception as e:
@@ -75,10 +78,15 @@ def payload_to_command(payload):
     on_date = datetime.strptime(payload['on_time'], TIME_FORMAT)
     off_date = datetime.strptime(payload['off_time'], TIME_FORMAT)
     auto_start = payload.get('auto_start', 0)
-    command = 'WRC%d,%d,%d,%d,%d,%d,%d' % (soc_on, soc_off,
+    delay_off = payload.get('delay_off', 0)
+    delay_off_minutes = payload.get('delay_off_minutes', 0)
+    retail = payload.get('retail', 0)
+    command = 'WRC%d,%d,%d,%d,%d,%d,%d,%d,%d,%d' % (soc_on, soc_off,
                                            on_date.hour, on_date.minute,
                                            off_date.hour, off_date.minute,
-                                           auto_start)
+                                           auto_start, delay_off,
+                                           delay_off_minutes,
+                                           retail)
     return command
 
 
