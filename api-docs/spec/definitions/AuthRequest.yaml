@@ -1,0 +1,10 @@
+type: object
+properties:
+  login:
+    type: string
+    description: Account Username
+    example: admin
+  password:
+    type: string
+    description: Account Password
+    example: somethingstrong100

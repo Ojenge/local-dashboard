@@ -1,0 +1,15 @@
+post:
+  tags:
+    - Authentication
+  summary: Generate authentication credentials
+  parameters:
+    - name: credentials
+      in: body
+      required: true
+      schema:
+        $ref: '#/definitions/AuthRequest'
+  responses:
+    200:
+      description: Authentication was successful
+      schema:
+        $ref: '#/definitions/TokenCredentials'
