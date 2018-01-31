@@ -5,8 +5,11 @@ import os
 import json
 import pytest
 import mock
+from datetime import datetime
+from datetime import timedelta
 
 import local_api
+from local_api.apiv1 import models
 
 # inject syspath
 file_dir = os.path.dirname(os.path.abspath(__file__))
@@ -57,11 +60,22 @@ def client(request):
 def headers():
     # initialize user
     local_api.db.create_all()
-    from local_api.apiv1 import models
     models.HASH_ROUNDS = 1
     assert models.create_user(TEST_USER, TEST_PASSWORD)
     _token = models.make_token(TEST_USER)
     return {'X-Auth-Token-Key': _token['token']}
+
+
+@pytest.fixture
+def expired_headers():
+    local_api.db.create_all()
+    models.HASH_ROUNDS = 1
+    assert models.create_user(TEST_USER, TEST_PASSWORD)
+    _token = models.AuthToken(principal_id=TEST_USER)
+    _token.expiry = datetime.utcnow()
+    local_api.db.session.add(_token)
+    local_api.db.session.commit()
+    return {'X-Auth-Token-Key': _token.token}
 
 
 def load_json(response):
@@ -89,6 +103,11 @@ def test_get_auth_token(client, headers):
 def test_ping(client, headers):
     resp = client.get('/api/v1/ping', headers=headers)
     assert resp.status_code == 200
+
+
+def test_expired_token(client, expired_headers):
+    resp = client.get('/api/v1/ping', headers=expired_headers)
+    assert resp.status_code == 401
 
 
 def test_system_api(client, headers):

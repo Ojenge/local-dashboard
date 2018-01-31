@@ -8,6 +8,7 @@ from Crypto.Protocol import KDF
 from sqlalchemy.orm.exc import NoResultFound
 
 from local_api import db
+from .errors import APIError
 
 
 LOG = __import__('logging').getLogger('sqlalchemy')
@@ -15,60 +16,11 @@ HASH_ROUNDS = 20000
 EXPIRY_HOURS = 1
 DK_LEN = 32
 
-
-
-def create_user(login, password):
-    """Create a user record
-    :return: bool
-    """
-    completed = False
-    try:
-        user = Principal(login=login, password=password)
-        db.session.add(user)
-        db.session.commit()
-        completed = True
-    except Exception as exc:
-        LOG.error('user creation failed: %s : %r', login, exc)
-    return completed
-
-
-def check_password(login, password):
-    """Checks provided credentials against database.
-
-    :return: tuple
-    """
-    is_verified = False
-    try:
-        user = db.session.query(Principal).filter_by(login=login).one()
-        salt, pass_hash = user.password_hash.split(':')
-        computed = KDF.PBKDF2(password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
-        if computed == pass_hash:
-            is_verified = True
-    except NoResultFound as exc:
-        LOG.error("User not found with login: %s", login)
-        # simulate a password check anyway
-        KDF.PBKDF2(password, 'salt', dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
-    return is_verified
-
-
-def check_header(auth_key):
-    """Load the current user from authentication token
-    """
-    # check length as well
-    _user = None
-    try:
-        token  = db.session.query(AuthToken).filter_by(token=auth_key).one()
-        _user = token.principal
-    except NoResultFound as exc:
-        LOG.error("Token not found:")
-    return _user
-
-
 def generate_password_hash(raw_password):
     """Generates a password for a user.
 
     The value will be stored in the database as a concatenation
-    of a random salt and generated hash, separated by a comma.
+    of a random salt and generated hash, separated by a full colon.
 
     :return: string
     """
@@ -78,25 +30,12 @@ def generate_password_hash(raw_password):
     return '%s:%s' %(salt, pass_hash)
 
 
-def make_token(login):
-    """Generate authentication token.
-
-    :return: dict
-    """
-    auth_token = AuthToken(principal_id=login)
-    db.session.add(auth_token)
-    db.session.commit()
-    return dict(token=auth_token.token,
-                expiry=auth_token.expiry.isoformat())
-
-
 def generate_expiry():
     """Generates expiry date for a token
+
     :return: datetime.datetime
     """
     return datetime.utcnow() + timedelta(hours=EXPIRY_HOURS)
-
-
 
 class Principal(db.Model):
     """User DB Representation
@@ -149,7 +88,7 @@ class AuthToken(db.Model):
         self.generate_token()
 
     id = db.Column(db.Integer, primary_key=True)
-    token = db.Column(db.String(128), nullable=False)
+    token = db.Column(db.String(128), nullable=False, index=True, unique=True)
     created = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
     expiry = db.Column(db.DateTime, default=generate_expiry(), nullable=False)
     principal_id = db.Column(db.String, db.ForeignKey('principal.login'), nullable=False)
@@ -163,3 +102,65 @@ class AuthToken(db.Model):
 
     def __repr__(self):
         return '<AuthToken:%s>' % (self.principal_id)
+
+
+def create_user(login, password):
+    """Create a user record
+    :return: bool
+    """
+    completed = False
+    try:
+        user = Principal(login=login, password=password)
+        db.session.add(user)
+        db.session.commit()
+        completed = True
+    except Exception as exc:
+        LOG.error('user creation failed: %s : %r', login, exc)
+    return completed
+
+
+def check_password(login, password):
+    """Checks provided credentials against database.
+
+    :return: tuple
+    """
+    is_verified = False
+    try:
+        user = db.session.query(Principal).filter_by(login=login).one()
+        salt, pass_hash = user.password_hash.split(':')
+        computed = KDF.PBKDF2(password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
+        if computed == pass_hash:
+            is_verified = True
+    except NoResultFound as exc:
+        LOG.error("User not found with login: %s", login)
+        # simulate a password check anyway
+        KDF.PBKDF2(password, 'salt', dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
+    return is_verified
+
+
+def check_header(auth_key):
+    """Load the current user from authentication token
+    :return: Principal|None
+    """
+    _user = None
+    try:
+        token  = db.session.query(AuthToken).filter_by(token=auth_key).one()
+        if token.expiry > datetime.utcnow():
+            _user = token.principal
+        else:
+            LOG.error('Token with id: %r is expired', token.id)
+    except NoResultFound as exc:
+        LOG.error("Token not found:")
+    return _user
+
+
+def make_token(login):
+    """Generate authentication token.
+
+    :return: dict
+    """
+    auth_token = AuthToken(principal_id=login)
+    db.session.add(auth_token)
+    db.session.commit()
+    return dict(token=auth_token.token,
+                expiry=auth_token.expiry.isoformat())
