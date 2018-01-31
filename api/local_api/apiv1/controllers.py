@@ -16,6 +16,8 @@ from .utils import configure_system
 from .errors import APIError
 from .sim import get_wan_connections
 from .sim import configure_sim
+from .models import check_password
+from .models import make_token
 
 api_blueprint = Blueprint('apiv1', __name__)
 
@@ -23,6 +25,7 @@ api_blueprint = Blueprint('apiv1', __name__)
 GET = 'GET'
 POST = 'POST'
 PATCH = 'PATCH'
+POST = 'POST'
 HTTP_OK = 200
 
 # Route regexes
@@ -37,6 +40,24 @@ def handle_bad_data_error(error):
     response = jsonify(error.to_dict())
     response.status_code = error.status_code
     return response
+
+
+class AuthenticationView(MethodView):
+    """Authentication views.
+    """
+
+    def post(self):
+        """Responds with an authorized token or error.
+        :return:
+        """
+        payload = request.get_json()
+        login = payload.get('login')
+        password = payload.get('password')
+        if check_password(login, password):
+            return jsonify(make_token(login))
+        else:
+            raise APIError(message='Bad Credentials', status_code=401)
+
 
 
 class ProtectedView(MethodView):
@@ -114,6 +135,9 @@ class WANAPI(ProtectedView):
         else:
             raise APIError("Invalid Data", errors, 422)
 
+api_blueprint.add_url_rule('/auth',
+                           view_func=AuthenticationView.as_view('auth'),
+                           methods=[POST])
 sim_view = WANAPI.as_view('user_api')
 api_blueprint.add_url_rule('/networks/sim/',
                            defaults={'sim_id': None},

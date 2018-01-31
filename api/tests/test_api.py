@@ -28,6 +28,8 @@ DUMMY_CHILLY_RESP = """Station                Connected time 	Signal         	In
 
 
 DUMMY_SIGNAL_RESP = "24"
+TEST_DATABASE_PATH = '/tmp/testdb.sqlite'
+TEST_DATABASE_URL = 'sqlite:///%s' % (TEST_DATABASE_PATH)
 
 EXPECTED_NETWORK_RESP = dict(
     connected=False,
@@ -40,18 +42,26 @@ EXPECTED_NETWORK_RESP = dict(
     )
 )
 
-TEST_AUTH_KEY = 'TEST'
+TEST_USER = 'test_user'
+TEST_PASSWORD = 'test_password'
 
 @pytest.fixture
 def client(request):
-    local_api.app.config['AUTHORIZED_KEY'] = TEST_AUTH_KEY
+    if os.path.exists(TEST_DATABASE_PATH):
+        os.unlink(TEST_DATABASE_PATH)
+    local_api.app.config['SQLALCHEMY_DATABASE_URI'] = TEST_DATABASE_URL
     t_client = local_api.app.test_client()
     return t_client
 
-
 @pytest.fixture
 def headers():
-    return {'X-Auth-Token-Key': TEST_AUTH_KEY}
+    # initialize user
+    local_api.db.create_all()
+    from local_api.apiv1 import models
+    models.HASH_ROUNDS = 1
+    assert models.create_user(TEST_USER, TEST_PASSWORD)
+    _token = models.make_token(TEST_USER)
+    return {'X-Auth-Token-Key': _token['token']}
 
 
 def load_json(response):
@@ -60,8 +70,20 @@ def load_json(response):
 
 
 def test_unauthorized(client):
+    local_api.db.create_all()
     resp = client.get('/api/v1/ping')
     assert resp.status_code == 401
+
+
+def test_get_auth_token(client, headers):
+    _auth = dict(login=TEST_USER, password=TEST_PASSWORD)
+    resp = client.post('/api/v1/auth',
+                       content_type='application/json',
+                       data=json.dumps(_auth))
+    assert resp.status_code == 200
+    payload = load_json(resp)
+    assert 'token' in payload
+    assert 'expiry' in payload 
 
 
 def test_ping(client, headers):

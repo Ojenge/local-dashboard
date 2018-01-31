@@ -17,6 +17,20 @@ DK_LEN = 32
 
 
 
+def create_user(login, password):
+    """Create a user record
+    :return: bool
+    """
+    completed = False
+    try:
+        user = Principal(login=login, password=password)
+        db.session.add(user)
+        db.session.commit()
+        completed = True
+    except Exception as exc:
+        LOG.error('user creation failed: %s : %r', login, exc)
+    return completed
+
 
 def check_password(login, password):
     """Checks provided credentials against database.
@@ -37,6 +51,19 @@ def check_password(login, password):
     return is_verified
 
 
+def check_header(auth_key):
+    """Load the current user from authentication token
+    """
+    # check length as well
+    _user = None
+    try:
+        token  = db.session.query(AuthToken).filter_by(token=auth_key).one()
+        _user = token.principal
+    except NoResultFound as exc:
+        LOG.error("Token not found:")
+    return _user
+
+
 def generate_password_hash(raw_password):
     """Generates a password for a user.
 
@@ -50,6 +77,17 @@ def generate_password_hash(raw_password):
     pass_hash = KDF.PBKDF2(raw_password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
     return '%s:%s' %(salt, pass_hash)
 
+
+def make_token(login):
+    """Generate authentication token.
+
+    :return: dict
+    """
+    auth_token = AuthToken(principal_id=login)
+    db.session.add(auth_token)
+    db.session.commit()
+    return dict(token=auth_token.token,
+                expiry=auth_token.expiry.isoformat())
 
 
 def generate_expiry():
@@ -84,6 +122,18 @@ class Principal(db.Model):
     def set_password(self, password):
         pass_hash = generate_password_hash(password)
         self.password_hash = pass_hash
+
+    def is_authenticated(self):
+        return self.login is not None
+
+    def is_active(self):
+        return self.login is not None
+
+    def is_anonymous(self):
+        return self.login is None
+
+    def get_id(self):
+        return unicode(self.login)
 
     def __repr__(self):
         return '<User:%s>' % (self.login)
