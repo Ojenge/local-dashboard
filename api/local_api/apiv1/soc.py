@@ -2,6 +2,7 @@
 
 import os
 import serial
+import re
 from datetime import datetime
 
 """
@@ -22,7 +23,7 @@ LOG = __import__('logging').getLogger()
 DEVICE = '/dev/ttyACM0'
 TIMEOUT = 3
 TIME_FORMAT = '%H:%M'
-
+CONFIG_PATTERN = re.compile("\w+\:\d+")
 
 def read_serial():
     """Read SOC configuration via serial
@@ -43,7 +44,19 @@ def read_serial():
         port.close()
     else:
         LOG.error("Port does not exist found at: %s", DEVICE)
-    return ''.join(response)
+    _resp = ''.join(response)
+    _final = _resp.replace('\n', '')
+    return _final
+
+
+def parse_serial(raw_content):
+    """Parses Serial Response into a dictionary
+    :return: dict
+    """
+    _stripped = raw_content.replace('"', '')
+    configs = CONFIG_PATTERN.findall(_stripped)
+    tuples = [c.split(":") for c in configs]
+    return dict([(k, int(v)) for k,v in tuples])
 
 
 def get_soc_settings():
@@ -54,7 +67,7 @@ def get_soc_settings():
     soc_settings = {}
     try:
         resp = read_serial()
-        parsed = eval(''.join(resp))
+        parsed = parse_serial(resp)
         soc_settings['on_time'] = '{d[AlarmPwrOnHour]:02d}:{d[AlarmPwrOnMinute]:02d}'.format(d=parsed)
         soc_settings['off_time'] = '{d[PowerOffHour]:02d}:{d[PowerOffMinute]:02d}'.format(d=parsed)
         soc_settings['soc_on'] = parsed['SocPwrOnLevel']
