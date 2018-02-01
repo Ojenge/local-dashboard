@@ -6,6 +6,7 @@ Utilities for interacting with the filesystem.
 
 import os
 import re
+import time
 
 from brck.utils import run_command
 from brck.utils import uci_get
@@ -37,13 +38,13 @@ def get_request_log(r):
 
 
 
-def get_uci_state(option, command='show'):
+def get_uci_state(option, command='show', as_dict=True):
     """Gets the uci state stored at `option`
 
     :param str option: the name of the uci option
     :param str command: the command to run on state (`show` or `get`)
     :param bool expand_options: whether the response should be expanded
-    :return: dict of the state
+    :return: dict|string
     """
     cmd_list = ['uci', '-P']
     cmd_list.append('/var/state')
@@ -52,9 +53,11 @@ def get_uci_state(option, command='show'):
     cmd_list.append(option)
 
     response = run_command(cmd_list, output=True)
-    out = dict()
-    if not(response is False) and len(response):
-        out.update([l.replace("'", "").split('=') for l in response.splitlines()])
+    out = response
+    if as_dict:
+        out = dict()
+        if not(response is False) and len(response):
+            out.update([l.replace("'", "").split('=') for l in response.splitlines()])
     return out
 
 
@@ -160,6 +163,29 @@ def get_battery_status():
     return state
 
 
+
+def get_interface_speed(conn_name):
+    """Calculates the up/down speed in bytes of a connection
+    :return: tuple
+    """
+    up = down = 0
+    state_path = 'network.%s.ifname' % (conn_name)
+    iface_name = run_command(['uci', '-q', '-p', '/var/state', 'get', state_path], output=True)
+    iface_name = get_uci_state(state_path, command='get')
+    if iface_name != False:
+        rx_path = '/sys/class/net/%s/statistics/rx_bytes' % (iface_name)
+        tx_path = '/sys/class/net/%s/statistics/tx_bytes' % (iface_name)
+        rx0 = read_file(rx_path)
+        tx0 = read_file(tx_path)
+        time.sleep(1)
+        rx1 = read_file(rx_path)
+        tx1 = read_file(tx_path)
+        if not (False in [rx0, rx1, tx0, tx1]):
+            up = int(tx1) - int(tx0)
+            down = int(rx1) - int(rx0)
+    return (up, down)
+
+
 def get_network_status():
     """Gets the network state of the BRCK
 
@@ -185,13 +211,14 @@ def get_network_status():
         num_clients = (chilli_list.splitlines().__len__() - 1)
     uci_state = get_uci_state('network.wan')
     net_type = uci_state.get('network.wan.proto', STATE_UNKNOWN).upper()
+    up, down = get_interface_speed('wan')
     state = dict(
         connected=uci_state.get('network.wan.connected', '') == '1',
         connected_clients=num_clients,
         connection=dict(
             connection_type=net_type,
-            up_speed=0,
-            down_speed=0,
+            up_speed=up,
+            down_speed=down,
             signal_strength=get_signal_strength()
         )
     )
