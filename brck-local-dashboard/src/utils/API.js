@@ -1,6 +1,5 @@
 var request = require('superagent');
 
-
 const BASE_URL = '/api/v1';
 
 const TIMEOUT = {
@@ -13,6 +12,12 @@ const API = {
         request.get(BASE_URL + '/ping')
             .type('json')
             .accept('json')
+            .timeout(TIMEOUT)
+            .end(cb);
+    },
+    'auth': (payload, cb) => {
+        request.post(BASE_URL + '/auth')
+            .send(payload)
             .timeout(TIMEOUT)
             .end(cb);
     },

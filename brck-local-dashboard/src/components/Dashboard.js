@@ -196,15 +196,16 @@ class Dashboard extends Component {
   }
 
   render() {
+    const { connected } = this.state;
+    if (!connected) {
+      return <Loading key={"view-loading"} message={"Trying to connect to your SupaBRCK"} />;
+    }
     return (
       <div>
         <Header>Dashboard</Header>
-        {(this.state.connected)
-          ? null
-          : <Loading key={"view-loading"} message={"Trying to connect to your SupaBRCK"} /> }
         {(this.state.has_data)
           ? this.renderBody()
-          : null }
+          : <Loading message={"Loading"} />}
       </div>
     );
   }

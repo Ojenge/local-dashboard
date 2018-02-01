@@ -1,19 +1,28 @@
 import React, { Component } from 'react';
 
 class Loading extends Component {
+  
+  constructor(props) {
+      super(props);
+      this.state = {
+          message: this.props.message || "Working"
+      }
+  }
+
   render() {
-    return (
-        <div className="content container-fluid">
-            <div className="row">
-                <div className="col-xs-12">
-                    <div className="alert alert-warning text-center">
-                        <img src="/bower_components/ckeditor/skins/moono-lisa/images/spinner.gif" alt="Loading" />
-                        <h4>{ this.props.message }</h4>
-                    </div>
+      return (
+        <div className="login-box">
+            <div className="login-logo">
+            </div>
+            <div className="login-box-body">
+                <div class="spinner">
+                    <span />
                 </div>
+                <p className="login-box-msg">{ this.state.message }</p>
             </div>
         </div>
-    );
+
+      );
   }
 }
 
