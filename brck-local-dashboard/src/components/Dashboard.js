@@ -27,7 +27,7 @@ class Dashboard extends Component {
       this.setState({
         connected: false,
         net_error: true
-      })
+      });
     } else {
       this.setState({
         connected: true
@@ -41,6 +41,7 @@ class Dashboard extends Component {
       this.setState({
         net_error: true
       });
+      API.handle_error(res.status);
     } else {
       this.setState({ 
         system: res.body,
@@ -196,16 +197,12 @@ class Dashboard extends Component {
   }
 
   render() {
-    const { connected } = this.state;
-    if (!connected) {
-      return <Loading key={"view-loading"} message={"Trying to connect to your SupaBRCK"} />;
-    }
     return (
       <div>
         <Header>Dashboard</Header>
         {(this.state.has_data)
           ? this.renderBody()
-          : <Loading message={"Loading"} />}
+          : null}
       </div>
     );
   }

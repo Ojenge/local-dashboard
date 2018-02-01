@@ -23,7 +23,8 @@ class Connections extends Component {
       this.setState({
         loaded: false,
         net_error: true
-      })
+      });
+      API.handle_error(res.status);
     } else {
       this.setState({
         loaded: true,

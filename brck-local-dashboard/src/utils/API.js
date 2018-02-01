@@ -1,6 +1,9 @@
+import Auth from './Auth';
+
 var request = require('superagent');
 
-const BASE_URL = '/api/v1';
+const BASE_URL = 'http://localhost:5000/api/v1';
+const AUTH_HEADER = 'X-Auth-Token-Key';
 
 const TIMEOUT = {
     response: 3000,
@@ -8,6 +11,13 @@ const TIMEOUT = {
 };
 
 const API = {
+    'handle_error': (code) => {
+        console.log("Handing Error: ", code);
+        if (code === 401) {
+            Auth.clearCredentials();
+            window.location = '/login';
+        }
+    },
     'ping': function(cb){
         request.get(BASE_URL + '/ping')
             .type('json')
@@ -25,13 +35,15 @@ const API = {
         request.get(BASE_URL + '/system')
             .type('json')
             .accept('json')
+            .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
             .end(cb);
     },
     'get_sim_connections': function(cb) {
-        request.get(BASE_URL + '/networks/sim')
+        request.get(BASE_URL + '/networks/sim/')
             .type('json')
             .accept('json')
+            .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
             .end(cb);
     }

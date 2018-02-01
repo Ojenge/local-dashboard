@@ -15,7 +15,7 @@ class Loading extends Component {
             <div className="login-logo">
             </div>
             <div className="login-box-body">
-                <div class="spinner">
+                <div className="spinner">
                     <span />
                 </div>
                 <p className="login-box-msg">{ this.state.message }</p>

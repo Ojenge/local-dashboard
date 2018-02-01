@@ -10,6 +10,7 @@ import {
 import Dashboard from './Dashboard';
 import Connections from './Connections';
 import Login from './Login';
+import Boot from './Boot';
 import Auth from '../utils/Auth';
 
 
@@ -152,15 +153,16 @@ class Root extends Component {
       <Router>
 
         <div className="wrapper">
-         <Route path="/login" component={Login} />
+         <Route exact path="/" component={Boot} />
+         <Route exact path="/login" component={Login} />
 
           { this.renderHeader() }
 
           { this.renderSideBar() }
 
           <div className="content-wrapper">
-              <PrivateRoute path='/dashboard' component={Dashboard} />
-              <PrivateRoute path='/connect' component={Connections} />
+              <PrivateRoute exact path='/dashboard' component={Dashboard} />
+              <PrivateRoute exact path='/connect' component={Connections} />
           </div>
 
           { this.renderFooter() }        

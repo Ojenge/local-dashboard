@@ -5,7 +5,6 @@ import Logo from '../media/yellow-brck-logo.svg';
 
 import API from '../utils/API';
 import Auth from '../utils/Auth';
-import Loading from './Loading';
 
 class Login extends Component {
 
@@ -102,13 +101,11 @@ class Login extends Component {
         const { from } = this.props.location.state || { from: { pathname: '/' } }
         const { authenticated } = this.state;
         if (authenticated) {
-            return <Redirect to={from} />
+          return (
+            <Redirect to={from} />
+          );
         }
-        return(
-            this.state.working
-                ? <Loading message="Authenticating" />
-                : this.renderForm()
-        );
+        return this.renderForm();
     }
 
 }

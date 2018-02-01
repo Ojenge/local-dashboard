@@ -6,8 +6,16 @@ const Auth = {
         return localStorage.getItem(STORE_KEY) !== null;
     },
     storeCredentials: (apiKey) => {
+        console.log("storing new key")
         localStorage.setItem(STORE_KEY, apiKey);
     },
+    getToken: () => {
+        console.log("got key: ", localStorage.getItem(STORE_KEY));
+        return localStorage.getItem(STORE_KEY);
+    },
+    clearCredentials: () => {
+        localStorage.removeItem(STORE_KEY);
+    }
 
 }
 
