@@ -35,7 +35,8 @@ def generate_expiry():
 
     :return: datetime.datetime
     """
-    return datetime.utcnow() + timedelta(hours=EXPIRY_HOURS)
+    d = datetime.utcnow() + timedelta(hours=EXPIRY_HOURS)
+    return d
 
 class Principal(db.Model):
     """User DB Representation

@@ -7,6 +7,7 @@ API Controllers for the local dashboard
 import re
 
 from flask import Blueprint, jsonify, request
+from flask import current_app as app
 from flask.views import MethodView
 
 from flask_login import login_required
@@ -59,21 +60,21 @@ class AuthenticationView(MethodView):
             raise APIError(message='Bad Credentials', status_code=401)
 
 
+class Ping(MethodView):
+    
+    def get(self):
+        """Provides a PING API
+        """
+        app.logger.error(request)
+        return jsonify(dict(about='SupaBRCK Local Dashboard',
+                            version='0.1'))
+
 
 class ProtectedView(MethodView):
     """Protected view requiring authorization
     """
 
     decorators = [login_required]
-
-
-class Ping(ProtectedView):
-    
-    def get(self):
-        """Provides a PING API
-        """
-        return jsonify(dict(about='SupaBRCK Local Dashboard',
-                            version='0.1'))
 
 
 class SystemAPI(ProtectedView):

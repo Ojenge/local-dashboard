@@ -82,13 +82,6 @@ def load_json(response):
     """Load JSON from response"""
     return json.loads(response.data.decode('utf8'))
 
-
-def test_unauthorized(client):
-    local_api.db.create_all()
-    resp = client.get('/api/v1/ping')
-    assert resp.status_code == 401
-
-
 def test_get_auth_token(client, headers):
     _auth = dict(login=TEST_USER, password=TEST_PASSWORD)
     resp = client.post('/api/v1/auth',
@@ -100,13 +93,19 @@ def test_get_auth_token(client, headers):
     assert 'expiry' in payload 
 
 
-def test_ping(client, headers):
-    resp = client.get('/api/v1/ping', headers=headers)
+def test_unauthorized(client):
+    local_api.db.create_all()
+    resp = client.get('/api/v1/system')
+    assert resp.status_code == 401
+
+
+def test_ping(client):
+    resp = client.get('/api/v1/ping')
     assert resp.status_code == 200
 
 
 def test_expired_token(client, expired_headers):
-    resp = client.get('/api/v1/ping', headers=expired_headers)
+    resp = client.get('/api/v1/system', headers=expired_headers)
     assert resp.status_code == 401
 
 

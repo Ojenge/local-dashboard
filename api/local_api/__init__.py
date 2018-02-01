@@ -5,15 +5,15 @@ from flask import Flask
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-
-
-
+from flask_cors import CORS
 
 DB_ROOT = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_DATABASE = 'sqlite:///%s/dashboard.sqlite3' %(DB_ROOT)
 
 app = Flask(__name__)
 
+# CORS
+CORS(app)
 
 
 # database settings
