@@ -172,8 +172,7 @@ def get_interface_speed(conn_name):
     """
     up = down = 0
     state_path = 'network.%s.ifname' % (conn_name)
-    iface_name = run_command(['uci', '-q', '-p', '/var/state', 'get', state_path], output=True)
-    iface_name = get_uci_state(state_path, command='get')
+    iface_name = get_uci_state(state_path, command='get', as_dict=False)
     if iface_name != False:
         rx_path = '/sys/class/net/%s/statistics/rx_bytes' % (iface_name)
         tx_path = '/sys/class/net/%s/statistics/tx_bytes' % (iface_name)

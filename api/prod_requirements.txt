@@ -1,0 +1,9 @@
+Flask-Cors
+Flask-Login
+Flask-Migrate
+Flask-Script
+Flask-SocketIO
+Flask-SQLAlchemy
+SQLAlchemy
+alembic
+pycrypto

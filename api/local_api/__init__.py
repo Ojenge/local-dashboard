@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import print_function
+
 import os
 
 from flask import Flask
@@ -8,7 +10,15 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 
 DB_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+PROD_DATABASE = 'sqlite:////opt/apps/local-dashboard/prod.sqlite3'
 DEFAULT_DATABASE = 'sqlite:///%s/dashboard.sqlite3' %(DB_ROOT)
+DATABASES = {
+    'development': DEFAULT_DATABASE,
+    'production':  PROD_DATABASE
+}
+ENV = os.getenv('FLASK_CONFIG', 'development')
+DATABASE_URI = DATABASES.get(ENV, DEFAULT_DATABASE)
 
 app = Flask(__name__)
 
@@ -17,8 +27,8 @@ CORS(app)
 
 
 # database settings
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URI',
-                                                  DEFAULT_DATABASE) 
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
+print('using database @ %s' % DATABASE_URI)
 db = SQLAlchemy(app)
 
 migrate = Migrate(app, db)
