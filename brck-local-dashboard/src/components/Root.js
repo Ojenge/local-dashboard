@@ -30,8 +30,13 @@ const PrivateRoute = ({ component: Component, ...rest }) => (
 
 class Root extends Component {
 
+  isDashboard = () => {
+    var _path = window.location.pathname;
+    return (_path !== '/' && Auth.isAuthenticated());
+  }
+
   renderHeader = () => {
-    if (Auth.isAuthenticated()) {
+    if (this.isDashboard()) {
       return (
         <header className="main-header">
           <a href="/" className="logo">
@@ -74,7 +79,7 @@ class Root extends Component {
   }
 
   renderSideBar = () => {
-    if (Auth.isAuthenticated()) {
+    if (this.isDashboard()) {
       return (
         <aside className="main-sidebar">
             <section className="sidebar">
@@ -136,7 +141,7 @@ class Root extends Component {
   }
 
   renderFooter = () => {
-    if (Auth.isAuthenticated()){
+    if (this.isDashboard()){
       return (
         <footer className="main-footer">
           <div className="pull-right hidden-xs">

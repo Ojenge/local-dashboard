@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Redirect } from 'react-router-dom';
 
 import Loading from './Loading';
-import { clearInterval } from 'timers';
 
 import API from '../utils/API';
 
@@ -60,7 +59,7 @@ class Boot extends Component {
     return (
       this.state.connected
         ? <Redirect to='/dashboard' />
-        : <Loading message={"Trying to connect to your SupaBRCK | " + this.state.counter} />
+        : <Loading message={"Trying to connect to your SupaBRCK"} />
     );
   }
 
