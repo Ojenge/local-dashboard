@@ -61,20 +61,22 @@ def get_uci_state(option, command='show', as_dict=True):
     return out
 
 
-def get_signal_strength():
+def get_signal_strength(net_type):
     """Get wireless signal strength (Mobile)
 
     :return: int (percentage 0-100)
     """
-    signal_strength = 0
-    resp = run_command(['querymodem', 'signal'], output=True)
-    print '$$$$$$$$$$$$$$$ // SIGNAL // %r' % (resp)
-    try:
-        rssi = int(resp or '')
-        if (rssi >= 0 and rssi <= 31):
-            signal_strength = (rssi * 827 + 127) >> 8
-    except ValueError:
-        LOG.error("Failed to load signal strength: QueryModem Response: %s", resp)
+    if net_type == 'wan':
+        signal_strength = 0
+        resp = run_command(['querymodem', 'signal'], output=True)
+        try:
+            rssi = int(resp or '')
+            if (rssi >= 0 and rssi <= 31):
+                signal_strength = (rssi * 827 + 127) >> 8
+        except ValueError:
+            LOG.error("Failed to load signal strength: QueryModem Response: %s", resp)
+    else:
+        signal_strength = 100
     return signal_strength
 
 
@@ -206,20 +208,32 @@ def get_network_status():
     :return: dict
     """
     num_clients = 0
+    connected = False
+    net_type = STATE_UNKNOWN
     chilli_list = run_command(['connected_clients', 'list'], output=True)
     if chilli_list:
         num_clients = (chilli_list.splitlines().__len__() - 1)
-    uci_state = get_uci_state('network.wan')
-    net_type = uci_state.get('network.wan.proto', STATE_UNKNOWN).upper()
-    up, down = get_interface_speed('wan')
+    net_order = get_uci_state('brck.network.order', command='get', as_dict=False)
+    active_net = None
+    if net_order:
+        nets = [n.strip() for n in net_order.split(' ')]
+        net_state = get_uci_state('network')
+        for net in nets:
+            conn_state = net_state.get('network.{}.connected'.format(net), '') == '1'
+            if conn_state:
+                active_net = net
+                net_type = net_state.get('network.{}.proto'.format(net), STATE_UNKNOWN).upper()
+                break
+
+    up, down = get_interface_speed(active_net)
     state = dict(
-        connected=uci_state.get('network.wan.connected', '') == '1',
+        connected = connected,
         connected_clients=num_clients,
         connection=dict(
             connection_type=net_type,
             up_speed=up,
             down_speed=down,
-            signal_strength=get_signal_strength()
+            signal_strength=get_signal_strength(net_type)
         )
     )
     return state

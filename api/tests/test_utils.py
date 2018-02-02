@@ -20,14 +20,15 @@ EXPECTED_SOC_SETTINGS = {
 
 
 def test_get_signal_strength():
-    assert utils.get_signal_strength() == 0
+    assert utils.get_signal_strength('wan') == 0
+    assert utils.get_signal_strength('lan') == 100
     with mock.patch('local_api.apiv1.utils.run_command',
                     side_effect=['99', '0', '1', '30', '31']):
-        assert utils.get_signal_strength() == 0
-        assert utils.get_signal_strength() == 0
-        assert utils.get_signal_strength() == 3
-        assert utils.get_signal_strength() == 97
-        assert utils.get_signal_strength() == 100
+        assert utils.get_signal_strength('wan') == 0
+        assert utils.get_signal_strength('wan') == 0
+        assert utils.get_signal_strength('wan') == 3
+        assert utils.get_signal_strength('wan') == 97
+        assert utils.get_signal_strength('wan') == 100
 
 
 def test_get_soc_settings():

@@ -24,13 +24,15 @@ network.wan.apn='internet'
 network.wan.up='1'
 network.wan.device='ppp0'
 network.wan.ifname='3g-wan'
-network.wan.connected='0'"""
+network.wan.connected='1'"""
 
 DUMMY_CHILLY_RESP = """Station                Connected time 	Signal         	Inactive time  	RX bytes       	TX Bytes       
 34:13:e8:3e:d0:7d      1044           	-27            	10             	680540         	1229742"""
 
-
+DUMMY_NETWORK_ORDER = 'wan lan'
 DUMMY_SIGNAL_RESP = "24"
+DUMMY_STATE = [DUMMY_CHILLY_RESP, DUMMY_NETWORK_ORDER, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]
+
 TEST_DATABASE_PATH = '/tmp/testdb.sqlite'
 TEST_DATABASE_URL = 'sqlite:///%s' % (TEST_DATABASE_PATH)
 
@@ -131,7 +133,7 @@ def test_system_battery_api(client, headers):
     with mock.patch('local_api.apiv1.utils.get_interface_speed', side_effect=[(0, 0)]):
         with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
             with mock.patch('local_api.apiv1.utils.run_command',
-                side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+                side_effect=DUMMY_STATE):
                 with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                     resp = client.get('/api/v1/system', headers=headers)
                     assert(resp.status_code == 200)
@@ -144,7 +146,7 @@ def test_network_status_api(client, headers):
     with mock.patch('local_api.apiv1.utils.get_interface_speed', side_effect=[(0, 0)]):
         with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
             with mock.patch('local_api.apiv1.utils.run_command',
-                            side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, '31']):
+                            side_effect=[DUMMY_CHILLY_RESP, DUMMY_NETWORK_ORDER, DUMMY_WAN_STATE_RESP, '31']):
                 with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                     resp = client.get('/api/v1/system', headers=headers)
                     assert resp.status_code == 200
@@ -167,7 +169,7 @@ def test_patch_system_ok(client, headers):
         with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
             with mock.patch('local_api.apiv1.utils.uci_set', return_value=True):
                 with mock.patch('local_api.apiv1.utils.run_command',
-                                side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+                                side_effect=DUMMY_STATE):
                     with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                         resp = client.patch('/api/v1/system',
                                             data=json.dumps(test_payload),
@@ -193,7 +195,7 @@ def test_patch_system_not_ok(client, headers):
     with mock.patch('local_api.apiv1.utils.uci_get', side_effect=['ALWAYS_ON']):
         with mock.patch('local_api.apiv1.utils.uci_set', return_value=True):
             with mock.patch('local_api.apiv1.utils.run_command',
-                            side_effect=[DUMMY_CHILLY_RESP, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]):
+                            side_effect=DUMMY_STATE):
                 with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
                     resp = client.patch('/api/v1/system',
                                         data=json.dumps(test_payload),
@@ -243,5 +245,4 @@ def test_patch_sim(client, headers):
                                     data=json.dumps(test_payload),
                                     headers=headers)
                 payload = load_json(resp)
-                print payload
                 assert resp.status_code == 200
