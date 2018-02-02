@@ -2,12 +2,12 @@ import Auth from './Auth';
 
 var request = require('superagent');
 
-const BASE_URL = 'http://localhost:5000/api/v1';
+const BASE_URL = 'http://local.brck.com/api/v1';
 const AUTH_HEADER = 'X-Auth-Token-Key';
 
 const TIMEOUT = {
-    response: 3000,
-    deadline: 5000
+    response: 10000,
+    deadline: 15000
 };
 
 const API = {
