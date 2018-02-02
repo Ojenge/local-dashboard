@@ -1,0 +1,51 @@
+/*!
+ *   This is css style for the homepage of BRCK ADMIN Pages
+ */
+/*
+ */
+
+body {
+    background: #EDBF1C;
+}
+h1 {
+    font-size: 40px;
+}
+.wpanel {
+    background-color: #fff;
+    border: 2px solid #595959;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -ms-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+    position: relative;
+    margin-bottom: 2rem;
+    margin-top: 2rem;
+}
+.panel-list {
+    margin: 0px;
+    padding: 0px;
+}
+.panel-list li {
+    margin: 0px;
+    padding: 0px;
+    list-style: none;
+    border-bottom: 1px solid #ccc;
+}
+.panel-list li:last-child {
+    border-bottom: none;
+}
+.panel-list li a {
+    padding: 1em 1em;
+    display: block;
+    color: #666;
+    background: #fff;
+    position: relative;
+    z-index: 10;
+}
+.panel-list li i {
+    font-size: 25px;
+    margin-right: 10px;
+    position: relative;
+    top: 2px;
+}
