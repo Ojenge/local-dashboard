@@ -14,6 +14,7 @@ properties:
           - WAN
           - ETHERNET
           - WIFI
+          - NO_CONNECTION
       up_speed:
         type: integer
         description: Network uplink speed of active internet connection (in bytes)
