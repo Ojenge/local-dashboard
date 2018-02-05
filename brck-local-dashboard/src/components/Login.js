@@ -34,7 +34,7 @@ class Login extends Component {
         if (_login.length && _password.length){
           this.setState({ working: true });
           var payload = {login: _login,
-                        password: _password};
+                         password: _password};
           API.auth(payload, this.loginCallback);
         } else {
           this.setState({ login_error: true });
@@ -65,7 +65,7 @@ class Login extends Component {
 
     handleKeyDown = (e) => {
       if (e.keyCode === 13) {
-        this.signIn();
+        this.signIn(e);
       }
     }
 

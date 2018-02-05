@@ -5,7 +5,7 @@ class Loading extends Component {
   constructor(props) {
       super(props);
       this.state = {
-          message: this.props.message || "Working"
+          message: this.props.message || "Loading..."
       }
   }
 

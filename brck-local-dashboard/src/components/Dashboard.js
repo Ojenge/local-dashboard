@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 
+import Loading from './Loading';
 import Container from './Container';
 import Header from './Header';
 import API from '../utils/API';
@@ -219,7 +220,7 @@ class Dashboard extends Component {
           <Header>Dashboard</Header>
           {(this.state.has_data)
             ? this.renderBody()
-            : null}
+            : <Loading />}
         </div>
       </Container>
     );

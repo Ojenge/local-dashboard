@@ -2,7 +2,7 @@ import Auth from './Auth';
 
 var request = require('superagent');
 
-const BASE_URL = 'http://local-dev.brck.com/api/v1';
+const BASE_URL = 'http://local.brck.com/api/v1';
 const AUTH_HEADER = 'X-Auth-Token-Key';
 
 const TIMEOUT = {
@@ -43,6 +43,15 @@ const API = {
         request.get(BASE_URL + '/networks/sim/')
             .type('json')
             .accept('json')
+            .set(AUTH_HEADER, Auth.getToken())
+            .timeout(TIMEOUT)
+            .end(cb);
+    },
+    'configure_sim_connection': function(sim_id, payload, cb) {
+        request.patch(BASE_URL + '/networks/sim/' + sim_id)
+            .type('json')
+            .accept('json')
+            .send(payload)
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
             .end(cb);

@@ -7,13 +7,44 @@ import Header from './Header';
 
 import IconSim from '../media/icons/icon-sim.svg';
 
+const Loader = props =>
+  <div className="alert">
+    <div class="center-text spinner" />
+  </div>
+
+const AlertSuccess = props => {
+  return (
+    <div class="alert alert-success alert-dismissible">
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+      { props.message }
+    </div>
+  );
+}
+
+const AlertError = props => {
+  return (
+    <div class="alert alert-danger alert-dismissible">
+      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+      <h4>{ props.title }</h4>
+      <ol>
+        {props.errors.map((err, key) => 
+          <li key={key}>{ err }</li>
+         )}
+      </ol>
+  </div>
+  );
+}
+
 class Connections extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
       loaded: false,
-      connections: []
+      connections: [],
+      apn: '',
+      apn_user: '',
+      apn_password: ''
     }
   }
 
@@ -33,6 +64,45 @@ class Connections extends Component {
         loaded: true,
         connections: res.body
       });
+    }
+  }
+
+  handleConfigureAPN = (sim) => {
+    this.setState({
+      sim_id: sim.id
+    });
+  }
+
+  handleInput = (e) => {
+    var newState = {};
+    newState[e.target.name] = e.target.value,
+    this.setState(newState);
+  }
+
+  handleSubmitAPN = (e) => {
+    e.preventDefault();
+    var config = {
+      network: {
+        apn: this.state.apn,
+        username: this.state.apn_user,
+        password: this.state.apn_password
+      }
+    }
+    var payload = { configuration: config }
+    this.setState({ working: true });
+    API.configure_sim_connection(this.state.sim_id, payload, this.connCallback);
+  }
+
+  connCallback = (err, res) => {
+    this.setState({ working: false });
+    if (err || !res.ok) {
+        this.setState({
+            config_error: true
+        });
+    } else {
+        this.setState({
+            config_saved: true
+        });
     }
   }
 
@@ -65,7 +135,7 @@ class Connections extends Component {
             <p className="text-center"><i className="fa fa-times-circle text-red "></i><small>Not Connected</small>
             </p>
             <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
-            <a href="#" className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2">Configure</a>
+            <a href="#" onClick={(e) => this.handleConfigureAPN(sim)} value={sim.id} className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2">Configure</a>
           </div>
         </div>
       </div>
@@ -130,15 +200,83 @@ class Connections extends Component {
   renderSim = (sim) => {
     if(sim.connected) {
       return this.renderActiveSIM(sim);
-    } else if (sim.available && !sim.connected && !sim.info.apn_configured) {
+    } else if (sim.available && !sim.connected && !sim.info.pin_locked) {
       return this.renderConfigureSim(sim);
     } else if (sim.available && !sim.connected && sim.info.pin_locked) {
       return this.renderConfigurePIN(sim);
-    } else if (sim.available && !sim.connected && sim.info.apn_configured && !sim.info.pin_locked) {
+    } else if (sim.available && !sim.connected && sim.info.apn_configured && sim.connecting) {
       return this.renderConnectingPIN(sim);
     } else {
       return this.renderNoSim(sim);
     }
+  }
+
+  renderConfigureSimDialog = () => {
+    return (
+      <div className="modal fade" id="sim2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div className="modal-dialog" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span> </button>
+              <h4 className="modal-title" id="myModalLabel">APN Settings</h4>
+            </div>
+
+            <div className="modal-body">
+              <div className="row">
+                <div className="col-md-6">
+                  <div className="alert alert-danger">
+                    We can't connect to the internet with your SIM card. Please ensure the SIM is Data Enabled, has credit and has valid APN
+                  </div>
+
+                  <p>The 3G/4G modem supports all GSM and HSPA+ providers, but unfortunately not CDMA (Verison and Sprint in the U.S).</p>
+                  <p>In case you don't know your APN settings, please contact your service provider.</p>
+
+                </div>
+                
+                <div className="col-md-6 mobile-top-spacing-15">
+                  <form>
+                    <div className="form-group">
+                      <label>APN</label>
+                      <input className="form-control" type="text" name="apn" value={ this.state.apn } 
+                        onChange={ this.handleInput } />
+                    </div>
+                    <div className="form-group">
+                      <label>Username</label>
+                      <input className="form-control" type="text" name="apn_user" value={ this.state.apn_user }
+                        onChange={ this.handleInput } />
+                    </div>
+                    <div className="form-group">
+                      <label>Password</label>
+                      <input className="form-control" type="password" name="apn_password" value={ this.state.apn_password }
+                        onChange={ this.handleInput } />
+                    </div>
+
+                    <a href="." onClick={ this.handleSubmitAPN } className="btn btn-primary pull-right" data-dismiss="modal">Save</a>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    );
+  }
+
+  renderMessages = () => {
+    return (
+      <div class="row">
+        <div class="col-xs-12">
+          {this.state.working ? <Loader /> : null }
+          {(this.state.config_saved
+            ? <AlertSuccess message={"Your APN settings have been successfully configured."} />
+            : null)}
+          {(this.state.config_error
+            ? <AlertError title={"We could not connect with the APN information provided"}
+                errors={["Make sure the APN information is typed in correctly", "Contact your mobile service provider for APN support"]} />
+            : null)}
+        </div>
+      </div>
+    )
   }
 
   render() {
@@ -151,6 +289,7 @@ class Connections extends Component {
           ? null
           : <Loading message="Loading SIM connections" />}
           <div className="content container-fluid">
+            { this.renderMessages() }
             <div className="row">
               {this.state.connections.map(function(sim, index){
                 return that.renderSim(sim);
@@ -158,6 +297,7 @@ class Connections extends Component {
             </div>
           </div>
         </div>
+        { this.renderConfigureSimDialog() }
       </Container>
     );
   }
