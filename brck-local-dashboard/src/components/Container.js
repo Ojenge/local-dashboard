@@ -1,6 +1,9 @@
 import React, { Component } from 'react';
 
-import { NavLink } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
+
+import LogoMini from '../media/brck-logo-mini.svg';
+import LogoLarge from '../media/brck-logo-lg.svg';
 
 class Container extends Component {
 
@@ -8,12 +11,12 @@ class Container extends Component {
     return (
       <header className="main-header">
         <a href="/" className="logo">
-          <span className="logo-mini"><img src="/dist/img/brck-logo-mini.svg" /></span>
-          <span className="logo-lg"><img src="/dist/img/brck-logo-lg.svg"/></span>
+          <span className="logo-mini"><img alt="BRCK" src={ LogoMini } /></span>
+          <span className="logo-lg"><img alt="BRCK" src={ LogoLarge } /></span>
         </a>
 
 
-        <nav className="navbar navbar-static-top" role="navigation">
+        <nav className="navbar navbar-static-top">
           <a href="#" className="sidebar-toggle" data-toggle="push-menu" role="button">
             <span className="sr-only">Toggle navigation</span>
           </a>
@@ -21,19 +24,17 @@ class Container extends Component {
             <ul className="nav navbar-nav">
               <li className="dropdown user user-menu">
                 <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-                  <img src="/dist/img/user2-160x160.jpg" className="user-image" alt="User Image"/>
+                  <span class="fa fa-user" />
                   <span className="hidden-xs">Admin</span>
                 </a>
                 <ul className="dropdown-menu">
-                  <li className="user-header">
-                    <img src="/dist/img/user2-160x160.jpg" className="img-circle" alt="User Image"/>
-                  </li>
                   <li className="user-footer">
-                    <div className="pull-left">
-                      <a href="#" className="btn btn-default btn-flat">Profile</a>
-                    </div>
                     <div className="pull-right">
-                      <a href="#" className="btn btn-default btn-flat">Sign out</a>
+                      <Link 
+                        to="/logout"
+                        className="btn btn-default btn-flat">
+                        Sign Out
+                      </Link>
                     </div>
                   </li>
                 </ul>
@@ -71,34 +72,7 @@ class Container extends Component {
                   <span>Connectivity</span>
                   <span className="pull-right-container" />
                 </NavLink>
-              </li>
-              
-              <li>
-                <a href="#">
-                  <i className="fa fa-list-alt"></i>
-                  <span>Content</span>
-                  <span className="pull-right-container">
-                </span>
-                </a>
-              </li>
-    
-              <li>
-                <a href="#">
-                  <i className="fa fa-tv"></i>
-                  <span>Compute</span>
-                  <span className="pull-right-container">
-                </span>
-                </a>
-              </li>
-              
-              <li>
-                <a href="#">
-                <i className="fa fa-download"></i>
-                  <span>Compute</span>
-                  <span className="pull-right-container">
-                </span>
-                </a>
-              </li>
+              </li>              
             </ul>
           </section>
         </aside>

@@ -5,6 +5,8 @@ import Container from './Container';
 import Loading from './Loading';
 import Header from './Header';
 
+import IconSim from '../media/icons/icon-sim.svg';
+
 class Connections extends Component {
 
   constructor(props) {
@@ -44,7 +46,7 @@ class Connections extends Component {
           <div className="box-body">
             <p className="text-center"><i className="fa fa-times-circle text-muted"></i><small>Not Inserted</small>
             </p>
-            <img src="/dist/img/icons/icon-sim.svg" className="center-block connectivity-icon" />
+            <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
             <a href="#" className="btn btn-default disabled btn-block " data-toggle="modal" >Insert Sim</a>
           </div>
         </div>
@@ -62,7 +64,7 @@ class Connections extends Component {
           <div className="box-body">
             <p className="text-center"><i className="fa fa-times-circle text-red "></i><small>Not Connected</small>
             </p>
-            <img src="/dist/img/icons/icon-sim.svg" className="center-block connectivity-icon"/>
+            <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
             <a href="#" className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2">Configure</a>
           </div>
         </div>
@@ -80,7 +82,7 @@ class Connections extends Component {
           <div className="box-body">
             <p className="text-center"><i className="fa fa-times-circle text-red "></i><small>Not Connected</small>
             </p>
-            <img src="/dist/img/icons/icon-sim.svg" className="center-block connectivity-icon"/>
+            <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
             <a href="#" className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2-connect">Connect</a>
           </div>
         </div>
@@ -99,7 +101,7 @@ class Connections extends Component {
           <div className="box-body">
             <p className="text-center"><i className="fa fa-times-circle text-red "></i><small>Not Connected</small>
             </p>
-            <img src="/dist/img/icons/icon-sim.svg" className="center-block connectivity-icon" />
+            <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
             <a href="#" className="btn btn-primary disabled btn-block"><span className="pull-right"><i className="fa fa-spin fa-refresh"></i></span> Connecting </a>
           </div>
         </div>
@@ -117,7 +119,7 @@ class Connections extends Component {
           <div className="box-body">
             <p className="text-center"><i className="fa fa-check-circle text-green "></i><small>Connected</small>
             </p>
-            <img src="/dist/img/icons/icon-sim.svg" className="center-block connectivity-icon" />
+            <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
             <a href="#" className="btn btn-success btn-block " data-toggle="modal" data-target="#sim3">View</a>
           </div>
         </div>

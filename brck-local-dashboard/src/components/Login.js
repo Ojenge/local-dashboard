@@ -29,11 +29,16 @@ class Login extends Component {
 
     signIn = (e) => {
         e.preventDefault();
-        this.setState({ working: true });
-        var payload = {login: this.state.login,
-                       password: this.state.password};
-        API.auth(payload, this.loginCallback);
-
+        var _login = this.state.login;
+        var _password = this.state.password;
+        if (_login.length && _password.length){
+          this.setState({ working: true });
+          var payload = {login: _login,
+                        password: _password};
+          API.auth(payload, this.loginCallback);
+        } else {
+          this.setState({ login_error: true });
+        }
     }
 
     loginCallback = (err, res) => {
@@ -53,9 +58,30 @@ class Login extends Component {
 
     handleInput = (e) => {
         var xKey = e.target.name;
-        var newState = {};
+        var newState = {login_error: false};
         newState[xKey] = e.target.value;
         this.setState(newState);
+    }
+
+    handleKeyDown = (e) => {
+      if (e.keyCode === 13) {
+        this.signIn();
+      }
+    }
+
+    renderWorking = () => {
+      return (
+        <div className="login-box">
+                <div className="login-logo">
+                    <a href="/">
+                        <img src={Logo} alt="BRCK" />
+                    </a>
+                </div>
+                <div className="login-box-body">
+                  <div class="spinner" />
+                </div>
+        </div>
+      )
     }
 
     renderForm = () => {
@@ -80,7 +106,8 @@ class Login extends Component {
                     <div className={"form-group has-feedback" + (this.state.login_error ? " has-error" : "") }>
                         <input type="password" name="password" className="form-control" placeholder="Password"
                             value={this.state.password}
-                            onChange={ this.handleInput } />
+                            onChange={ this.handleInput }
+                            onKeyDown={ this.handleKeyDown } />
                         { this.state.login_error ? <span className="help-block">Check Password</span> : null }
                         <span className="glyphicon glyphicon-lock form-control-feedback"></span>
                     </div>
@@ -106,7 +133,9 @@ class Login extends Component {
             <Redirect to={from} />
           );
         }
-        return this.renderForm();
+        return (this.state.working)
+                ? this.renderWorking()
+                : this.renderForm();
     }
 
 }

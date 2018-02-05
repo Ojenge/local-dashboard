@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 
 import Container from './Container';
 import Header from './Header';
-import Loading from './Loading'
 import API from '../utils/API';
 
 import IconNoConnection from '../media/icons/icon_ethernet-white.svg';
@@ -99,7 +98,7 @@ class Dashboard extends Component {
     var _conn = this.state.system.network.connection.connection_type;
     if (_conn === 'LAN'){
       icon = IconEthernet;
-    } else if (_conn == 'WAN') {
+    } else if (_conn === 'WAN') {
       icon = IconSIM;
     }
     return icon;
