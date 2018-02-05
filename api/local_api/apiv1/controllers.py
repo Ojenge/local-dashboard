@@ -65,7 +65,6 @@ class Ping(MethodView):
     def get(self):
         """Provides a PING API
         """
-        app.logger.error(request)
         return jsonify(dict(about='SupaBRCK Local Dashboard',
                             version='0.1'))
 

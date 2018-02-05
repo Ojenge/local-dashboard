@@ -22,6 +22,7 @@ LOG = __import__('logging').getLogger()
 STATE_OK = 'OK'
 STATE_ERROR = 'ERROR'
 STATE_UNKNOWN = 'UNKNOWN'
+STATE_NO_CONNECTION = 'NO CONNECTION'
 DEVICE_MODES = ['MATATU', 'ALWAYS_ON', 'RETAIL', 'SOLAR_POWERED']
 
 REGEX_TIME = re.compile('^(0[0-9]|1[0-9]|2[0-3]):(0[0-9]|[1-5][0-9])$')
@@ -208,7 +209,7 @@ def get_network_status():
     """
     num_clients = 0
     connected = False
-    net_type = STATE_UNKNOWN
+    net_type = STATE_NO_CONNECTION
     chilli_list = run_command(['connected_clients', 'list'], output=True)
     if chilli_list:
         num_clients = (chilli_list.splitlines().__len__() - 1)
