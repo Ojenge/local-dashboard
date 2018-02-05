@@ -27,7 +27,8 @@ class Login extends Component {
         document.body.classList.remove('login-page');
     }
 
-    signIn = () => {
+    signIn = (e) => {
+        e.preventDefault();
         this.setState({ working: true });
         var payload = {login: this.state.login,
                        password: this.state.password};
@@ -87,7 +88,7 @@ class Login extends Component {
                         <div className="col-xs-8">
                         </div>
                         <div className="col-xs-4">
-                        <a href="#" className="btn btn-primary btn-block btn-flat"
+                        <a href="." className="btn btn-primary btn-block btn-flat"
                             onClick={this.signIn}>Sign In</a>
                         </div>
                     </div>

@@ -1,8 +1,14 @@
 import React, { Component } from 'react';
 
+import Container from './Container';
 import Header from './Header';
 import Loading from './Loading'
 import API from '../utils/API';
+
+import IconNoConnection from '../media/icons/icon_ethernet-white.svg';
+import IconEthernet from '../media/icons/icon_ethernet-white.svg';
+import IconSIM from '../media/icons/icon-sim.svg';
+
 
 var Humanize = require('humanize-plus');
 
@@ -88,6 +94,17 @@ class Dashboard extends Component {
     return this.state.storage_usage;
   }
 
+  renderLogo = (connType) => {
+    var icon = IconNoConnection;
+    var _conn = this.state.system.network.connection.connection_type;
+    if (_conn === 'LAN'){
+      icon = IconEthernet;
+    } else if (_conn == 'WAN') {
+      icon = IconSIM;
+    }
+    return icon;
+  }
+
   renderBody = () => {
     return(
       <div class="content container-fluid">
@@ -95,7 +112,7 @@ class Dashboard extends Component {
           <div class="col-md-6">
             <div class="info-box">
               <span class="info-box-icon bg-orange">
-                <img alt="ethernet" src="/dist/img/icons/icon_ethernet-white.svg" class="center-block ethernet-icon"/>
+                <img alt="connection" src={ this.renderLogo() } class="center-block ethernet-icon"/>
               </span>
               <div class="info-box-content">
                 <h4>CONNECTION SIGNAL</h4>
@@ -198,12 +215,14 @@ class Dashboard extends Component {
 
   render() {
     return (
-      <div>
-        <Header>Dashboard</Header>
-        {(this.state.has_data)
-          ? this.renderBody()
-          : null}
-      </div>
+      <Container>
+        <div>
+          <Header>Dashboard</Header>
+          {(this.state.has_data)
+            ? this.renderBody()
+            : null}
+        </div>
+      </Container>
     );
   }
 }

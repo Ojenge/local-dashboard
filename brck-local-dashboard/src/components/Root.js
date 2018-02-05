@@ -156,22 +156,12 @@ class Root extends Component {
   render() {
     return (
       <Router>
-
-        <div className="wrapper">
-         <Route exact path="/" component={Boot} />
-         <Route exact path="/login" component={Login} />
-
-          { this.renderHeader() }
-
-          { this.renderSideBar() }
-
-          <div className="content-wrapper">
-              <PrivateRoute exact path='/dashboard' component={Dashboard} />
-              <PrivateRoute exact path='/connect' component={Connections} />
-          </div>
-
-          { this.renderFooter() }        
-      </div>
+        <div>
+          <Route exact path="/" component={Boot} />
+          <Route exact path="/login" component={Login} />
+          <PrivateRoute exact path='/dashboard' component={Dashboard} />
+          <PrivateRoute exact path='/connect' component={Connections} />
+        </div>
     </Router>
     );
   }

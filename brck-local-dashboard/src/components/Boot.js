@@ -8,7 +8,6 @@ import API from '../utils/API';
 class Boot extends Component {
 
   constructor(props) {
-    console.log('booting');
     super(props);
     this.state = {
       connected: false,

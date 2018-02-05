@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import API from '../utils/API';
+import Container from './Container';
 import Loading from './Loading';
 import Header from './Header';
 
@@ -141,19 +142,21 @@ class Connections extends Component {
   render() {
     var that = this;
     return (
-      <div>
-        <Header>Connectivity (SIM Assets)</Header>
-        {(this.state.loaded)
-         ? null
-         : <Loading message="Loading SIM connections" />}
-        <div className="content container-fluid">
-          <div className="row">
-            {this.state.connections.map(function(sim, index){
-              return that.renderSim(sim);
-            })}
+      <Container>
+        <div>
+          <Header>Connectivity (SIM Assets)</Header>
+          {(this.state.loaded)
+          ? null
+          : <Loading message="Loading SIM connections" />}
+          <div className="content container-fluid">
+            <div className="row">
+              {this.state.connections.map(function(sim, index){
+                return that.renderSim(sim);
+              })}
+            </div>
           </div>
         </div>
-      </div>
+      </Container>
     );
   }
 }
