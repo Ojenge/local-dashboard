@@ -1,8 +1,11 @@
 type: object
 properties:
-  sim_locked:
+  pin_locked:
     type: boolean
-    description: Reports the SIM PIN status
+    description: Reports the SIM PIN lock status
+  puk_locked:
+    type: boolean
+    description: Reports the SIM PUK status
   apn_configured:
     type: boolean
     description: Reports the APN configuration status for this SIM

@@ -3,10 +3,16 @@ properties:
   configuration:
     type: object
     properties:
+      puk:
+        type: string
+        pattern: '\d{8}|'
+        description: PUK to use to unlock the SIM (When SIM is blocked)
+        example: "12345678"
+        optional: true
       pin:
         type: string
-        pattern: '\d{4}|'
-        description: PIN to use to unlock the SIM (When SIM is locked)
+        pattern: '\d{4,8}|'
+        description: PIN to use to unlock the SIM
         example: "1234"
       network:
         $ref: '#/definitions/WanIPConfig'
