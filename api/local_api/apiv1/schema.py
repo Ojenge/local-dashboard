@@ -19,6 +19,9 @@ class Validator(object):
     def add_error(self, key, message):
         self.errors[key] = message
 
+    def add_errors(self, errors):
+        self.errors.update(errors)
+
     def ensure_exists(self, key, message=None):
         if key not in self.data and key not in self.errors:
             self.errors[key] = message or '{} required'.format(key)

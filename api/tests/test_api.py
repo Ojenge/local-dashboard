@@ -240,9 +240,10 @@ def test_patch_sim(client, headers):
     with mock.patch('local_api.apiv1.sim.run_command', side_effect=['OK']):
         with mock.patch('local_api.apiv1.sim.uci_set', side_effect=[True]):
             with mock.patch('local_api.apiv1.sim.uci_commit', side_effect=[True]):
-                resp = client.patch('/api/v1/networks/sim/SIM1',
-                                    content_type='application/json',
-                                    data=json.dumps(test_payload),
-                                    headers=headers)
-                payload = load_json(resp)
-                assert resp.status_code == 200
+                with mock.patch('local_api.apiv1.sim.connect_sim', side_effect=[{}]):
+                    resp = client.patch('/api/v1/networks/sim/SIM1',
+                                        content_type='application/json',
+                                        data=json.dumps(test_payload),
+                                        headers=headers)
+                    payload = load_json(resp)
+                    assert resp.status_code == 200

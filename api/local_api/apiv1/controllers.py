@@ -129,7 +129,7 @@ class WANAPI(ProtectedView):
         payload = request.get_json()
         if payload is None:
             raise APIError("Invalid Data", [], 422)
-        status_code, errors = configure_sim(payload)
+        status_code, errors = configure_sim(sim_id, payload)
         if status_code == HTTP_OK:
             return jsonify(get_wan_connections(sim_id))
         else:
