@@ -15,7 +15,7 @@ from brck.utils import uci_commit
 
 from .schema import Validator
 from .soc import get_soc_settings
-
+from .cache import cached, MINUTE
 
 LOG = __import__('logging').getLogger()
 
@@ -24,7 +24,6 @@ STATE_ERROR = 'ERROR'
 STATE_UNKNOWN = 'UNKNOWN'
 STATE_NO_CONNECTION = 'NO CONNECTION'
 DEVICE_MODES = ['MATATU', 'ALWAYS_ON', 'RETAIL', 'SOLAR_POWERED']
-
 REGEX_TIME = re.compile('^(0[0-9]|1[0-9]|2[0-3]):(0[0-9]|[1-5][0-9])$')
 
 
@@ -112,13 +111,14 @@ def get_device_mode():
 
     :return: str
     """
-    resp = uci_get('brck.soc.mode')
     mode = STATE_UNKNOWN
+    resp = uci_get('brck.soc.mode')
     if resp and len(mode):
         return mode
     return mode
 
 
+@cached(timeout=(MINUTE * 60))
 def get_storage_status(mount_point='/storage/data'):
     """Gets the disk storage status of a BRCK device in bytes.
 
@@ -144,6 +144,7 @@ def get_storage_status(mount_point='/storage/data'):
     return state
 
 
+@cached(timeout=(MINUTE * 5))
 def get_battery_status():
     """Gets the battery status of the BRCK device.
 
@@ -169,7 +170,6 @@ def get_battery_status():
     return state
 
 
-
 def get_interface_speed(conn_name):
     """Calculates the up/down speed in bytes of a connection
     :return: tuple
@@ -191,6 +191,7 @@ def get_interface_speed(conn_name):
     return (up, down)
 
 
+@cached(timeout=MINUTE)
 def get_network_status():
     """Gets the network state of the BRCK
 

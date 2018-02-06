@@ -1,4 +1,4 @@
 test:	
-	python -m pytest -vv
+	FLASK_TESTING=1 python -m pytest -vv
 
 .PHONY: test

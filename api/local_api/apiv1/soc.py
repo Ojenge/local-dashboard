@@ -5,6 +5,8 @@ import serial
 import re
 from datetime import datetime
 
+from .cache import cached
+
 """
 {'AlarmPwrOnHour': 6,
  'AlarmPwrOnMinute': 0,
@@ -59,6 +61,7 @@ def parse_serial(raw_content):
     return dict([(k, int(v)) for k,v in tuples])
 
 
+@cached(timeout=(60 * 10))
 def get_soc_settings():
     """Gets SOC settings in API-compatible format.
 
