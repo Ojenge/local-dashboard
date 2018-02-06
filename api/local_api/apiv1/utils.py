@@ -53,7 +53,10 @@ def get_uci_state(option, command='show', as_dict=True):
     cmd_list.append(command)
     cmd_list.append(option)
 
-    response = run_command(cmd_list, output=True)
+    response = run_command(cmd_list, output=True) or ''
+    if response is False:
+        LOG.warn("No UCI state found at: %s", option)
+        return {} if as_dict else {}
     out = response
     if as_dict:
         out = dict()

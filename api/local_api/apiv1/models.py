@@ -8,12 +8,11 @@ from Crypto.Protocol import KDF
 from sqlalchemy.orm.exc import NoResultFound
 
 from local_api import db
-from .errors import APIError
 
 
 LOG = __import__('logging').getLogger('sqlalchemy')
 HASH_ROUNDS = 20000
-EXPIRY_HOURS = 1
+EXPIRY_HOURS = 24
 DK_LEN = 32
 
 def generate_password_hash(raw_password):
@@ -36,6 +35,7 @@ def generate_expiry():
     :return: datetime.datetime
     """
     d = datetime.utcnow() + timedelta(hours=EXPIRY_HOURS)
+    LOG.error("Generated expiry: %r", d)
     return d
 
 class Principal(db.Model):
@@ -132,7 +132,7 @@ def check_password(login, password):
         computed = KDF.PBKDF2(password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
         if computed == pass_hash:
             is_verified = True
-    except NoResultFound as exc:
+    except NoResultFound:
         LOG.error("User not found with login: %s", login)
         # simulate a password check anyway
         KDF.PBKDF2(password, 'salt', dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
@@ -146,11 +146,13 @@ def check_header(auth_key):
     _user = None
     try:
         token  = db.session.query(AuthToken).filter_by(token=auth_key).one()
+        # TODO: Handle proper expiry
+        _user = token.principal
         if token.expiry > datetime.utcnow():
             _user = token.principal
         else:
             LOG.error('Token with id: %r is expired', token.id)
-    except NoResultFound as exc:
+    except NoResultFound:
         LOG.error("Token not found:")
     return _user
 

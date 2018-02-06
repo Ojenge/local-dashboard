@@ -2,12 +2,14 @@
 from __future__ import print_function
 
 import os
+import logging
 
 from flask import Flask
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
+
 
 DB_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -21,6 +23,11 @@ ENV = os.getenv('FLASK_CONFIG', 'development')
 DATABASE_URI = DATABASES.get(ENV, DEFAULT_DATABASE)
 
 app = Flask(__name__)
+
+# Logging configuration
+stream_handler = logging.StreamHandler()
+stream_handler.setLevel(logging.DEBUG)
+app.logger.addHandler(stream_handler)
 
 # CORS
 CORS(app)

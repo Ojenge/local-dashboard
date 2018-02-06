@@ -4,8 +4,6 @@ import re
 
 from brck.utils import run_command
 from brck.utils import uci_get
-from brck.utils import uci_set
-from brck.utils import uci_commit
 
 from .utils import read_file
 from .utils import get_uci_state
@@ -13,6 +11,9 @@ from .utils import get_uci_state
 from .schema import Validator
 
 from .sim_utils import connect_sim
+from .sim_utils import get_sim_state
+
+LOG = __import__('logging').getLogger()
 
 SIM_STATUS_FILES = [
     '/sys/class/gpio/gpio339/value',
@@ -63,7 +64,10 @@ def get_wan_connections(sim_id=None):
     if sim_id is not None:
         sim_id_num = int(sim_id[-1])
         if sim_id_num in [1, 2, 3]:
-            conn_paths = SIM_STATUS_FILES[sim_id_num - 1]
+            conn_paths = [SIM_STATUS_FILES[sim_id_num - 1]]
+    net_state = get_uci_state('network.wan')
+    net_connected = net_state.get('network.wan.connected', '') == '1'
+    active_sim = uci_get('brck.active_sim')
     for (i, path) in enumerate(conn_paths):
         key = i + 1
         c_id = 'SIM%d' %(key)
@@ -75,10 +79,10 @@ def get_wan_connections(sim_id=None):
             available = True
         info = {}
         if available:
-            uci_state = get_uci_state('network.wan')
-            connected = uci_state.get('network.wan.connected', '') == '1'
-            info['apn_configured'] = bool(uci_state.get('network.wan.apn'))
-            if not connected:
+            sim_state = get_sim_state(key)
+            info['apn_configured'] = sim_state.get('apn', '') != ''
+            is_active_sim = str(key) == active_sim
+            if is_active_sim and (not net_connected):
                 sim_status = run_command(['querymodem', 'check_pin'],
                                          output=True)
                 if REG_PIN_LOCK.match(sim_status):
@@ -89,7 +93,7 @@ def get_wan_connections(sim_id=None):
                     info['puk_locked'] = True
                 else:
                     info['puk_locked'] = False
-            else:
+            elif is_active_sim:
                  info['pin_locked'] = False
                  info['puk_locked'] = False
         c_data = dict(
@@ -144,18 +148,16 @@ def configure_sim(sim_id, big_payload):
         validator.required_together('username', 'password')
     if validator.is_valid:
         # Fire off commands
-        if validator.is_valid and has_net_config:
-            net_config = payload['network']
-            uci_set('network.wan.apn', net_config['apn'])
-            if net_config.get('username'):
-                uci_set('network.wan.username', net_config['username'])
-                uci_set('network.wan.password', net_config['password'])
-            uci_commit('network.wan')
-        if validator.is_valid:
-            pin = payload.get('pin', '')
-            puk = payload.get('puk', '')
-            errors = connect_sim(sim_id, pin, puk)
-            validator.add_errors(errors)
+        pin = payload.get('pin', '')
+        puk = payload.get('puk', '')
+        net_config = payload.get('network', {})
+        errors = connect_sim(sim_id, 
+                             pin=pin,
+                             puk=puk,
+                             apn=net_config.get('apn', ''),
+                             username=net_config.get('username'),
+                             password=net_config.get('password', ''))
+        validator.add_errors(errors)
     if validator.is_valid:
         return (200, 'OK')
     else:

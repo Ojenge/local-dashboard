@@ -7,7 +7,6 @@ API Controllers for the local dashboard
 import re
 
 from flask import Blueprint, jsonify, request
-from flask import current_app as app
 from flask.views import MethodView
 
 from flask_login import login_required

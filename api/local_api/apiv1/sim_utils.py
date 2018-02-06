@@ -9,8 +9,11 @@ from subprocess import call
 
 from brck.utils import run_command
 from brck.utils import is_service_running
+from brck.utils import uci_get
+from brck.utils import uci_set
+from brck.utils import uci_commit
 
-from .utils import read_file
+from .utils import read_file, get_uci_state
 
 
 LOG = __import__('logging').getLogger()
@@ -48,11 +51,6 @@ MODEM_FLAG_PATHS = [
 ]
 
 
-def setup_logging():
-    import logging
-    LOG.addHandler(logging.StreamHandler())
-
-
 def stop_service(name):
     run_command(['/etc/init.d/{}'.format(name), 'stop'])
 
@@ -61,6 +59,58 @@ def run_call(path, value):
     command = 'echo {} > {}'.format(value, path)
     LOG.debug('Running: %s', command)
     call(command, shell=True)
+
+
+
+def get_sim_state(sim_id):
+    """Gets SIM state as stored in UCI
+    :return: dict
+    """
+    assert sim_id in [1, 2, 3]
+    sim_state = {}
+    state_path = 'brck.sim%d' % sim_id
+    state = get_uci_state(state_path)
+    if state:
+        sim_state['active'] = state.get('brck.sim%d.active' % sim_id) == '1'
+        sim_state['apn'] = state.get('brck.sim%d.apn' % sim_id)
+        sim_state['username'] = state.get('brck.sim%d.username' % sim_id)
+        sim_state['password'] = state.get('brck.sim%d.password' % sim_id)
+    return sim_state
+
+
+def set_sim_state(sim_id, pin=None, puk=None, apn=None, username=None, password=None, active=False):
+    assert sim_id in [1, 2, 3]
+    sim_index = sim_id - 1
+    _params = dict(pin=pin,
+                   puk=puk,
+                   apn=apn,
+                   username=username,
+                   password=password,
+                   active=int(active))
+    change_count = 0
+    state_path = 'brck.sim%d' % sim_id
+    if not uci_get(state_path):
+        LOG.debug("Initializing SIM section in uci: %s", state_path)
+        uci_set(state_path, 'sims')
+        uci_commit(state_path)
+    for name, value in _params.iteritems():
+        if value:
+            _path = 'brck.@sims[%d].%s' % (sim_index, name)
+            LOG.debug("Setting UCI value: %s | %r", _path, value)
+            uci_set(_path, str(value))
+            change_count += 1
+    # configure active_sim
+    if active:
+        uci_set('brck.active_sim', str(sim_id))
+        if apn:
+            uci_set('network.wan.apn', apn)
+        if username:
+            uci_set('network.wan.username', username)
+        if password:
+            uci_set('network.wan.password', password)
+        change_count += 1
+    if change_count > 0:
+        uci_commit('brck')
 
 
 def get_modems():
@@ -97,7 +147,7 @@ def sim_exists(sim_id):
     return exists
 
 
-def connect_sim(sim_id, pin='', puk=''):
+def connect_sim(sim_id, pin='', puk='', apn='', username='', password=''):
     """Attempts to establish a connect to the with this SIM
     """
     errors = {}
@@ -111,6 +161,13 @@ def connect_sim(sim_id, pin='', puk=''):
     elif m2:
         modem = 2
     if modem:
+        set_sim_state(sim_no,
+                      pin=pin,
+                      puk=puk,
+                      apn=apn,
+                      username=username,
+                      password=password,
+                      active=True)
         key = '%d-%d' % (modem, sim_no)
         flags = SIM_FLAGS.get(key)
         if flags:

@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
-from binascii import hexlify
-
 from flask import current_app as app
 from flask import request
 
