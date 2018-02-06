@@ -10,6 +10,11 @@ const TIMEOUT = {
     deadline: 15000
 };
 
+const LONG_TIMEOUT = {
+    response: 20000,
+    deadline: 25000
+}
+
 const API = {
     'handle_error': (code) => {
         console.log("Handing Error: ", code);
@@ -53,7 +58,7 @@ const API = {
             .accept('json')
             .send(payload)
             .set(AUTH_HEADER, Auth.getToken())
-            .timeout(TIMEOUT)
+            .timeout(LONG_TIMEOUT)
             .end(cb);
     }
 }

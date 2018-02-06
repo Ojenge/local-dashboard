@@ -35,8 +35,8 @@ class Boot extends Component {
   }
 
   componentWillMount() {
-    document.body.classList.add('login-page');
-}
+    document.body.classList.add('login-page'); 
+  }
 
   componentDidMount() {
     this.checker();

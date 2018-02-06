@@ -67,8 +67,8 @@ class Dashboard extends Component {
     }
     var iconClass = "fa fa-battery-" + levelTag + " big-icon";
     return (
-      <span class={containerClass}>
-        <i class={iconClass} />
+      <span className={containerClass}>
+        <i className={iconClass} />
       </span>
     );
   }
@@ -106,15 +106,14 @@ class Dashboard extends Component {
   }
 
   renderBody = () => {
-    return(
-      <div class="content container-fluid">
-        <div class="row connection-dash-stats">
-          <div class="col-md-6">
-            <div class="info-box">
-              <span class="info-box-icon bg-orange">
-                <img alt="connection" src={ this.renderLogo() } class="center-block ethernet-icon"/>
+    return [
+        <div className="row connection-dash-stats">
+          <div className="col-md-6">
+            <div className="info-box">
+              <span className="info-box-icon bg-orange">
+                <img alt="connection" src={ this.renderLogo() } className="center-block ethernet-icon"/>
               </span>
-              <div class="info-box-content">
+              <div className="info-box-content">
                 <h4>CONNECTION SIGNAL</h4>
                 <p>{ this.state.system.network.connection.connection_type }</p>
               </div>
@@ -122,37 +121,37 @@ class Dashboard extends Component {
           </div>
 
 
-          <div class="col-md-6">
-            <div class="info-box">
+          <div className="col-md-6">
+            <div className="info-box">
               { this.renderBatteryInfo(this.state.system.battery.battery_level) }
-              <div class="info-box-content">
+              <div className="info-box-content">
                 <h4>CHARGE LEVEL</h4>
                 <p>{ this.state.system.battery.battery_level }%</p>
               </div>
             </div>
           </div>
-        </div>
+        </div>,
 
-        <div class="row connection-dash-stats">
-          <div class="col-md-6">
-              <div class="info-box">
-                <span class="info-box-icon bg-aqua">
-                  <i class="fa fa-tachometer big-icon"/>
+        <div className="row connection-dash-stats">
+          <div className="col-md-6">
+              <div className="info-box">
+                <span className="info-box-icon bg-aqua">
+                  <i className="fa fa-tachometer big-icon"/>
                 </span>
-                <div class="info-box-content">
+                <div className="info-box-content">
                   <h4>CONNECTION SPEED</h4>
                   <ul>
                     <li>
-                      <i class="fa fa-chevron-circle-up "></i>
-                      <span class="speed">{ this.humanizeSpeed(this.state.system.network.connection.up_speed * 8) }</span> 
+                      <i className="fa fa-chevron-circle-up "></i>
+                      <span className="speed">{ this.humanizeSpeed(this.state.system.network.connection.up_speed * 8) }</span> 
                       <br/>
-                      <span class="traffic">Upload</span>
+                      <span className="traffic">Upload</span>
                     </li>
                     <li>
-                      <i class="fa fa-chevron-circle-down"></i>
-                      <span class="speed">{ this.humanizeSpeed(this.state.system.network.connection.down_speed * 8) }</span> 
+                      <i className="fa fa-chevron-circle-down"></i>
+                      <span className="speed">{ this.humanizeSpeed(this.state.system.network.connection.down_speed * 8) }</span> 
                       <br/>
-                      <span class="traffic">Download</span>
+                      <span className="traffic">Download</span>
                     </li>
                   </ul>
                 </div>
@@ -160,48 +159,48 @@ class Dashboard extends Component {
             </div>
 
 
-            <div class="col-md-6">
-              <div class="info-box">
-                <span class="info-box-icon bg-yellow">
-                  <i class="fa fa-mobile big-icon"/>
+            <div className="col-md-6">
+              <div className="info-box">
+                <span className="info-box-icon bg-yellow">
+                  <i className="fa fa-mobile big-icon"/>
                 </span>
-                <div class="info-box-content">
+                <div className="info-box-content">
                   <h4>DEVICES CONNECTED</h4>
                   <p>{ this.state.system.network.connected_clients }</p>
                 </div>
               </div>
             </div>
-          </div>
+          </div>,
 
-          <div class="row">
-            <div class="col-md-6">
-              <div class="box">
-                <div class="box-header with-border">
-                  <h3 class="box-title">Storage</h3>
+          <div className="row">
+            <div className="col-md-6">
+              <div className="box">
+                <div className="box-header with-border">
+                  <h3 className="box-title">Storage</h3>
                 </div>
-                <div class="box-body">
+                <div className="box-body">
                   <p>Your SupaBRCK has <strong>{ Humanize.fileSize(this.state.system.storage.total_space) }</strong> of storage. To access web, go to local.brck (192.168.88.1:8080)</p>
-                  <div class="progress">
-                    <div class="progress-bar progress-bar-yellow" role="progressbar" aria-valuenow={this.getStorageUsage()} aria-valuemin="0" aria-valuemax="100" style={{width: this.getStorageUsage() + '%'}}>1.5GB used
-                      <span class="sr-only">{this.getStorageUsage()}% Complete (warning)</span>
+                  <div className="progress">
+                    <div className="progress-bar progress-bar-yellow" role="progressbar" aria-valuenow={this.getStorageUsage()} aria-valuemin="0" aria-valuemax="100" style={{width: this.getStorageUsage() + '%'}}>1.5GB used
+                      <span className="sr-only">{this.getStorageUsage()}% Complete (warning)</span>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div class="col-md-6">
-              <div class="box">
-                <div class="box-header with-border">
-                  <h3 class="box-title">Plex</h3>
+            <div className="col-md-6">
+              <div className="box">
+                <div className="box-header with-border">
+                  <h3 className="box-title">Plex</h3>
                 </div>
-                <div class="box-body">
+                <div className="box-body">
 
                   <p>Your SupaBRCK is enabled with a dual core x86 processor. We have pre-installed plex for you. To find out more go to www...</p>
 
-                  <div class="toggle-component ">
-                    <label class="toggle">
-                      <input type="checkbox" onclick="toggle(this,event)" />
+                  <div className="toggle-component ">
+                    <label className="toggle">
+                      <input type="checkbox"/>
                       <div data-off="Off" data-on="On"></div>
                     </label>
                   </div>
@@ -209,8 +208,7 @@ class Dashboard extends Component {
               </div>
             </div>
           </div>
-        </div>
-    );
+    ];
   }
 
   render() {
@@ -218,9 +216,11 @@ class Dashboard extends Component {
       <Container>
         <div>
           <Header>Dashboard</Header>
-          {(this.state.has_data)
-            ? this.renderBody()
-            : <Loading />}
+          <div className="content container-fluid">
+            {(this.state.has_data)
+              ? this.renderBody()
+              : <Loading />}
+          </div>
         </div>
       </Container>
     );

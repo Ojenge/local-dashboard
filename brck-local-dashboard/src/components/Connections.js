@@ -7,15 +7,29 @@ import Header from './Header';
 
 import IconSim from '../media/icons/icon-sim.svg';
 
-const Loader = props =>
-  <div className="alert">
-    <div class="center-text spinner" />
-  </div>
+const Loader = props => {
+  return (
+    <div className="alert">
+      <div className="center-text spinner">
+        <span />
+      </div>
+    </div>
+  );
+}
 
 const AlertSuccess = props => {
   return (
-    <div class="alert alert-success alert-dismissible">
-      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+    <div className="alert alert-success alert-dismissible">
+      <button type="button" className="close" data-dismiss="alert" aria-hidden="true">×</button>
+      { props.message }
+    </div>
+  );
+}
+
+const AlertWarning = props => {
+  return (
+    <div className="alert alert-danger alert-dismissible">
+      <button type="button" className="close" data-dismiss="alert" aria-hidden="true">×</button>
       { props.message }
     </div>
   );
@@ -23,8 +37,8 @@ const AlertSuccess = props => {
 
 const AlertError = props => {
   return (
-    <div class="alert alert-danger alert-dismissible">
-      <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>
+    <div className="alert alert-danger alert-dismissible">
+      <button type="button" className="close" data-dismiss="alert" aria-hidden="true">×</button>
       <h4>{ props.title }</h4>
       <ol>
         {props.errors.map((err, key) => 
@@ -49,10 +63,21 @@ class Connections extends Component {
   }
 
   componentDidMount() {
+    this.loadConnections();
+  }
+
+  loadConnections = () => {
     API.get_sim_connections(this.dataCallback);
   }
 
+  reloadConnections = (e) => {
+    this.setState({working: true});
+    e.preventDefault();
+    this.loadConnections();
+  }
+
   dataCallback = (err, res) => {
+    this.setState({ working: false });
     if (err || !res.ok) {
       this.setState({
         loaded: false,
@@ -67,16 +92,17 @@ class Connections extends Component {
     }
   }
 
-  handleConfigureAPN = (sim) => {
-    this.setState({
-      sim_id: sim.id
-    });
-  }
-
+  
   handleInput = (e) => {
     var newState = {};
     newState[e.target.name] = e.target.value,
     this.setState(newState);
+  }
+  
+  handleConfigureAPN = (sim) => {
+    this.setState({
+      sim_id: sim.id
+    });
   }
 
   handleSubmitAPN = (e) => {
@@ -90,25 +116,64 @@ class Connections extends Component {
     }
     var payload = { configuration: config }
     this.setState({ working: true });
-    API.configure_sim_connection(this.state.sim_id, payload, this.connCallback);
+    API.configure_sim_connection(this.state.sim_id, payload, this.configCallback);
   }
 
-  connCallback = (err, res) => {
-    this.setState({ working: false });
+  handleConnect = (e, sim) => {
+    e.preventDefault();
+    this.setState({
+      sim_id: sim.id
+    });
+    var payload = { configuration: {} };
+    this.setState({ working: true, connecting: true });
+    API.configure_sim_connection(sim.id, payload, this.connCallback);
+  }
+
+  configCallback = (err, res) => {
+    this.setState({ working: false, connecting: false });
     if (err || !res.ok) {
         this.setState({
             config_error: true
         });
     } else {
-        this.setState({
-            config_saved: true
+        var connections = this.state.connections;
+        res.body.map((s) => {
+          var v_index = Number.parseInt(s.id.charAt(3));
+          connections[v_index-1] = s;
         });
+
+        this.setState({
+            config_saved: true,
+            connections: connections
+        });
+        this.loadConnections();
+    }
+  }
+
+  connCallback = (err, res) => {
+    this.setState({ working: false, connecting: false });
+    if (err || !res.ok) {
+      this.setState({
+          conn_error: true
+      });
+    } else {
+      var connections = this.state.connections;
+      res.body.map((s) => {
+        var v_index = Number.parseInt(s.id.charAt(3));
+        connections[v_index-1] = s;
+      });
+
+      this.setState({
+          conn_error: !res.body[0].connected,
+          connections: connections
+      });
+      this.loadConnections();
     }
   }
 
   renderNoSim = (sim) => {
     return(
-      <div className="col-md-4 col-sm-6" key={sim.id}>
+      <div className="col-md-4 col-sm-6" key={ sim.id }>
         <div className="box box-solid connection-type disabled">
           <div className="box-header with-border">
             <h3 className="box-title text-center">{ sim.name }: No SIM</h3>
@@ -126,7 +191,7 @@ class Connections extends Component {
 
   renderConfigureSim = (sim) => {
     return (
-      <div className="col-md-4 col-sm-6">
+      <div className="col-md-4 col-sm-6" key={ sim.id }>
         <div className="box box-solid connection-type">
           <div className="box-header with-border">
             <h3 className="box-title text-center">{ sim.name }: Available</h3>
@@ -135,16 +200,16 @@ class Connections extends Component {
             <p className="text-center"><i className="fa fa-times-circle text-red "></i><small>Not Connected</small>
             </p>
             <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
-            <a href="#" onClick={(e) => this.handleConfigureAPN(sim)} value={sim.id} className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2">Configure</a>
+            <a href="#" onClick={(e) => this.handleConfigureAPN(sim) } value={sim.id} className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2">Configure</a>
           </div>
         </div>
       </div>
     );
   }
 
-  renderConfigurePIN = (sim) => {
+  renderConnect = (sim) => {
     return (
-      <div className="col-md-4 col-sm-6 ">
+      <div className="col-md-4 col-sm-6" key={ sim.id }>
         <div className="box box-solid connection-type">
           <div className="box-header with-border">
             <h3 className="box-title text-center">{ sim.name }: Available</h3>
@@ -153,7 +218,7 @@ class Connections extends Component {
             <p className="text-center"><i className="fa fa-times-circle text-red "></i><small>Not Connected</small>
             </p>
             <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
-            <a href="#" className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2-connect">Connect</a>
+            <a href="." onClick={ (e) => this.handleConnect(e, sim) } className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2-connect">Connect</a>
           </div>
         </div>
       </div>
@@ -161,9 +226,9 @@ class Connections extends Component {
     );
   }
 
-  renderConnectingPIN = (sim) => {
+  renderConnecting= (sim) => {
     return (
-      <div className="col-md-4 col-sm-6 ">
+      <div className="col-md-4 col-sm-6" key={ sim.id }>
         <div className="box box-solid connection-type">
           <div className="box-header with-border">
             <h3 className="box-title text-center">{ sim.name }: Available</h3>
@@ -181,7 +246,7 @@ class Connections extends Component {
 
   renderActiveSIM = (sim) => {
     return (
-      <div className="col-md-4 col-sm-6">
+      <div className="col-md-4 col-sm-6" key={ sim.id }>
         <div className="box box-solid connection-type disabled">
           <div className="box-header with-border">
             <h3 className="box-title text-center">{ sim.name }: Active </h3>
@@ -198,14 +263,15 @@ class Connections extends Component {
   }
 
   renderSim = (sim) => {
+    var isConnecting = (sim.id === this.state.sim_id) && (this.state.connecting);
     if(sim.connected) {
       return this.renderActiveSIM(sim);
+    } else if (sim.available && !sim.connected && isConnecting) {
+      return this.renderConnecting(sim);
+    } else if (sim.available && !sim.connected && sim.info.apn_configured) {
+      return this.renderConnect(sim);
     } else if (sim.available && !sim.connected && !sim.info.pin_locked) {
       return this.renderConfigureSim(sim);
-    } else if (sim.available && !sim.connected && sim.info.pin_locked) {
-      return this.renderConfigurePIN(sim);
-    } else if (sim.available && !sim.connected && sim.info.apn_configured && sim.connecting) {
-      return this.renderConnectingPIN(sim);
     } else {
       return this.renderNoSim(sim);
     }
@@ -213,7 +279,7 @@ class Connections extends Component {
 
   renderConfigureSimDialog = () => {
     return (
-      <div className="modal fade" id="sim2" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+      <div className="modal fade" id="sim2" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
         <div className="modal-dialog" role="document">
           <div className="modal-content">
             <div className="modal-header">
@@ -264,8 +330,8 @@ class Connections extends Component {
 
   renderMessages = () => {
     return (
-      <div class="row">
-        <div class="col-xs-12">
+      <div className="row">
+        <div className="col-xs-12">
           {this.state.working ? <Loader /> : null }
           {(this.state.config_saved
             ? <AlertSuccess message={"Your APN settings have been successfully configured."} />
@@ -274,6 +340,9 @@ class Connections extends Component {
             ? <AlertError title={"We could not connect with the APN information provided"}
                 errors={["Make sure the APN information is typed in correctly", "Contact your mobile service provider for APN support"]} />
             : null)}
+          {(this.state.conn_error
+           ? <AlertWarning message={"Could not connect with the selected SIM - You can try another SIM."} />
+           : null )}
         </div>
       </div>
     )
@@ -294,6 +363,16 @@ class Connections extends Component {
               {this.state.connections.map(function(sim, index){
                 return that.renderSim(sim);
               })}
+            </div>
+            <div className="row">
+              <div className="col-xs-12">
+                <p>
+                  { this.state.working 
+                    ? null
+                    : <a href="." onClick={ this.reloadConnections } className="btn btn-primary pull-right">Refresh</a>
+                  }
+                </p>
+              </div>
             </div>
           </div>
         </div>

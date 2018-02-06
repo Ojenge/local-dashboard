@@ -112,11 +112,13 @@ col-md-offset-3
 }
 .brck-yellow .sidebar-menu > li:hover > a,
 .brck-yellow .sidebar-menu > li.active > a,
-.brck-yellow .sidebar-menu > li.menu-open > a {
+.brck-yellow .sidebar-menu > li.menu-open > a,
+.brck-yellow .sidebar-menu > li > a.active {
     color: #EDBF1C;
     background: #111;
 }
-.brck-yellow .sidebar-menu > li.active > a {
+.brck-yellow .sidebar-menu > li.active > a,
+.brck-yellow .sidebar-menu > li > a.active {
     border-left-color: #EDBF1C;
 }
 .brck-yellow .sidebar-menu > li > .treeview-menu {

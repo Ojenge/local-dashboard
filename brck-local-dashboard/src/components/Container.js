@@ -24,7 +24,7 @@ class Container extends Component {
             <ul className="nav navbar-nav">
               <li className="dropdown user user-menu">
                 <a href="#" className="dropdown-toggle" data-toggle="dropdown">
-                  <span class="fa fa-user" />
+                  <span className="fa fa-user" />
                   <span className="hidden-xs">Admin</span>
                 </a>
                 <ul className="dropdown-menu">
