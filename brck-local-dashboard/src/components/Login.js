@@ -98,6 +98,7 @@ class Login extends Component {
                     <form action="." method="post">
                     <div className={"form-group has-feedback" + (this.state.login_error ? " has-error" : "") }>
                         <input name="login" type="text" className="form-control" placeholder="Login"
+                            autoFocus={1}
                             value={ this.state.login }
                             onChange={this.handleInput} />
                         { this.state.login_error ? <span className="help-block">Check Login</span> : null }

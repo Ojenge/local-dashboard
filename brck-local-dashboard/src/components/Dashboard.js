@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import io from 'socket.io-client';
 
 import Loading from './Loading';
 import Container from './Container';
@@ -26,6 +27,23 @@ class Dashboard extends Component {
 
   componentDidMount() {
     API.ping(this.connectionCallback);
+    this.initializeSocket();
+  }
+
+  componentWillUnmount() {
+    if (this.socket) {
+      this.socket.disconnect();
+    }
+  }
+
+  initializeSocket = () => {
+    this.socket = io('/dashboard');
+    this.socket.on('system', (data) => {
+      console.log("Receive data", data);
+      this.setState({
+        system: data
+      });
+    });
   }
 
   connectionCallback = (err, res) => {
