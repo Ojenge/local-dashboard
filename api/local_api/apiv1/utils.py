@@ -15,7 +15,7 @@ from brck.utils import uci_commit
 
 from .schema import Validator
 from .soc import get_soc_settings
-from .cache import cached, MINUTE
+from .cache import cached, MINUTE, CACHE
 
 LOG = __import__('logging').getLogger()
 
@@ -55,7 +55,7 @@ def get_uci_state(option, command='show', as_dict=True):
     response = run_command(cmd_list, output=True) or ''
     if response is False:
         LOG.warn("No UCI state found at: %s", option)
-        return {} if as_dict else {}
+        return {} if as_dict else False
     out = response
     if as_dict:
         out = dict()
@@ -175,23 +175,26 @@ def get_interface_speed(conn_name):
     :return: tuple
     """
     up = down = 0
-    state_path = 'network.%s.ifname' % (conn_name)
-    iface_name = get_uci_state(state_path, command='get', as_dict=False)
-    if iface_name != False:
-        rx_path = '/sys/class/net/%s/statistics/rx_bytes' % (iface_name)
-        tx_path = '/sys/class/net/%s/statistics/tx_bytes' % (iface_name)
-        rx0 = read_file(rx_path)
-        tx0 = read_file(tx_path)
-        time.sleep(1)
-        rx1 = read_file(rx_path)
-        tx1 = read_file(tx_path)
-        if not (False in [rx0, rx1, tx0, tx1]):
-            up = int(tx1) - int(tx0)
-            down = int(rx1) - int(rx0)
+    if conn_name:
+        state_path = 'network.%s.ifname' % (conn_name)
+        cache_key = 'interface_speed_{}'.format(conn_name)
+        previous_speed = CACHE.get(cache_key)
+        iface_name = get_uci_state(state_path, command='get', as_dict=False)
+        if iface_name != False:
+            rx_path = '/sys/class/net/%s/statistics/rx_bytes' % (iface_name)
+            tx_path = '/sys/class/net/%s/statistics/tx_bytes' % (iface_name)
+            rx0 = read_file(rx_path)
+            tx0 = read_file(tx_path)
+            up1, down1, delta1 = new_speed = (int(rx0), int(tx0), time.time())
+            if previous_speed:
+                up0, down0, delta0 = previous_speed
+                delta = delta1 - delta0
+                up = int((up1 - up0) / delta)
+                down = int((down1 - down0) / delta)
+            CACHE.set(cache_key, new_speed)
     return (up, down)
 
 
-@cached(timeout=MINUTE)
 def get_network_status():
     """Gets the network state of the BRCK
 
@@ -226,7 +229,9 @@ def get_network_status():
             conn_state = net_state.get('network.{}.connected'.format(net), '') == '1'
             if conn_state:
                 active_net = net
-                net_type = net_state.get('network.{}.proto'.format(net), STATE_UNKNOWN).upper()
+                net_type = net.upper()
+                if net in ['wan', 'wan2']:
+                    net_type = net_state.get('network.{}.proto'.format(net), STATE_UNKNOWN).upper()
                 break
 
     up, down = get_interface_speed(active_net)
