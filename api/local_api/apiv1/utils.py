@@ -24,7 +24,6 @@ STATE_ERROR = 'ERROR'
 STATE_UNKNOWN = 'UNKNOWN'
 STATE_NO_CONNECTION = 'NO CONNECTION'
 DEVICE_MODES = ['MATATU', 'ALWAYS_ON', 'RETAIL', 'SOLAR_POWERED']
-REGEX_TIME = re.compile('^(0[0-9]|1[0-9]|2[0-3]):(0[0-9]|[1-5][0-9])$')
 
 
 def get_request_log(r):
@@ -262,42 +261,3 @@ def get_system_state():
         network=network_state
     )
     return state
-
-
-def configure_system(config):
-    """Configures the system
-    """
-    mconfig = {}
-    mode = config.get('mode')
-    if mode:
-        mconfig['mode'] = mode
-        uci_set('brck.power.mode', config['mode'])
-    power = config.get('power', {})
-    mconfig.update(power)
-    validator = Validator(mconfig)
-    has_time = 'on_time' in mconfig or 'off_time' in mconfig
-    has_soc = 'soc_on' in mconfig or 'soc_off' in mconfig
-    if mode:
-        validator.ensure_inclusion('mode', DEVICE_MODES)
-    if power:
-        if has_time:
-            validator.required_together('on_time', 'off_time')
-            validator.ensure_format('on_time', REGEX_TIME)
-            validator.ensure_format('off_time', REGEX_TIME)
-            validator.ensure_less_than('on_time', 'off_time')
-        if has_soc:
-            validator.required_together('soc_on', 'soc_off')
-            validator.ensure_range('soc_on', 1, 99, int)
-            validator.ensure_range('soc_off', 1, 99, int)
-            validator.ensure_less_than('soc_off', 'soc_on')
-    if not validator.is_valid:
-        return (422, validator.errors)
-    if has_time:
-        uci_set('brck.power.on_time', mconfig['on_time'])
-        uci_set('brck.power.off_time', mconfig['off_time'])
-    if has_soc:
-        uci_set('brck.power.soc_on', mconfig['soc_on'])
-        uci_set('brck.power.soc_off', mconfig['soc_off'])
-    # Only commit uci if no errors
-    uci_commit('brck.power')
-    return (200, 'OK')

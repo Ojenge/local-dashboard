@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import mock
+import pytest
+from copy import copy
 
 from local_api.apiv1 import utils
 from local_api.apiv1 import soc
@@ -17,6 +19,25 @@ EXPECTED_SOC_SETTINGS = {
     'delay_off_minutes': 0,
     'retail': 0,
 }
+
+NORMAL_SOC_SETTINGS = dict(mode='NORMAL', soc_on=10, soc_off=5)
+SOC_SCENARIOS = [
+    (dict(mode='NORMAL', soc_on=10, soc_off=5), True,
+     dict(mode='NORMAL', soc_on=10, soc_off=5, retail=1)),
+     (dict(mode='TIMED'), False, True),
+     (dict(mode='ALWAYS_ON'), True, dict(mode='ALWAYS_ON', auto_start=1)),
+     (dict(mode='ALWAYS_ON', soc_on=10, soc_off=2), True,
+      dict(mode='ALWAYS_ON', soc_on=10, soc_off=2, auto_start=1)),
+     (dict(mode='VEHICLE'), True,
+      dict(mode='VEHICLE', auto_start=0, delay_off=1)),
+     (dict(mode='VEHICLE', auto_start=1, delay_off=1), False, True),
+     (dict(mode='MANUAL'), True, True),
+     (dict(mode='MANUAL', auto_start=1), True, True),
+     (dict(mode='MANUAL', delay_off=1), False, True),
+     (dict(mode='MANUAL', delay_off=1, delay_off_minutes=1), False, True),
+     (dict(mode='MANUAL', delay_off=1), False, True),
+     (dict(mode='MANUAL', delay_off=1, delay_off_minutes=120), False, True),
+]
 
 
 def test_get_signal_strength():
@@ -36,6 +57,17 @@ def test_get_soc_settings():
                     side_effect=[DUMMY_SOC_RESPONSE]):
         settings = soc.get_soc_settings()
         assert settings == EXPECTED_SOC_SETTINGS
+
+
+@pytest.mark.parametrize("payload,valid,out", SOC_SCENARIOS)
+def test_validate_soc_settings(payload, valid, out):
+    orig = copy(payload)
+    v, np = soc.validate_payload(payload)
+    assert v.is_valid == valid
+    if out == True:
+        assert np == orig
+    else:
+        assert np == out
 
 
 def test_soc_command():

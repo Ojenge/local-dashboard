@@ -12,10 +12,10 @@ from flask.views import MethodView
 from flask_login import login_required
 
 from .utils import get_system_state
-from .utils import configure_system
 from .errors import APIError
 from .sim import get_wan_connections
 from .sim import configure_sim
+from .soc import configure_power
 from .models import check_password
 from .models import make_token
 
@@ -94,10 +94,11 @@ class SystemAPI(ProtectedView):
         
         :return: string JSON representation of new system state or error
         """
-        payload = request.get_json()
-        status_code, errors = configure_system(payload)
+        payload = request.get_json() or {}
+        power_config = payload.get('power') or {}
+        status_code, errors = configure_power(power_config)
         if status_code == HTTP_OK:
-            return jsonify(get_system_state())
+            return jsonify({})
         else:
             raise APIError('Invalid Data', errors, 422)
 

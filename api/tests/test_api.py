@@ -158,55 +158,43 @@ def test_network_status_api(client, headers):
 
 def test_patch_system_ok(client, headers):
     test_payload = dict(
-        mode='ALWAYS_ON',
         power=dict(
+            mode='ALWAYS_ON',
             on_time='06:00',
             off_time='22:00',
             soc_on=15,
             soc_off=5
         )
     )
-    with mock.patch('local_api.apiv1.utils.get_interface_speed', side_effect=[(0, 0)]):
-        with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
-            with mock.patch('local_api.apiv1.utils.uci_set', return_value=True):
-                with mock.patch('local_api.apiv1.utils.run_command',
-                                side_effect=DUMMY_STATE):
-                    with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
-                        resp = client.patch('/api/v1/system',
-                                            data=json.dumps(test_payload),
-                                            content_type='application/json',
-                                            headers=headers)
-                        assert resp.status_code == 200
-                        payload = load_json(resp)
-                        assert 'mode' in payload
-                        assert 'battery' in payload
-                        assert 'network' in payload
+    with mock.patch('local_api.apiv1.soc.set_soc', side_effect=[True]):
+        resp = client.patch('/api/v1/system',
+                            data=json.dumps(test_payload),
+                            content_type='application/json',
+                            headers=headers)
+        assert resp.status_code == 200
+        payload = load_json(resp)
 
 
 def test_patch_system_not_ok(client, headers):
     test_payload = dict(
-        mode='ALWAYS_ON',
         power=dict(
+            mode='ALWAYS_ON',
             on_time='06:00',
             off_time='22:00',
             soc_on=15,
             soc_off=25
         )
     )
-    with mock.patch('local_api.apiv1.utils.uci_get', side_effect=['ALWAYS_ON']):
-        with mock.patch('local_api.apiv1.utils.run_command',
-                        side_effect=DUMMY_STATE):
-            with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
-                resp = client.patch('/api/v1/system',
-                                    data=json.dumps(test_payload),
-                                    content_type='application/json',
-                                    headers=headers)
-                payload = load_json(resp)
-                assert 'errors' in payload
-                errors = payload['errors']
-                assert 'soc_off' in errors
-                assert 'soc_on' in errors
-                assert resp.status_code == 422
+    resp = client.patch('/api/v1/system',
+                        data=json.dumps(test_payload),
+                        content_type='application/json',
+                        headers=headers)
+    payload = load_json(resp)
+    assert 'errors' in payload
+    errors = payload['errors']
+    assert 'soc_off' in errors
+    assert 'soc_on' in errors
+    assert resp.status_code == 422
 
 
 def test_get_sim_networks(client, headers):
