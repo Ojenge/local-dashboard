@@ -7,15 +7,6 @@ import Header from './Header';
 
 import IconSim from '../media/icons/icon-sim.svg';
 
-const Loader = props => {
-  return (
-    <div className="alert">
-      <div className="center-text spinner">
-        <span />
-      </div>
-    </div>
-  );
-}
 
 const AlertSuccess = props => {
   return (
@@ -95,7 +86,7 @@ class Connections extends Component {
   
   handleInput = (e) => {
     var newState = {};
-    newState[e.target.name] = e.target.value,
+    newState[e.target.name] = e.target.value;
     this.setState(newState);
   }
   
@@ -138,7 +129,7 @@ class Connections extends Component {
     } else {
         var connections = this.state.connections;
         res.body.map((s) => {
-          var v_index = Number.parseInt(s.id.charAt(3));
+          var v_index = Number.parseInt(s.id.charAt(3), 10);
           connections[v_index-1] = s;
         });
 
@@ -159,7 +150,7 @@ class Connections extends Component {
     } else {
       var connections = this.state.connections;
       res.body.map((s) => {
-        var v_index = Number.parseInt(s.id.charAt(3));
+        var v_index = Number.parseInt(s.id.charAt(3), 10);
         connections[v_index-1] = s;
       });
 
@@ -332,7 +323,6 @@ class Connections extends Component {
     return (
       <div className="row">
         <div className="col-xs-12">
-          {this.state.working ? <Loader /> : null }
           {(this.state.config_saved
             ? <AlertSuccess message={"Your APN settings have been successfully configured."} />
             : null)}

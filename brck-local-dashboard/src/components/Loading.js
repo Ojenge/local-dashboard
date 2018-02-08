@@ -14,7 +14,7 @@ class Loading extends Component {
         <div className="login-box">
             <div className="login-logo">
             </div>
-            <div className="login-box-body">
+            <div>
                 <div className="spinner">
                     <span />
                 </div>

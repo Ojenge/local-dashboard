@@ -51,12 +51,12 @@ class Container extends Component {
       <aside className="main-sidebar">
           <section className="sidebar">
             <ul className="sidebar-menu" data-widget="tree">
-              <li className="treeview main-dropdown">
+              {/* <li className="treeview main-dropdown">
                 <a href="#">
                   <b className="caret"></b>
                   <span className="main-dropdown-title">SupaBRCK DASHBOARD</span>      
                 </a>
-              </li>
+              </li> */}
     
               <li>
                 <NavLink to="/dashboard">
@@ -92,7 +92,7 @@ class Container extends Component {
 
   render() {
     return(
-      <div className="wrapper">
+      <div className="wrapper" style={{height: '100%', minHeight: '100%'}}>
         { this.renderHeader() }
         { this.renderSideBar() }
         <div className="content-wrapper">

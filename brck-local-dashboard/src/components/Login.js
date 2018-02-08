@@ -73,12 +73,11 @@ class Login extends Component {
       return (
         <div className="login-box">
                 <div className="login-logo">
-                    <a href="/">
-                        <img src={Logo} alt="BRCK" />
-                    </a>
                 </div>
-                <div className="login-box-body">
-                  <div class="spinner" />
+                <div>
+                  <div className="spinner-yellow">
+                    <span />
+                  </div>
                 </div>
         </div>
       )

@@ -39,7 +39,6 @@ class Dashboard extends Component {
   initializeSocket = () => {
     this.socket = io('/dashboard');
     this.socket.on('system', (data) => {
-      console.log("Receive data", data);
       this.setState({
         system: data
       });
