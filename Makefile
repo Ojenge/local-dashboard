@@ -35,7 +35,7 @@ define Package/local-dashboard/install
 	$(INSTALL_DIR) $(1)/etc/bind
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_DIR) $(1)/opt/apps/local-dashboard
-	$(INSTALL_DIR) $(1)/var/www/local-dashboard
+	$(INSTALL_DIR) $(1)/opt/apps/local-dashboard/www
 
 	$(CP) $(PKG_BUILD_DIR)/api $(1)/opt/apps/local-dashboard
 	$(CP) $(PKG_BUILD_DIR)/brck-local-dashboard/build $(1)/var/www/local-dashboard
