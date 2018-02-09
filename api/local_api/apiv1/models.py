@@ -153,6 +153,7 @@ def change_password(payload, user_id):
     v.ensure_format('password', r'^[\w@#.\+\-\*&%$]{5,32}$',
                     message=('password must be between 5 and 32 characters '
                              'and include any of these characters: letters, numbers and [@ # . + - * & % $]'))
+    v.ensure_not_equal('password', 'current_password')
     if v.is_valid:
         check = check_password(user_id, payload['current_password'])
         if check:
@@ -196,4 +197,4 @@ def make_token(login):
     db.session.commit()
     return dict(token=auth_token.token,
                 expiry=auth_token.expiry.isoformat(),
-                password_changed=auth_token.principal.password_changed)
+                password_changed=bool(auth_token.principal.password_changed))

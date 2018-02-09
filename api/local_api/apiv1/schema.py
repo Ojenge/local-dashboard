@@ -56,7 +56,6 @@ class Validator(object):
         v0 = self.data.get(key_a, '')
         v1 = self.data.get(key_b, '')
         if v0 == v1:
-            self.errors[key_a] = 'must not be equal to: %s' % key_b
             self.errors[key_b] = 'must not be equal to: %s' % key_a
 
     def ensure_equal(self, key_a, key_b):
