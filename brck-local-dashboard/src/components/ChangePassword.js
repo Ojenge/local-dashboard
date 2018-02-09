@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Redirect } from 'react-router-dom';
+import { Redirect, Link } from 'react-router-dom';
 
 import Logo from '../media/yellow-brck-logo.svg';
 
@@ -125,8 +125,17 @@ class ChangePassword extends Component {
                       </div>
                       <div className="row">
                           <div className="col-xs-12">
-                          <a href="." className="btn btn-primary btn-block btn-flat pull-right"
+                          <a href="." className="btn btn-primary btn-block btn-flat"
                               onClick={this.changePassword}>Change Password</a>
+                          { Auth.requiresPasswordChange() ? (
+                            null
+                          ):(
+                            <Link 
+                              className="btn btn-block btn-default btn-flat"
+                              to="/">
+                              Cancel
+                            </Link>
+                          )}
                           </div>
                       </div>
                     </form>

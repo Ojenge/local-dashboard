@@ -31,8 +31,13 @@ class Container extends Component {
                   <li className="user-footer">
                     <div className="pull-right">
                       <Link 
+                        to="/change-password"
+                        className="btn btn-flat btn-default btn-block">
+                        Change Password
+                      </Link>
+                      <Link 
                         to="/logout"
-                        className="btn btn-default btn-flat">
+                        className="btn btn-warning btn-flat btn-block">
                         Sign Out
                       </Link>
                     </div>
