@@ -59,6 +59,8 @@ class Principal(db.Model):
                         default=db.func.now(),
                         onupdate=datetime.utcnow(),
                         nullable=False)
+    password_changed = db.Column(db.Boolean,
+                                 default=False)
 
     def set_password(self, password):
         pass_hash = generate_password_hash(password)
@@ -148,7 +150,7 @@ def change_password(payload, user_id):
     v.ensure_exists('current_password')
     v.ensure_exists('password')
     v.ensure_equal('password', 'password_confirmation')
-    v.ensure_format('password', '^[\w@#.\+\-\*&%$]{5,32}$',
+    v.ensure_format('password', r'^[\w@#.\+\-\*&%$]{5,32}$',
                     message=('password must be between 5 and 32 characters '
                              'and include any of these characters: letters, numbers and [@ # . + - * & % $]'))
     if v.is_valid:
@@ -156,6 +158,7 @@ def change_password(payload, user_id):
         if check:
             user = db.session.query(Principal).filter_by(login=user_id).one()
             user.set_password(payload['password'])
+            user.password_changed = True
             db.session.add(user)
             db.session.commit()
             return (200, 'OK')
@@ -192,4 +195,5 @@ def make_token(login):
     db.session.add(auth_token)
     db.session.commit()
     return dict(token=auth_token.token,
-                expiry=auth_token.expiry.isoformat())
+                expiry=auth_token.expiry.isoformat(),
+                password_changed=auth_token.principal.password_changed)

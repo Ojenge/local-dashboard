@@ -86,6 +86,7 @@ def load_json(response):
     """Load JSON from response"""
     return json.loads(response.data.decode('utf8'))
 
+
 def test_get_auth_token(client, headers):
     _auth = dict(login=TEST_USER, password=TEST_PASSWORD)
     resp = client.post('/api/v1/auth',
@@ -94,7 +95,8 @@ def test_get_auth_token(client, headers):
     assert resp.status_code == 200
     payload = load_json(resp)
     assert 'token' in payload
-    assert 'expiry' in payload 
+    assert 'expiry' in payload
+    assert payload['password_changed'] == False
 
 
 def test_unauthorized(client):
