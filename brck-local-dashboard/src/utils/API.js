@@ -36,10 +36,19 @@ const API = {
             .timeout(TIMEOUT)
             .end(cb);
     },
+    'change_password': (payload, cb) => {
+        request.patch(BASE_URL + '/auth/password')
+            .type('json')
+            .set(AUTH_HEADER, Auth.getToken())
+            .send(payload)
+            .timeout(TIMEOUT)
+            .end(cb);
+    },
     'get_system': function(cb) {
         request.get(BASE_URL + '/system')
             .type('json')
             .accept('json')
+            .set(AUTH_HEADER, Auth.getToken())
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
             .end(cb);

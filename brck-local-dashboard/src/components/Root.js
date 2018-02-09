@@ -11,21 +11,32 @@ import Connections from './Connections';
 import Login from './Login';
 import Logout from './Logout';
 import Boot from './Boot';
+import ChangePassword from './ChangePassword';
 import Auth from '../utils/Auth';
 
 
-const PrivateRoute = ({ component: Component, ...rest }) => (
-  <Route {...rest} render={props => (
-    Auth.isAuthenticated() ? (
-      <Component {...props}/>
-    ) : (
-      <Redirect to={{
-        pathname: '/login',
-        state: { from: props.location }
-      }}/>
-    )
-  )}/>
-)
+const PrivateRoute = ({ component: Component, ...rest }) => {
+  const show_change = (Component.name !== 'ChangePassword') && Auth.requiresPasswordChange();
+  return (
+    <Route {...rest} render={props => (
+      Auth.isAuthenticated() ? (
+        show_change ? (
+          <Redirect to={{
+            pathname: '/change-password',
+            state: { from: props.location }
+          }}/>
+        ) : (
+          <Component {...props}/>
+        )
+      ) : (
+        <Redirect to={{
+          pathname: '/login',
+          state: { from: props.location }
+        }}/>
+      )
+    )}/>
+  );
+}
 
 
 class Root extends Component {
@@ -36,6 +47,7 @@ class Root extends Component {
         <div>
           <Route exact path="/" component={ Boot } />
           <Route exact path="/login" component={ Login } />
+          <PrivateRoute exact path="/change-password" component={ ChangePassword } />
           <PrivateRoute exact path="/logout" component={ Logout } />
           <PrivateRoute exact path='/dashboard' component={ Dashboard } />
           <PrivateRoute exact path='/connect' component={ Connections } />

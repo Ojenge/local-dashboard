@@ -49,7 +49,7 @@ class Login extends Component {
             });
         } else {
             var token = res.body.token;
-            Auth.storeCredentials(token);
+            Auth.storeCredentials(token, res.body.password_changed);
             this.setState({
                 authenticated: true
             });
