@@ -5,6 +5,10 @@ import serial
 import re
 from datetime import datetime
 
+from brck.utils import uci_set
+from brck.utils import uci_get
+from brck.utils import uci_commit
+
 from .schema import Validator
 from .cache import cached
 
@@ -183,6 +187,9 @@ def configure_power(payload):
     """
     validator, payload_actual = validate_payload(payload)
     if validator.is_valid:
+        uci_set('brck.power', 'power')
+        uci_set('brck.power.mode', payload_actual['mode'])
+        uci_commit('brck.power')
         command = payload_to_command(payload_actual)
         status = set_soc(command)
         if status:
@@ -191,3 +198,18 @@ def configure_power(payload):
             return (422, {'soc': 'Command Error'})
     else:
         return (422, validator.errors)
+
+
+def get_power_config():
+    """Gets the current power configuraition of the device
+    """
+    configured = False
+    mode = uci_get('brck.power.mode')
+    if mode != False:
+        configured = True
+    else:
+        mode = None
+    return dict(
+        configured=configured,
+        mode=mode
+    )

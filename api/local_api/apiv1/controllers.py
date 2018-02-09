@@ -17,6 +17,7 @@ from .errors import APIError
 from .sim import get_wan_connections
 from .sim import configure_sim
 from .soc import configure_power
+from .soc import get_power_config
 from .models import check_password
 from .models import make_token
 from .models import change_password
@@ -120,6 +121,31 @@ class SystemAPI(ProtectedView):
             raise APIError('Invalid Data', errors, 422)
 
 
+class PowerAPI(ProtectedView):
+    
+    def get(self):
+        """Returns the current power configuration of the device
+
+        :return: string JSON representation of system state
+        """
+        return jsonify(get_power_config())
+    
+    def patch(self):
+        """Provides an API to perform system power changes
+
+            See System API documentation (Configuring the system)
+        
+        :return: string JSON representation of new system state or error
+        """
+        payload = request.get_json() or {}
+        power_config = payload.get('power') or {}
+        status_code, errors = configure_power(power_config)
+        if status_code == HTTP_OK:
+            return jsonify(get_power_config())
+        else:
+            raise APIError('Invalid Data', errors, 422)
+
+
 class WANAPI(ProtectedView):
 
     def check_sim_id(self, sim_id):
@@ -171,4 +197,7 @@ api_blueprint.add_url_rule('/ping',
                            methods=[GET])
 api_blueprint.add_url_rule('/system',
                            view_func=SystemAPI.as_view('system_api'),
+                           methods=[GET, PATCH])
+api_blueprint.add_url_rule('/power',
+                           view_func=PowerAPI.as_view('power_api'),
                            methods=[GET, PATCH])

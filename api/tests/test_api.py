@@ -176,7 +176,30 @@ def test_patch_system_ok(client, headers):
                             content_type='application/json',
                             headers=headers)
         assert resp.status_code == 200
+
+
+def test_get_power_config_not_configured(client, headers):
+    not_configured = dict(configured=False, mode=None)
+    with mock.patch('local_api.apiv1.soc.get_power_config',
+                    side_effect=[not_configured]):
+        resp = client.get('/api/v1/power',
+                          content_type='application/json',
+                          headers=headers)
+        assert resp.status_code == 200
         payload = load_json(resp)
+        assert payload == not_configured
+
+
+def test_get_power_config_configured(client, headers):
+    configured = dict(configured=True, mode='ALWAYS_ON')
+    with mock.patch('local_api.apiv1.soc.uci_get',
+                    side_effect=['ALWAYS_ON']):
+        resp = client.get('/api/v1/power',
+                          content_type='application/json',
+                          headers=headers)
+        assert resp.status_code == 200
+        payload = load_json(resp)
+        assert payload == configured
 
 
 def test_patch_system_not_ok(client, headers):
