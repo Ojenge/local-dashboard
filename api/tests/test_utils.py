@@ -18,6 +18,7 @@ EXPECTED_SOC_SETTINGS = {
     'delay_off': 0,
     'delay_off_minutes': 0,
     'retail': 0,
+    'auto_start': 1
 }
 
 NORMAL_SOC_SETTINGS = dict(mode='NORMAL', soc_on=10, soc_off=5)
@@ -81,5 +82,5 @@ def test_validate_soc_settings(payload, valid, out):
 
 
 def test_soc_command():
-    command = 'WRC15,5,6,0,20,1,0,0,0,0'
+    command = 'WRC15,5,6,0,20,1,1,0,0,0'
     assert soc.payload_to_command(EXPECTED_SOC_SETTINGS) == command

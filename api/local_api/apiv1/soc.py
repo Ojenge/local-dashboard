@@ -82,7 +82,7 @@ def parse_serial(raw_content):
 
 
 @cached(timeout=(60 * 10))
-def get_soc_settings():
+def get_soc_settings(no_cache=False):
     """Gets SOC settings in API-compatible format.
 
     :return: dict
@@ -98,6 +98,7 @@ def get_soc_settings():
         soc_settings['delay_off'] = parsed['DelayedOffTimerEnable']
         soc_settings['delay_off_minutes'] = parsed['DelayOffTimerMinutes']
         soc_settings['retail'] = parsed['RetailMode']
+        soc_settings['auto_start'] = parsed['IsAutoStart']
     except SyntaxError as e:
         LOG.error("Failed to parse SOC settings. Syntax error: %r", e)
     except Exception as e:

@@ -36,7 +36,7 @@ Mocking is implemented for functions requiring a live device environment.
 ### Running Database Migrations
 
 ```shell
-FLASK_APP=./local_api/__init__.py flask db upgrade
+FLASK_CONFIG=production FLASK_APP=./local_api/__init__.py flask db upgrade
 ```
 
 The default database will be located in: `./local_api/dashboard.sqlite`
