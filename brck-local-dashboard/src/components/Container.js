@@ -69,12 +69,18 @@ class Container extends Component {
                   <span>Dashboard</span>
                   <span className="pull-right-container" />
                 </NavLink>
-              </li>
-              
+              </li>              
               <li>
                 <NavLink to="/connect">
                   <i className="fa fa-signal"></i>
                   <span>Connectivity</span>
+                  <span className="pull-right-container" />
+                </NavLink>
+              </li>              
+              <li>
+                <NavLink to="/power">
+                  <i className="fa fa-power-off"></i>
+                  <span>Power</span>
                   <span className="pull-right-container" />
                 </NavLink>
               </li>              

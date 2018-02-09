@@ -12,6 +12,7 @@ import Login from './Login';
 import Logout from './Logout';
 import Boot from './Boot';
 import ChangePassword from './ChangePassword';
+import Power from './Power';
 import Auth from '../utils/Auth';
 
 
@@ -51,6 +52,7 @@ class Root extends Component {
           <PrivateRoute exact path="/logout" component={ Logout } />
           <PrivateRoute exact path='/dashboard' component={ Dashboard } />
           <PrivateRoute exact path='/connect' component={ Connections } />
+          <PrivateRoute exact path='/power' component={ Power } />
         </div>
     </Router>
     );

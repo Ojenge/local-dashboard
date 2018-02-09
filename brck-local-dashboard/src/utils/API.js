@@ -2,7 +2,7 @@ import Auth from './Auth';
 
 var request = require('superagent');
 
-const BASE_URL = 'http://local-dev.brck.com/api/v1';
+const BASE_URL = 'http://local.brck.com/api/v1';
 const AUTH_HEADER = 'X-Auth-Token-Key';
 
 const TIMEOUT = {
@@ -49,8 +49,24 @@ const API = {
             .type('json')
             .accept('json')
             .set(AUTH_HEADER, Auth.getToken())
+            .timeout(TIMEOUT)
+            .end(cb);
+    },
+    'get_power_config': function(cb) {
+        request.get(BASE_URL + '/power')
+            .type('json')
+            .accept('json')
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
+            .end(cb);
+    },
+    'configure_power': function(payload, cb) {
+        request.patch(BASE_URL + '/power')
+            .type('json')
+            .accept('json')
+            .send(payload)
+            .set(AUTH_HEADER, Auth.getToken())
+            .timeout(LONG_TIMEOUT)
             .end(cb);
     },
     'get_sim_connections': function(cb) {
