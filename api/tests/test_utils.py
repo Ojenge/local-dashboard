@@ -24,19 +24,29 @@ NORMAL_SOC_SETTINGS = dict(mode='NORMAL', soc_on=10, soc_off=5)
 SOC_SCENARIOS = [
     (dict(mode='NORMAL', soc_on=10, soc_off=5), True,
      dict(mode='NORMAL', soc_on=10, soc_off=5, retail=1)),
+
      (dict(mode='TIMED'), False, True),
+
      (dict(mode='ALWAYS_ON'), True, dict(mode='ALWAYS_ON', auto_start=1)),
+
      (dict(mode='ALWAYS_ON', soc_on=10, soc_off=2), True,
+
       dict(mode='ALWAYS_ON', soc_on=10, soc_off=2, auto_start=1)),
+
      (dict(mode='VEHICLE'), True,
-      dict(mode='VEHICLE', auto_start=0, delay_off=1)),
-     (dict(mode='VEHICLE', auto_start=1, delay_off=1), False, True),
+      dict(mode='VEHICLE', auto_start=0)),
+
+     (dict(mode='VEHICLE', delay_off_minutes=10), True,
+      dict(mode='VEHICLE', delay_off_minutes=10, delay_off=1, auto_start=0)),
+
      (dict(mode='MANUAL'), True, True),
-     (dict(mode='MANUAL', auto_start=1), True, True),
-     (dict(mode='MANUAL', delay_off=1), False, True),
-     (dict(mode='MANUAL', delay_off=1, delay_off_minutes=1), False, True),
-     (dict(mode='MANUAL', delay_off=1), False, True),
-     (dict(mode='MANUAL', delay_off=1, delay_off_minutes=120), False, True),
+
+     (dict(mode='MANUAL', delay_off_minutes=1), True,
+      dict(mode='MANUAL', delay_off=1, delay_off_minutes=1, auto_start=0)),
+
+     (dict(mode='MANUAL', delay_off_minutes=0), False, True),
+
+     (dict(mode='MANUAL', delay_off_minutes=120), False, True),
 ]
 
 

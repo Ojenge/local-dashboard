@@ -42,7 +42,7 @@ MODES = [MODE_NORMAL, MODE_TIMED, MODE_ALWAYS_ON, MODE_VEHICLE, MODE_MANUAL]
 MODE_DEFAULTS = {
     MODE_NORMAL: { 'retail': 1 },
     MODE_ALWAYS_ON: {'auto_start': 1},
-    MODE_VEHICLE: { 'auto_start': 0, 'delay_off': 1},
+    MODE_VEHICLE: { 'auto_start': 0},
     MODE_TIMED: { 'auto_start': 0 }
 }
 
@@ -125,13 +125,13 @@ def validate_payload(payload):
         validator.ensure_format('on_time', REGEX_TIME)
         validator.ensure_format('off_time', REGEX_TIME)
         validator.ensure_not_equal('on_time', 'off_time')
-    if mode == MODE_MANUAL:
+    if mode in [MODE_MANUAL, MODE_VEHICLE]:
         validator.ensure_inclusion('auto_start', [0, 1], required=False)
-        validator.ensure_inclusion('delay_off', [0, 1], required=False)
-        if 'delay_off' in payload:
-            validator.ensure_exact('auto_start', 0)
-            validator.required_together('delay_off', 'delay_off_minutes')
+        if 'delay_off_minutes' in payload:
             validator.ensure_range('delay_off_minutes', 1, 60)
+            if validator.is_valid:
+                payload['auto_start'] = 0
+                payload['delay_off'] = 1
         validator.ensure_inclusion('retail', [0, 1], required=False)
     else:
         validator.ensure_excluded('auto_start', 'delay_off', 'retail')
@@ -143,10 +143,12 @@ def validate_payload(payload):
 def payload_to_command(payload):
     """Converts API payload to serial command
     """
-    soc_on = payload['soc_on']
-    soc_off = payload['soc_off']
-    on_date = datetime.strptime(payload['on_time'], TIME_FORMAT)
-    off_date = datetime.strptime(payload['off_time'], TIME_FORMAT)
+    soc_on = payload.get('soc_on', 0)
+    soc_off = payload.get('soc_off', 0)
+    on_time = payload.get('on_time', '00:00')
+    on_date = datetime.strptime(on_time, TIME_FORMAT)
+    off_time = payload.get('off_time', '00:00')
+    off_date = datetime.strptime(off_time, TIME_FORMAT)
     auto_start = payload.get('auto_start', 0)
     delay_off = payload.get('delay_off', 0)
     delay_off_minutes = payload.get('delay_off_minutes', 0)
@@ -190,8 +192,7 @@ def configure_power(payload):
         uci_set('brck.power', 'power')
         uci_set('brck.power.mode', payload_actual['mode'])
         uci_commit('brck.power')
-        command = payload_to_command(payload_actual)
-        status = set_soc(command)
+        status = set_soc(payload_actual)
         if status:
             return (200, 'OK')
         else:
