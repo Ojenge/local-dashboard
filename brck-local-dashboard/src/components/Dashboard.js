@@ -124,7 +124,7 @@ class Dashboard extends Component {
 
   renderBody = () => {
     return [
-        <div className="row connection-dash-stats">
+        <div className="row connection-dash-stats" key={"row1"}>
           <div className="col-md-6">
             <div className="info-box">
               <span className="info-box-icon bg-orange">
@@ -149,7 +149,7 @@ class Dashboard extends Component {
           </div>
         </div>,
 
-        <div className="row connection-dash-stats">
+        <div className="row connection-dash-stats" key={"row2"}>
           <div className="col-md-6">
               <div className="info-box">
                 <span className="info-box-icon bg-aqua">
@@ -189,7 +189,7 @@ class Dashboard extends Component {
             </div>
           </div>,
 
-          <div className="row">
+          <div className="row" key={"row3"}>
             <div className="col-md-6">
               <div className="box">
                 <div className="box-header with-border">
