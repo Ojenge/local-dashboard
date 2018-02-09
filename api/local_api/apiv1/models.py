@@ -8,6 +8,7 @@ from Crypto.Protocol import KDF
 from sqlalchemy.orm.exc import NoResultFound
 
 from local_api import db
+from .schema import Validator
 
 
 LOG = __import__('logging').getLogger('sqlalchemy')
@@ -138,6 +139,31 @@ def check_password(login, password):
         KDF.PBKDF2(password, 'salt', dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
     return is_verified
 
+
+def change_password(payload, user_id):
+    """Changes the user password
+    :return: tuple
+    """
+    v = Validator(payload)
+    v.ensure_exists('current_password')
+    v.ensure_exists('password')
+    v.ensure_equal('password', 'password_confirmation')
+    v.ensure_format('password', '^[\w@#.\+\-\*&%$]{5,32}$',
+                    message=('password must be between 5 and 32 characters '
+                             'and include any of these characters: letters, numbers and [@ # . + - * & % $]'))
+    if v.is_valid:
+        check = check_password(user_id, payload['current_password'])
+        if check:
+            user = db.session.query(Principal).filter_by(login=user_id).one()
+            user.set_password(payload['password'])
+            db.session.add(user)
+            db.session.commit()
+            return (200, 'OK')
+        else:
+            v.add_error('password', 'current password does not match')
+            return (422, v.errors)
+    else:
+        return (422, v.errors)
 
 def check_header(auth_key):
     """Load the current user from authentication token

@@ -50,6 +50,7 @@ EXPECTED_NETWORK_RESP = dict(
 TEST_USER = 'test_user'
 TEST_PASSWORD = 'test_password'
 
+
 @pytest.fixture
 def client(request):
     if os.path.exists(TEST_DATABASE_PATH):
@@ -57,6 +58,7 @@ def client(request):
     local_api.app.config['SQLALCHEMY_DATABASE_URI'] = TEST_DATABASE_URL
     t_client = local_api.app.test_client()
     return t_client
+
 
 @pytest.fixture
 def headers():
@@ -233,3 +235,19 @@ def test_patch_sim(client, headers):
                                 headers=headers)
             payload = load_json(resp)
             assert resp.status_code == 200
+
+
+def test_change_password(client, headers):
+    # TODO investigate why this test kills tests following it (fixtures no cleaned up).
+    new_password = 'freshpassword'
+    test_payload = dict(
+        current_password=TEST_PASSWORD,
+        password=new_password,
+        password_confirmation=new_password
+    )
+    resp = client.patch('/api/v1/auth/password',
+                        data=json.dumps(test_payload),
+                        content_type='application/json',
+                        headers=headers)
+    assert resp.status_code == 200
+    assert models.check_password(TEST_USER, new_password)

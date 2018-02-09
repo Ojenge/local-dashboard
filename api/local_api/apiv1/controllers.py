@@ -10,6 +10,7 @@ from flask import Blueprint, jsonify, request
 from flask.views import MethodView
 
 from flask_login import login_required
+from flask_login import current_user
 
 from .utils import get_system_state
 from .errors import APIError
@@ -18,6 +19,7 @@ from .sim import configure_sim
 from .soc import configure_power
 from .models import check_password
 from .models import make_token
+from .models import change_password
 
 api_blueprint = Blueprint('apiv1', __name__)
 
@@ -73,6 +75,21 @@ class ProtectedView(MethodView):
     """
 
     decorators = [login_required]
+
+
+class ChangePasswordView(ProtectedView):
+    
+    def patch(self):
+        """Sets a new user password
+        :return: string json
+        """
+        payload = request.get_json() or {}
+        status_code, errors = change_password(payload, current_user.login)
+        if status_code == HTTP_OK:
+            return jsonify({})
+        else:
+            raise APIError('Invalid Data', errors, 422)
+
 
 
 class SystemAPI(ProtectedView):
@@ -138,6 +155,9 @@ class WANAPI(ProtectedView):
 api_blueprint.add_url_rule('/auth',
                            view_func=AuthenticationView.as_view('auth'),
                            methods=[POST])
+api_blueprint.add_url_rule('/auth/password',
+                           view_func=ChangePasswordView.as_view('change_password'),
+                           methods=[PATCH])
 sim_view = WANAPI.as_view('user_api')
 api_blueprint.add_url_rule('/networks/sim/',
                            defaults={'sim_id': None},

@@ -23,7 +23,8 @@ class Validator(object):
         self.errors.update(errors)
 
     def ensure_exists(self, key, message=None):
-        if key not in self.data and key not in self.errors:
+        v = self.data.get(key)
+        if (not v) and key not in self.errors:
             self.errors[key] = message or '{} required'.format(key)
 
     def ensure_excluded(self, *keys):
@@ -31,11 +32,11 @@ class Validator(object):
             if key in self.data:
                 self.errors[key] = '{} not required'.format(key)
     
-    def ensure_format(self, key, pattern):
+    def ensure_format(self, key, pattern, message=None):
         if key not in self.errors:
             v = self.data.get(key, '')
             if not re.match(pattern, v):
-                self.errors[key] = 'Invalid format'
+                self.errors[key] = message or 'Invalid format'
 
     def ensure_exact(self, key, expected):
         if key not in self.errors:
@@ -57,7 +58,14 @@ class Validator(object):
         if v0 == v1:
             self.errors[key_a] = 'must not be equal to: %s' % key_b
             self.errors[key_b] = 'must not be equal to: %s' % key_a
- 
+
+    def ensure_equal(self, key_a, key_b):
+        v0 = self.data.get(key_a, None)
+        v1 = self.data.get(key_b, None)
+        if v0 != v1:
+            self.errors[key_a] = 'must not be equal to: %s' % key_b
+            self.errors[key_b] = 'must not be equal to: %s' % key_a
+
     def ensure_range(self, key, min, max, type=None):
         if not key in self.errors:
             v = self.data.get(key)
