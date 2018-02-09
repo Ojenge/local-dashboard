@@ -143,11 +143,11 @@ def validate_payload(payload):
 def payload_to_command(payload):
     """Converts API payload to serial command
     """
-    soc_on = payload.get('soc_on', 0)
-    soc_off = payload.get('soc_off', 0)
-    on_time = payload.get('on_time', '00:00')
+    soc_on = payload.get('soc_on', 15)
+    soc_off = payload.get('soc_off', 5)
+    on_time = payload.get('on_time', '06:00')
     on_date = datetime.strptime(on_time, TIME_FORMAT)
-    off_time = payload.get('off_time', '00:00')
+    off_time = payload.get('off_time', '20:00')
     off_date = datetime.strptime(off_time, TIME_FORMAT)
     auto_start = payload.get('auto_start', 0)
     delay_off = payload.get('delay_off', 0)
