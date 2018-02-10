@@ -16,27 +16,30 @@ const LONG_TIMEOUT = {
 }
 
 const API = {
-    'handle_error': (code) => {
+    getAuthHeaders: () => {
+        return {[AUTH_HEADER]: Auth.getToken()};
+    },
+    handle_error: (code) => {
         console.log("Handing Error: ", code);
         if (code === 401) {
             Auth.clearCredentials();
             window.location = '/login';
         }
     },
-    'ping': function(cb){
+    ping: function(cb){
         request.get(BASE_URL + '/ping')
             .type('json')
             .accept('json')
             .timeout(TIMEOUT)
             .end(cb);
     },
-    'auth': (payload, cb) => {
+    auth: (payload, cb) => {
         request.post(BASE_URL + '/auth')
             .send(payload)
             .timeout(TIMEOUT)
             .end(cb);
     },
-    'change_password': (payload, cb) => {
+    change_password: (payload, cb) => {
         request.patch(BASE_URL + '/auth/password')
             .type('json')
             .set(AUTH_HEADER, Auth.getToken())
@@ -44,7 +47,7 @@ const API = {
             .timeout(TIMEOUT)
             .end(cb);
     },
-    'get_system': function(cb) {
+    get_system: function(cb) {
         request.get(BASE_URL + '/system')
             .type('json')
             .accept('json')
@@ -52,7 +55,7 @@ const API = {
             .timeout(TIMEOUT)
             .end(cb);
     },
-    'get_power_config': function(cb) {
+    get_power_config: function(cb) {
         request.get(BASE_URL + '/power')
             .type('json')
             .accept('json')
@@ -60,7 +63,7 @@ const API = {
             .timeout(TIMEOUT)
             .end(cb);
     },
-    'configure_power': function(payload, cb) {
+    configure_power: function(payload, cb) {
         request.patch(BASE_URL + '/power')
             .type('json')
             .accept('json')
@@ -69,7 +72,7 @@ const API = {
             .timeout(LONG_TIMEOUT)
             .end(cb);
     },
-    'get_sim_connections': function(cb) {
+    get_sim_connections: function(cb) {
         request.get(BASE_URL + '/networks/sim/')
             .type('json')
             .accept('json')
@@ -77,7 +80,7 @@ const API = {
             .timeout(TIMEOUT)
             .end(cb);
     },
-    'configure_sim_connection': function(sim_id, payload, cb) {
+    configure_sim_connection: function(sim_id, payload, cb) {
         request.patch(BASE_URL + '/networks/sim/' + sim_id)
             .type('json')
             .accept('json')

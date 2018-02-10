@@ -21,7 +21,6 @@ const Auth = {
     clearCredentials: () => {
         localStorage.removeItem(STORE_KEY);
     }
-
 }
 
 export default Auth;

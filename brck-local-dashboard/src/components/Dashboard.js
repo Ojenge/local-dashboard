@@ -37,11 +37,21 @@ class Dashboard extends Component {
   }
 
   initializeSocket = () => {
-    this.socket = io('/dashboard');
+    const opts = {
+      transportOptions: {
+        polling: {
+          extraHeaders: API.getAuthHeaders()
+        }
+      }
+    };
+    this.socket = io('/dashboard', opts);
     this.socket.on('system', (data) => {
       this.setState({
         system: data
       });
+    });
+    this.socket.on('error', (err) => {
+      console.log('error', err);
     });
   }
 

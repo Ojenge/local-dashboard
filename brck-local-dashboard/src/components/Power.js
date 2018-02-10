@@ -84,11 +84,11 @@ class Power extends Component {
       loaded: false,
       power: {},
       mode: '',
-      soc_on: null,
-      soc_off: null,
-      on_time: null,
-      off_time: null,
-      delay_off_minutes: null,
+      soc_on: '',
+      soc_off: '',
+      on_time: '',
+      off_time: '',
+      delay_off_minutes: '',
       errors: {}
     }
   }
@@ -135,7 +135,7 @@ class Power extends Component {
     e.preventDefault();
     var config = {}
     SOC_FIELDS.map((field) => {
-      if(this.state[field] != null) {
+      if(this.state[field] != '') {
         config[field] = this.state[field];
         if (NUMERIC_FIELDS.indexOf(field) > -1) {
           config[field] = Number.parseInt(this.state[field], 10);
@@ -150,10 +150,12 @@ class Power extends Component {
   configCallback = (err, res) => {
     this.setState({ working: false });
     if (err || !res.ok) {
+        var errors = (res.status === 422) ? res.body.errors : {};
         this.setState({
             config_error: true,
-            errors: res.body.errors
+            errors: errors
         });
+        API.handle_error(res.status);
     } else {
         this.setState({
             config_saved: true,
@@ -174,7 +176,7 @@ class Power extends Component {
               <p>The purpose for which the device will be used.</p>
               <div className="row">
                 <div className="col-xs-12 col-md-4 col-lg-2">
-                  <div class="form-group">
+                  <div className="form-group">
                     <div className={'input-group' + ' ' + (this.state.errors.mode ? 'has-error' : '') }>
                       <select name="mode"
                               value={ this.state.mode }
@@ -186,7 +188,7 @@ class Power extends Component {
                         }) }
                       </select>
                     </div>
-                    <label class="help-block text-danger">{ this.state.errors.mode }</label>
+                    <label className="help-block text-danger">{ this.state.errors.mode }</label>
                   </div>
                 </div>
                 <div className="col-xs-12 col-md-8 col-lg-10">
@@ -228,7 +230,7 @@ class Power extends Component {
                         className="form-control" />
                         <span className="input-group-addon"><i className="fa fa-battery"></i></span>
                     </div>
-                    <label class="help-block text-danger">{ this.state.errors.soc_off }</label>
+                    <label className="help-block text-danger">{ this.state.errors.soc_off }</label>
                   </div>
                 </div>
               </div>
@@ -245,7 +247,7 @@ class Power extends Component {
                         className="form-control" />
                         <span className="input-group-addon"><i className="fa fa-battery"></i></span>
                     </div>
-                    <label class="help-block text-danger">{ this.state.errors.soc_on }</label>
+                    <label className="help-block text-danger">{ this.state.errors.soc_on }</label>
                   </div>
                 </div>
               </div>
@@ -297,7 +299,7 @@ class Power extends Component {
                         <i className="fa fa-clock-o"></i>
                       </div>
                     </div>
-                    <label class="help-block text-danger">{ this.state.errors.on_time }</label>
+                    <label className="help-block text-danger">{ this.state.errors.on_time }</label>
                   </div>
                 </div>
               </div>
@@ -317,7 +319,7 @@ class Power extends Component {
                       <i className="fa fa-clock-o"></i>
                     </div>
                     </div>
-                    <label class="help-block text-danger">{ this.state.errors.off_time }</label>
+                    <label className="help-block text-danger">{ this.state.errors.off_time }</label>
                   </div>
                 </div>
               </div>
@@ -330,16 +332,16 @@ class Power extends Component {
 
   renderDelayForm = () => {
     return (
-      <div class="row">
-        <div class="col-md-6">
-            <div class="box">
-                <div class="box-header with-border">
-                    <h3 class="box-title">Delayed Switch Off Timer</h3>
+      <div className="row">
+        <div className="col-md-6">
+            <div className="box">
+                <div className="box-header with-border">
+                    <h3 className="box-title">Delayed Switch Off Timer</h3>
                 </div>
-                <div class="box-body">
+                <div className="box-body">
                     <p>When not charging, how long should the device stay on before automatically shutting down</p>
-                    <div class="row">
-                        <div class="col-md-6">
+                    <div className="row">
+                        <div className="col-md-6">
                             <div className="form-group">
                               <div className={'input-group' + ' ' + (this.state.errors.soc_off ? 'has-error' : '') }>
                                 <input
@@ -347,10 +349,10 @@ class Power extends Component {
                                 value={ this.state.delay_off_minutes }
                                 onChange={ this.handleInput }
                                 type="number"
-                                class="form-control"
+                                className="form-control"
                                 placeholder="Units in minutes (e.g 65)" />
                               </div>
-                              <label class="help-block text-danger">{ this.state.errors.delay_off_minutes }</label>
+                              <label className="help-block text-danger">{ this.state.errors.delay_off_minutes }</label>
                             </div>
                         </div>
                     </div>
@@ -364,9 +366,9 @@ class Power extends Component {
 
   renderSubmit = () => {
     return (
-      <div class="row">
-          <div class="col-xs-3 ">
-              <button type="button" onClick={ this.handleConfigurePower } class="btn btn-block btn-primary btn-lg">Save</button>
+      <div className="row">
+          <div className="col-xs-3 ">
+              <button type="button" onClick={ this.handleConfigurePower } className="btn btn-block btn-primary btn-lg">Save</button>
           </div>
       </div>
     );
