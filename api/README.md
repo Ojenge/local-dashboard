@@ -10,13 +10,14 @@ The development environment can be initialized like so:
 
 ```bash
 mkvirtuenv dash
+# checkout brck-sdk
+python setup.py install
 pip install -r dev_requirements.txt
 ```
 
 ### Runtime dependencies
 
-- brck-sdk
-
+    prod_requirements.txt
 
 ### Running tests
 

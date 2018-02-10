@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import functools
+
 from flask import current_app as app
 from flask import request
+
+from flask_login import current_user
+from flask_socketio import disconnect
 
 from local_api.apiv1.utils import get_request_log
 from local_api.apiv1.errors import APIError
@@ -29,3 +34,13 @@ def load_user(r):
     if user is not None:
         return user
     return _user
+
+
+def authenticated_only(f):
+    @functools.wraps(f)
+    def wrapped(*args, **kwargs):
+        if not current_user.is_authenticated:
+            disconnect()
+        else:
+            return f(*args, **kwargs)
+    return wrapped

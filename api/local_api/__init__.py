@@ -59,6 +59,7 @@ def send_system_state():
     eventlet.call_after_global(5, send_system_state)
 
 @socketio.on('connect', namespace='/dashboard')
+@auth.authenticated_only
 def on_connect():
     app.logger.debug('user connected')
     socketio.emit('message', {'data': 1234}, namespace='/dashboard')
