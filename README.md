@@ -33,12 +33,12 @@ Installation may be performed using `opkg`
 
 - API 
     - [x] Authentication (default login + password change interface)
-    - [x]Device(s) status API (connection, storage)
+    - [x] Device(s) status API (connection, storage)
     - [x] Firmware type management API
+    - [x] SIM connection management
     - [ ] Plex?
     - [ ] Configuration? FTP / File Management
     - [ ] Compute (features)
-    - [x] SIM connection management
     - [ ] Per-device configuration or connection
 - Frontend
     - [x] System State
