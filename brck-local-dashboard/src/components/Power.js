@@ -193,7 +193,7 @@ class Power extends Component {
                 </div>
                 <div className="col-xs-12 col-md-8 col-lg-10">
                     { (this.state.mode_verbose)
-                      ? <div className="alert">{ this.state.mode_verbose }</div>
+                      ? <div className="alert alert-info"><p>{ this.state.mode_verbose }</p></div>
                       : null
                     }
                 </div>

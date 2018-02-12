@@ -7,15 +7,6 @@ import LogoLarge from '../media/brck-logo-lg.svg';
 
 class Container extends Component {
 
-  componentDidMount () {
-    // change height of element
-    console.log('Changing the height');
-    console.log(this._wrapperTarget);
-    if(this._wrapperTarget) {
-      // this._wrapperTarget.clientHeight = document.body.clientHeight;
-    }
-  }
-
   renderHeader = () => {
     return (
       <header className="main-header">
@@ -112,7 +103,7 @@ class Container extends Component {
 
   render() {
     return(
-      <div className={"content-wrapper-wrapper"} ref={(node) => { this._wrapperTarget = node; }}>
+      <div className={"content-wrapper-wrapper"}>
         { this.renderHeader() }
         { this.renderSideBar() }
         <div className="content-wrapper">
