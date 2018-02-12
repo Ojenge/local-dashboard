@@ -206,11 +206,17 @@ class Dashboard extends Component {
                   <h3 className="box-title">Storage</h3>
                 </div>
                 <div className="box-body">
-                  <p>Your SupaBRCK has <strong>{ Humanize.fileSize(this.state.system.storage.total_space) }</strong> of storage. To access web, go to local.brck (192.168.88.1:8080)</p>
+                  <p>Your SupaBRCK has <strong>{ Humanize.fileSize(this.state.system.storage.total_space) }</strong> of storage.</p>
                   <div className="progress">
-                    <div className="progress-bar progress-bar-yellow" role="progressbar" aria-valuenow={this.getStorageUsage()} aria-valuemin="0" aria-valuemax="100" style={{width: this.getStorageUsage() + '%'}}>1.5GB used
-                      <span className="sr-only">{this.getStorageUsage()}% Complete (warning)</span>
-                    </div>
+                    <div className="progress-bar progress-bar-yellow"
+                      role="progressbar"
+                      aria-valuenow={ this.getStorageUsage() } 
+                      aria-valuemin="0"
+                      aria-valuemax="100" 
+                      style={{ width: this.getStorageUsage() + '%' }}>
+                      { Humanize.fileSize(this.state.system.storage.used_space) } used
+                      <span className="sr-only">{ this.getStorageUsage() }% used (warning)</span>
+                    </div> 
                   </div>
                 </div>
               </div>

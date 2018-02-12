@@ -9,7 +9,7 @@
 }
 .content-wrapper{
     bottom: 50px;
-   position: fixed;
+    position: fixed;
      width: 100%;
     top: 50px;
 	overflow-y: hidden;
@@ -144,13 +144,11 @@
 }
 .brck-yellow .sidebar-menu > li:hover > a,
 .brck-yellow .sidebar-menu > li.active > a,
-.brck-yellow .sidebar-menu > li > a.active,
 .brck-yellow .sidebar-menu > li.menu-open > a {
     color: #EDBF1C;
     background: #111;
 }
-.brck-yellow .sidebar-menu > li.active > a,
-.brck-yellow .sidebar-menu > li > a.active {
+.brck-yellow .sidebar-menu > li.active > a {
     border-left-color: #EDBF1C;
 }
 .brck-yellow .sidebar-menu > li > .treeview-menu {
@@ -167,7 +165,6 @@
     color: #757575;
 }
 .brck-yellow .sidebar-menu .treeview-menu > li.active > a,
-.brck-yellow .sidebar-menu .treeview-menu > li > a.active,
 .brck-yellow .sidebar-menu .treeview-menu > li > a:hover {
     color: #ffffff;
 }
@@ -243,6 +240,11 @@
 .daterangepicker td.active:hover {
     background-color: #333;
 }
+
+.brck-yellow .progress {
+	background-color: #aaa;
+}
+
 @media (min-width: 768px) {
     .brck-yellow .content .navbar.secondary-nav {
         min-height: 0;
@@ -650,5 +652,6 @@ ul {
     color: #7F7F7F;
 	  -moz-appearance:none;
 	  appearance:none;
-	  -web-appearance:none;
+	  -webkit-appearance:none;
 }
+
