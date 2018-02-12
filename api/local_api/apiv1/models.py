@@ -12,7 +12,7 @@ from .schema import Validator
 
 
 LOG = __import__('logging').getLogger('sqlalchemy')
-HASH_ROUNDS = 20000
+HASH_ROUNDS = 1000
 EXPIRY_HOURS = 24
 DK_LEN = 32
 
