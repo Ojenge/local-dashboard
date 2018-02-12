@@ -39,7 +39,6 @@ Installation may be performed using `opkg`
     - [ ] Plex?
     - [ ] Configuration? FTP / File Management
     - [ ] Compute (features)
-    - [ ] Per-device configuration or connection
 - Frontend
     - [x] System State
     - [x] SIM Connection Management
