@@ -49,7 +49,9 @@ class Connections extends Component {
       connections: [],
       apn: '',
       apn_user: '',
-      apn_password: ''
+      apn_password: '',
+      pin: '',
+      puk: ''
     }
   }
 
@@ -93,7 +95,8 @@ class Connections extends Component {
   
   handleConfigureAPN = (sim) => {
     this.setState({
-      sim_id: sim.id
+      sim_id: sim.id,
+      current_sim: sim
     });
   }
 
@@ -111,14 +114,39 @@ class Connections extends Component {
     API.configure_sim_connection(this.state.sim_id, payload, this.configCallback);
   }
 
+
+  handleSubmitPIN = (e) => {
+    e.preventDefault();
+    var config = {};
+    if (this.state.pin) {
+      config.pin = this.state.pin
+    }
+    if (this.state.puk) {
+      config.puk = this.state.puk;
+    }
+    var payload = { configuration: config }
+    this.setState({ working: true });
+    API.configure_sim_connection(this.state.sim_id, payload, this.configCallback);
+  }
+
+
   handleConnect = (e, sim) => {
     e.preventDefault();
     this.setState({
-      sim_id: sim.id
+      sim_id: sim.id,
+      current_sim: sim
     });
     var payload = { configuration: {} };
     this.setState({ working: true, connecting: true });
     API.configure_sim_connection(sim.id, payload, this.connCallback);
+  }
+
+  handleUnlockSIM = (e, sim) => {
+    e.preventDefault();
+    this.setState({
+      sim_id: sim.id,
+      current_sim: sim
+    });
   }
 
   configCallback = (err, res) => {
@@ -211,7 +239,13 @@ class Connections extends Component {
             <p className="text-center"><i className="fa fa-times-circle text-red "></i><small>Not Connected</small>
             </p>
             <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
-            <a href="." onClick={ (e) => this.handleConnect(e, sim) } className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2-connect">Connect</a>
+            { (sim.info.pin_locked || sim.info.puk_locked)
+              ? (
+                <a href="#" onClick={ (e) => { e.preventDefault(); this.handleUnlockSIM(e, sim) }} className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim-locked">Connect</a>
+              ) : (
+                <a href="#" onClick={ (e) => this.handleConnect(e, sim) } className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2-connect">Connect</a>
+              )
+            }
           </div>
         </div>
       </div>
@@ -321,6 +355,58 @@ class Connections extends Component {
     );
   }
 
+  renderConfigureSimLockedDialog = () => {
+    const pukLocked = this.state.current_sim ? this.state.current_sim.info.puk_locked : false;
+    return (
+      <div className="modal fade" id="sim-locked" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div className="modal-dialog" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span> </button>
+              <h4 className="modal-title" id="myModalLabel">SIM Locked</h4>
+            </div>
+
+            <div className="modal-body">
+              <div className="row">
+                <div class="col-md-12">
+                  <p>
+                    { pukLocked
+                      ? (
+                        <span>This SIM requires a PUK and PIN to connect.</span>
+                      ): (
+                        <span>This SIM requires a PIN to connect.</span>
+                      ) }
+                  </p>
+                </div>
+                <div className="col-md-12 mobile-top-spacing-15">
+                  <form>
+                    { pukLocked
+                    ? (
+                      <div className="form-group">
+                        <label>PUK</label>
+                        <input className="form-control" type="number" name="puk" value={ this.state.puk } 
+                          onChange={ this.handleInput } />
+                      </div>
+                    ) : (
+                      null
+                    )}
+                    <div className="form-group">
+                      <label>PIN</label>
+                      <input className="form-control" type="text" name="pin" value={ this.state.pin }
+                        onChange={ this.handleInput } />
+                    </div>
+                    <a href="." onClick={ this.handleSubmitPIN } className="btn btn-primary pull-right" data-dismiss="modal">Save</a>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+     </div>
+    );
+  }
+
+
   renderMessages = () => {
     return (
       <div className="row">
@@ -330,7 +416,7 @@ class Connections extends Component {
             : null)}
           {(this.state.config_error
             ? <AlertError title={"We could not connect with the APN information provided"}
-                errors={["Make sure the APN information is typed in correctly", "Contact your mobile service provider for APN support"]} />
+                errors={["Make sure the APN/PIN/PUK information is typed in correctly", "Contact your mobile service provider for APN support"]} />
             : null)}
           {(this.state.conn_error
            ? <AlertWarning message={"Could not connect with the selected SIM - You can try another SIM."} />
@@ -359,6 +445,7 @@ class Connections extends Component {
           </div>
         </div>
         { this.renderConfigureSimDialog() }
+        { this.renderConfigureSimLockedDialog() }
       </Container>
     );
   }
