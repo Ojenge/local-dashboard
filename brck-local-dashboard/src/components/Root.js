@@ -15,20 +15,17 @@ import ChangePassword from './ChangePassword';
 import Power from './Power';
 import Auth from '../utils/Auth';
 
+const CHANGE_PASSWORD_PATH = '/change-password';
 
 const PrivateRoute = ({ component: Component, ...rest }) => {
-  const show_change = (Component.name !== 'ChangePassword') && Auth.requiresPasswordChange();
+  const forcePassChange = (window.location.pathname !== CHANGE_PASSWORD_PATH) && Auth.requiresPasswordChange();
+  if (forcePassChange) {
+    window.location = CHANGE_PASSWORD_PATH;
+  }
   return (
     <Route {...rest} render={props => (
       Auth.isAuthenticated() ? (
-        show_change ? (
-          <Redirect to={{
-            pathname: '/change-password',
-            state: { from: props.location }
-          }}/>
-        ) : (
-          <Component {...props}/>
-        )
+        <Component {...props}/>
       ) : (
         <Redirect to={{
           pathname: '/login',
@@ -48,7 +45,7 @@ class Root extends Component {
         <div className={"innerRoot"}>
           <Route exact path="/" component={ Boot } />
           <Route exact path="/login" component={ Login } />
-          <PrivateRoute exact path="/change-password" component={ ChangePassword } />
+          <PrivateRoute exact path={CHANGE_PASSWORD_PATH} component={ ChangePassword } />
           <PrivateRoute exact path="/logout" component={ Logout } />
           <PrivateRoute exact path='/dashboard' component={ Dashboard } />
           <PrivateRoute exact path='/connect' component={ Connections } />

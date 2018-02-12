@@ -159,7 +159,9 @@ class Power extends Component {
     } else {
         this.setState({
             config_saved: true,
-            power: res.body
+            config_error: false,
+            power: res.body,
+            errors: {}
         });
     }
   }
