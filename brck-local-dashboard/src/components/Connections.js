@@ -55,16 +55,17 @@ class Connections extends Component {
 
   componentDidMount() {
     this.loadConnections();
+    this.interval = window.setInterval(this.loadConnections, 10000);
+  }
+
+  componentWillUnmount() {
+    if(this.interval) {
+      window.clearInterval(this.interval);
+    }
   }
 
   loadConnections = () => {
     API.get_sim_connections(this.dataCallback);
-  }
-
-  reloadConnections = (e) => {
-    this.setState({working: true});
-    e.preventDefault();
-    this.loadConnections();
   }
 
   dataCallback = (err, res) => {
@@ -126,6 +127,7 @@ class Connections extends Component {
         this.setState({
             config_error: true
         });
+        API.handle_error(res.status);
     } else {
         var connections = this.state.connections;
         res.body.map((s) => {
@@ -353,16 +355,6 @@ class Connections extends Component {
               {this.state.connections.map(function(sim, index){
                 return that.renderSim(sim);
               })}
-            </div>
-            <div className="row">
-              <div className="col-xs-12">
-                <p>
-                  { this.state.working 
-                    ? null
-                    : <a href="." onClick={ this.reloadConnections } className="btn btn-primary pull-right">Refresh</a>
-                  }
-                </p>
-              </div>
             </div>
           </div>
         </div>

@@ -45,7 +45,7 @@ class Root extends Component {
   render() {
     return (
       <Router>
-        <div>
+        <div className={"innerRoot"}>
           <Route exact path="/" component={ Boot } />
           <Route exact path="/login" component={ Login } />
           <PrivateRoute exact path="/change-password" component={ ChangePassword } />
