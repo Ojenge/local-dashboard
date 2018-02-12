@@ -84,7 +84,7 @@ def get_wan_connections(sim_id=None):
             is_active_sim = str(key) == active_sim
             if is_active_sim and (not net_connected):
                 sim_status = run_command(['querymodem', 'check_pin'],
-                                         output=True)
+                                         output=True) or ''
                 if REG_PIN_LOCK.match(sim_status):
                     info['pin_locked'] = True
                 else:
