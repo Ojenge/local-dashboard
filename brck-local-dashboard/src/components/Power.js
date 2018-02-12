@@ -30,11 +30,11 @@ const AlertError = props => {
     <div className="alert alert-danger alert-dismissible">
       <button type="button" className="close" data-dismiss="alert" aria-hidden="true">×</button>
       <h4>{ props.title }</h4>
-      <ol>
+      <ul>
         {props.errors.map((err, key) => 
           <li key={key}>{ err }</li>
          )}
-      </ol>
+      </ul>
   </div>
   );
 }
@@ -364,17 +364,45 @@ class Power extends Component {
     );
   }
 
+
+  renderDialog = () => {
+    return (
+      <div className="modal fade" id="modal-confirm">
+        <div className="modal-dialog">
+            <div className="modal-content">
+                <div className="modal-header">
+                    <button type="button" className="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span></button>
+                    <h4 className="modal-title">Are you sure?</h4>
+                </div>
+                <div className="modal-body">
+                    <p>You are about to configure your SupaBRCK as <strong>{ this.state.mode }</strong></p>
+                </div>
+                <div className="modal-footer">
+                    <button type="button" className="btn btn-default pull-left" data-dismiss="modal">Cancel</button>
+                    <a href="." onClick={ this.handleConfigurePower } className="btn btn-primary" data-dismiss="modal">Confirm</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    );
+  }
+
   renderSubmit = () => {
     return (
       <div className="row">
           <div className="col-xs-3 ">
-              <button type="button" onClick={ this.handleConfigurePower } className="btn btn-block btn-primary btn-lg">Save</button>
+              <button type="button"
+                className="btn btn-block btn-primary btn-lg"
+                data-toggle="modal" 
+                data-target="#modal-confirm">Save</button>
           </div>
       </div>
     );
   }
 
   renderMessages = () => {
+    const rootError = this.state.errors.soc || "Review errors below";
     return (
       <div className="row">
         <div className="col-xs-12">
@@ -382,7 +410,8 @@ class Power extends Component {
             ? <AlertSuccess message={"Your power settings have been saved successfully."} />
             : null)}
           {(this.state.config_error
-            ? <AlertWarning message={"We could not configure your device - check provided errors"} />
+            ? <AlertError title={"Could not configure device"}
+                errors={[ rootError ]} />
             : null)}
         </div>
       </div>
@@ -402,6 +431,7 @@ class Power extends Component {
           ? null
           : <Loading message="Loading power settings" />}
           <div className="content container-fluid">
+            { this.renderDialog() }
             { this.renderMessages() }
             { this.renderModeForm()  }
             <div className="row">
