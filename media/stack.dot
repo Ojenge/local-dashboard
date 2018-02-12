@@ -1,0 +1,33 @@
+digraph productsworkflow {
+
+    graph [splines=ortho, nodesep=2]
+    node [fontname="UbuntuLight", fontsize=12]
+    edge [fontname="UbuntuLight", fontsize=10]
+
+    node [shape=circle, style=bold, style="filled", color=midnightblue, fontcolor=ghostwhite, fixedsize=true, width=1, height=1] web_client; api_client;
+    node [shape=component, style="filled", color=slategrey, fontcolor=gray10, fixedsize=true, width=1.0, height=0.5] dashboard; api;
+    node [shape=folder, style="filled", color=gray12, fontcolor=gray99, fixedsize=true, width=1.0, height=0.5] database;
+
+
+    web_client [label="Web\nClient"]
+    api_client [label="API\nClient"]
+    api [label="Local API"]
+    dashboard [label="Dashboard"]
+    database [label="SQLite"]
+    supabrck [label="SuparBRCK", shape="box3d"]
+
+
+    legend[shape=rect, label="SB Local Dashboard", style="filled", color="royalblue", fontcolor="lightcyan1", width=2.0, height=0.5]
+
+    web_client -> dashboard [xlabel="HTTP(S)"]
+    dashboard -> api [xlabel="HTTP(S)/WebSocket"]
+    api_client -> api [xlabel="HTTP(S)"]
+    api -> supabrck [xlabel="OS Utilities"]
+    api -> database
+
+    subgraph cluster_internal {
+        supabrck
+        api
+        database
+    }
+}

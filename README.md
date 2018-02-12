@@ -15,28 +15,35 @@ using opkg.
 
 The API documentation is built on Swagger and lives in `api-docs`
 
+## Architecture
 
-# Releases
+![Architecture](media/stack.png)
 
-Package releases include both the dashboard and the api.
+## Installation notes
 
-Deployment is exposed behing _Nginx_ at _http://local.brck.com_
+Installation may be performed using `opkg`
+
+`opkg install local-dashboard`
+
+- This will set up the API, database and dashboard, the latter will be exposed at http://local.brck.com when accessed from within the SupaBRCK WiFi network.
+- First-time use will require to change the password from the default credentials (admin/admin)
 
 
-# Notes
+## Feature notes
 
-- API :ballot_box_with_check:
-    - Authentication (default login + password change interface)
-    - Device(s) status API (connection, storage)
-    - Firmware type management API
-    - Plex?
-    - Configuration? FTP / File Management
-    - Compute (features)
-    - Per-device configuration
-    - Per-device configuration or connection
-- Frontend :ballot_box_with_check:
-    - Web interface accessible @ local.brck.com
-    - Content?
-    - Compute?
-    - React-based
-    - Password change view
+- API 
+    - [x] Authentication (default login + password change interface)
+    - [x]Device(s) status API (connection, storage)
+    - [x] Firmware type management API
+    - [ ] Plex?
+    - [ ] Configuration? FTP / File Management
+    - [ ] Compute (features)
+    - [x] SIM connection management
+    - [ ] Per-device configuration or connection
+- Frontend
+    - [x] System State
+    - [x] SIM Connection Management
+    - [x] Power Management
+    - [ ] LAN Connection Management
+    - [ ] System version and packages view
+    - [ ] Historical views
