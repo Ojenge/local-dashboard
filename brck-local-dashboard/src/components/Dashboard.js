@@ -51,7 +51,13 @@ class Dashboard extends Component {
       });
     });
     this.socket.on('error', (err) => {
-      console.log('error', err);
+      console.log('socket error', err);
+    });
+    this.socket.on('disconnect', (err) => {
+      console.log('disconnected', err);
+    });
+    this.socket.on('reconnect_failed', (err) => {
+      API.errorHandler(null)(err);
     });
   }
 
