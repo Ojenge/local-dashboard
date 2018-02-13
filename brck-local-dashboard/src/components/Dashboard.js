@@ -71,7 +71,7 @@ class Dashboard extends Component {
   renderBatteryInfo = (level) => {
     var containerClass = "info-box-icon bg-green";
     var levelTag = Math.round(level / 25);
-    if (level === 100) {
+    if ((level === 100) || (levelTag >= 4)) {
       levelTag = 3;
     }
     if (levelTag <= 1) {

@@ -67,7 +67,9 @@ class Connections extends Component {
   }
 
   loadConnections = () => {
-    API.get_sim_connections(this.dataCallback);
+    if (!this.state.connecting) {
+      API.get_sim_connections(this.dataCallback);
+    }
   }
 
   dataCallback = (res) => {
@@ -124,7 +126,7 @@ class Connections extends Component {
       config.puk = this.state.puk;
     }
     var payload = { configuration: config }
-    this.setState({ working: true });
+    this.setState({ working: true, connecting: true });
     API.configure_sim_connection(this.state.sim_id, payload, this.configCallback);
   }
 
