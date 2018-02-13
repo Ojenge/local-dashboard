@@ -41,9 +41,9 @@ class Login extends Component {
         }
     }
 
-    loginCallback = (err, res) => {
+    loginCallback = (res) => {
         this.setState({ working: false });
-        if (err || !res.ok) {
+        if (!res.ok) {
             this.setState({
                 login_error: true
             });

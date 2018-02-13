@@ -18,7 +18,7 @@ class Loading extends Component {
                 <div className="spinner">
                     <span />
                 </div>
-                <p className="login-box-msg">{ this.state.message }</p>
+                <p className="login-box-msg text-yellow">{ this.state.message }</p>
             </div>
         </div>
 

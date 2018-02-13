@@ -26,7 +26,7 @@ class Dashboard extends Component {
   }
 
   componentDidMount() {
-    API.ping(this.connectionCallback);
+    API.get_system(this.systemCallback);
     this.initializeSocket();
   }
 
@@ -55,26 +55,11 @@ class Dashboard extends Component {
     });
   }
 
-  connectionCallback = (err, res) => {
-    if (err || !res.ok){
-      this.setState({
-        connected: false,
-        net_error: true
-      });
-    } else {
-      this.setState({
-        connected: true
-      });
-      API.get_system(this.systemCallback);
-    }
-  }
-
-  systemCallback = (err, res) => {
-    if(err || !res.ok) {
+  systemCallback = (res) => {
+    if(!res.ok) {
       this.setState({
         net_error: true
       });
-      API.handle_error(res.status);
     } else {
       this.setState({ 
         system: res.body,

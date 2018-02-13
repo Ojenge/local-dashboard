@@ -45,9 +45,9 @@ class ChangePassword extends Component {
         }
     }
 
-    authCallback = (err, res) => {
+    authCallback = (res) => {
         this.setState({ working: false });
-        if (err || !res.ok) {
+        if (!res.ok) {
             this.setState({
                 login_error: true,
                 errors: res.body.errors || {}

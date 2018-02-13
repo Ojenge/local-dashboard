@@ -70,14 +70,13 @@ class Connections extends Component {
     API.get_sim_connections(this.dataCallback);
   }
 
-  dataCallback = (err, res) => {
+  dataCallback = (res) => {
     this.setState({ working: false });
-    if (err || !res.ok) {
+    if (!res.ok) {
       this.setState({
         loaded: false,
         net_error: true
       });
-      API.handle_error(res.status);
     } else {
       this.setState({
         loaded: true,
@@ -149,13 +148,12 @@ class Connections extends Component {
     });
   }
 
-  configCallback = (err, res) => {
+  configCallback = (res) => {
     this.setState({ working: false, connecting: false });
-    if (err || !res.ok) {
+    if (!res.ok) {
         this.setState({
             config_error: true
         });
-        API.handle_error(res.status);
     } else {
         var connections = this.state.connections;
         res.body.map((s) => {

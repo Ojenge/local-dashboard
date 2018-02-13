@@ -25,7 +25,7 @@ class Boot extends Component {
       counter: _counter
     });
     if (err || !res.ok) {
-      console.log(err);
+      console.log('Failed to connect - Retrying in 5s')
     } else {
       this.clearTick();
       this.setState({
@@ -40,7 +40,7 @@ class Boot extends Component {
 
   componentDidMount() {
     this.checker();
-    this.tick = window.setInterval(this.checker, 10000);
+    this.tick = window.setInterval(this.checker, 5000);
   }
 
   componentWillUnmount() {

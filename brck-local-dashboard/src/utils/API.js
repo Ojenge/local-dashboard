@@ -15,16 +15,23 @@ const LONG_TIMEOUT = {
     deadline: 25000
 }
 
+
+const handleError = (err) => {
+    console.log(err);
+    if (err) {
+        if (err.status_code === 401) {
+            Auth.clearCredentials();
+            window.location = '/login';
+        } else if (err.status_code === undefined) {
+            window.location = '/';
+        }
+    }
+}
+
+
 const API = {
     getAuthHeaders: () => {
         return {[AUTH_HEADER]: Auth.getToken()};
-    },
-    handle_error: (code) => {
-        console.log("Handing Error: ", code);
-        if (code === 401) {
-            Auth.clearCredentials();
-            window.location = '/login';
-        }
     },
     ping: function(cb){
         request.get(BASE_URL + '/ping')
@@ -37,7 +44,8 @@ const API = {
         request.post(BASE_URL + '/auth')
             .send(payload)
             .timeout(TIMEOUT)
-            .end(cb);
+            .on('error', handleError)
+            .then(cb);
     },
     change_password: (payload, cb) => {
         request.patch(BASE_URL + '/auth/password')
@@ -45,7 +53,8 @@ const API = {
             .set(AUTH_HEADER, Auth.getToken())
             .send(payload)
             .timeout(TIMEOUT)
-            .end(cb);
+            .on('error', handleError)
+            .then(cb);
     },
     get_system: function(cb) {
         request.get(BASE_URL + '/system')
@@ -53,7 +62,8 @@ const API = {
             .accept('json')
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
-            .end(cb);
+            .on('error', handleError)
+            .then(cb);
     },
     get_power_config: function(cb) {
         request.get(BASE_URL + '/power')
@@ -61,7 +71,8 @@ const API = {
             .accept('json')
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
-            .end(cb);
+            .on('error', handleError)
+            .then(cb);
     },
     configure_power: function(payload, cb) {
         request.patch(BASE_URL + '/power')
@@ -70,7 +81,8 @@ const API = {
             .send(payload)
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(LONG_TIMEOUT)
-            .end(cb);
+            .on('error', handleError)
+            .then(cb);
     },
     get_sim_connections: function(cb) {
         request.get(BASE_URL + '/networks/sim/')
@@ -78,7 +90,8 @@ const API = {
             .accept('json')
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
-            .end(cb);
+            .on('error', handleError)
+            .then(cb);
     },
     configure_sim_connection: function(sim_id, payload, cb) {
         request.patch(BASE_URL + '/networks/sim/' + sim_id)
@@ -87,7 +100,8 @@ const API = {
             .send(payload)
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(LONG_TIMEOUT)
-            .end(cb);
+            .on('error', handleError)
+            .then(cb);
     }
 }
 

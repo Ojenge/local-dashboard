@@ -101,14 +101,13 @@ class Power extends Component {
     API.get_power_config(this.dataCallback);
   }
 
-  dataCallback = (err, res) => {
+  dataCallback = (res) => {
     this.setState({ working: false });
-    if (err || !res.ok) {
+    if (!res.ok) {
       this.setState({
         loaded: false,
         net_error: true
       });
-      API.handle_error(res.status);
     } else {
       this.setState({
         loaded: true,
@@ -135,7 +134,7 @@ class Power extends Component {
     e.preventDefault();
     var config = {}
     SOC_FIELDS.map((field) => {
-      if(this.state[field] != '') {
+      if(this.state[field] !== '') {
         config[field] = this.state[field];
         if (NUMERIC_FIELDS.indexOf(field) > -1) {
           config[field] = Number.parseInt(this.state[field], 10);
@@ -147,15 +146,14 @@ class Power extends Component {
     API.configure_power(payload, this.configCallback);
   }
 
-  configCallback = (err, res) => {
+  configCallback = (res) => {
     this.setState({ working: false });
-    if (err || !res.ok) {
+    if (!res.ok) {
         var errors = (res.status === 422) ? res.body.errors : {};
         this.setState({
             config_error: true,
             errors: errors
         });
-        API.handle_error(res.status);
     } else {
         this.setState({
             config_saved: true,
@@ -178,18 +176,16 @@ class Power extends Component {
               <p>The purpose for which the device will be used.</p>
               <div className="row">
                 <div className="col-xs-12 col-md-4 col-lg-2">
-                  <div className="form-group">
-                    <div className={'input-group' + ' ' + (this.state.errors.mode ? 'has-error' : '') }>
-                      <select name="mode"
-                              value={ this.state.mode }
-                              onChange={this.handleModeChange}
-                              className="form-control fancy-select">
-                                <option value={''}></option>
-                        { MODE_OPTIONS.map((m, key) => {
-                          return <option value={ m[0] } key={key}>{ m[1] }</option>
-                        }) }
-                      </select>
-                    </div>
+                  <div className={'form-group' + ' ' + (this.state.errors.mode ? 'has-error' : '') }>
+                    <select name="mode"
+                            value={ this.state.mode }
+                            onChange={this.handleModeChange}
+                            className="form-control fancy-select">
+                              <option value={''}></option>
+                      { MODE_OPTIONS.map((m, key) => {
+                        return <option value={ m[0] } key={key}>{ m[1] }</option>
+                      }) }
+                    </select>
                     <label className="help-block text-danger">{ this.state.errors.mode }</label>
                   </div>
                 </div>
