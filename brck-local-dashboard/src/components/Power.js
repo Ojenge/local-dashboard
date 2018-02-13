@@ -91,7 +91,6 @@ class Power extends Component {
     super(props);
     this.state = {
       loaded: false,
-      power: {},
       mode: '',
       soc_on: '',
       soc_off: '',
@@ -119,9 +118,9 @@ class Power extends Component {
       });
     } else {
       this.setState({
-        loaded: true,
-        power: res.body
+        loaded: true
       });
+      this.setState(res.body);
     }
   }
 
@@ -134,9 +133,12 @@ class Power extends Component {
   handleModeChange = (e) => {
     var new_mode = e.target.value;
     this.setState({
-      mode: e.target.value,
-      mode_verbose: MODES_VERBOSE[new_mode]
+      mode: e.target.value
     })
+  }
+
+  getModeVerbose = () => {
+    return MODES_VERBOSE[this.state.mode];
   }
   
   handleConfigurePower = (e) => {
@@ -167,9 +169,9 @@ class Power extends Component {
         this.setState({
             config_saved: true,
             config_error: false,
-            power: res.body,
             errors: {}
         });
+        this.setState(res.body);
     }
   }
 
@@ -179,7 +181,7 @@ class Power extends Component {
         <div className="col-xs-12">
           <div className="box">
             <div className="box-header with-border">
-              <h3 className="box-title">Configuration mode: {this.state.power.configured ? <span>{ this.state.power.mode }</span> : null} </h3>
+              <h3 className="box-title">Configuration mode: {this.state.configured ? <span>{ this.state.mode }</span> : null} </h3>
             </div>
             <div className="box-body">
               <p>The purpose for which the device will be used.</p>
@@ -415,8 +417,8 @@ class Power extends Component {
     return (
       <div className="row">
         <div className="col-xs-12">
-          {(this.state.mode_verbose
-            ? <AlertInfo message={ this.state.mode_verbose } />
+          {(this.state.mode
+            ? <AlertInfo message={ this.getModeVerbose() } />
             : null)}
           {(this.state.config_saved
             ? <AlertSuccess message={"Your power settings have been saved successfully."} />
@@ -434,25 +436,30 @@ class Power extends Component {
     return modes.indexOf(this.state.mode) >= 0;
   }
 
+  renderBody = () => {
+    return (
+      <div className="content container-fluid">
+        { this.renderDialog() }
+        { this.renderMessages() }
+        { this.renderModeForm()  }
+        <div className="row">
+          { this.checkModes(SOC_MODES) ? this.renderSOCForm() : null }
+          { this.checkModes(TIME_MODES) ? this.renderTimeForm() : null }
+        </div>
+        { this.checkModes(DELAY_MODES) ? this.renderDelayForm() : null }
+        { this.state.mode ? this.renderSubmit() : null}
+      </div>
+    );
+  }
+
   render() {
     return (
       <Container>
         <div>
           <Header>Power Management</Header>
           {(this.state.loaded)
-          ? null
+          ? this.renderBody()
           : <Loading message="Loading power settings" />}
-          <div className="content container-fluid">
-            { this.renderDialog() }
-            { this.renderMessages() }
-            { this.renderModeForm()  }
-            <div className="row">
-              { this.checkModes(SOC_MODES) ? this.renderSOCForm() : null }
-              { this.checkModes(TIME_MODES) ? this.renderTimeForm() : null }
-            </div>
-            { this.checkModes(DELAY_MODES) ? this.renderDelayForm() : null }
-            { this.state.mode ? this.renderSubmit() : null}
-          </div>
         </div>
       </Container>
     );

@@ -202,7 +202,7 @@ def configure_power(payload):
         return (422, validator.errors)
 
 
-def get_power_config():
+def get_power_config(**kwargs):
     """Gets the current power configuraition of the device
     """
     configured = False
@@ -211,7 +211,10 @@ def get_power_config():
         configured = True
     else:
         mode = None
-    return dict(
+    config = dict(
         configured=configured,
         mode=mode
     )
+    soc_settings = get_soc_settings(**kwargs)
+    config.update(soc_settings)
+    return config

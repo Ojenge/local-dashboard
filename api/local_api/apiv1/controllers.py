@@ -141,7 +141,7 @@ class PowerAPI(ProtectedView):
         power_config = payload.get('power') or {}
         status_code, errors = configure_power(power_config)
         if status_code == HTTP_OK:
-            return jsonify(get_power_config())
+            return jsonify(get_power_config(no_cache=False))
         else:
             raise APIError('Invalid Data', errors, 422)
 

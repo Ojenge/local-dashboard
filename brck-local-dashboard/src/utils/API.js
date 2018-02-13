@@ -30,6 +30,7 @@ function handleError(callback) {
 };
 
 const API = {
+    errorHandler: handleError,
     getAuthHeaders: () => {
         return {[AUTH_HEADER]: Auth.getToken()};
     },
