@@ -57,7 +57,7 @@ class Dashboard extends Component {
       console.log('disconnected', err);
     });
     this.socket.on('reconnect_failed', (err) => {
-      API.errorHandler(null)(err);
+      console.log('reconnect failed');
     });
   }
 
