@@ -7,6 +7,15 @@ import Header from './Header';
 
 var moment = require('moment');
 
+const AlertInfo = props => {
+  return (
+    <div className="alert alert-info alert-dismissible">
+      <button type="button" className="close" data-dismiss="alert" aria-hidden="true">×</button>
+      { props.message }
+    </div>
+  );
+}
+
 const AlertSuccess = props => {
   return (
     <div className="alert alert-success alert-dismissible">
@@ -190,10 +199,6 @@ class Power extends Component {
                   </div>
                 </div>
                 <div className="col-xs-12 col-md-8 col-lg-10">
-                    { (this.state.mode_verbose)
-                      ? <div className="alert alert-info"><p>{ this.state.mode_verbose }</p></div>
-                      : null
-                    }
                 </div>
               </div>
             </div>
@@ -215,7 +220,7 @@ class Power extends Component {
               <strong>SOC OFF</strong> setting and only turns on after the charge level is equivalent to the
               <strong>SOC ON </strong>settings</p>
             <div className="row">
-              <div className="col-md-5">
+              <div className="col-md-4">
                 <div className="bootstrap-timepicker">
                   <div className="form-group">
                     <label>TURN OFF SOC:</label>
@@ -225,14 +230,16 @@ class Power extends Component {
                         value={ this.state.soc_off }
                         onChange={ this.handleInput }
                         type="number"
+                        min="1"
+                        max="99"
                         className="form-control" />
-                        <span className="input-group-addon"><i className="fa fa-battery"></i></span>
+                        <span className="input-group-addon"><i className="fa fa-percent"></i></span>
                     </div>
                     <label className="help-block text-danger">{ this.state.errors.soc_off }</label>
                   </div>
                 </div>
               </div>
-              <div className="col-md-5 col-md-offset-2">
+              <div className="col-md-4 col-md-offset-3">
                 <div className="bootstrap-timepicker">
                   <div className="form-group">
                     <label>TURN ON SOC:</label>
@@ -242,8 +249,10 @@ class Power extends Component {
                         value={ this.state.soc_on }
                         onChange={ this.handleInput }
                         type="number"
+                        min="1"
+                        max="99"
                         className="form-control" />
-                        <span className="input-group-addon"><i className="fa fa-battery"></i></span>
+                        <span className="input-group-addon"><i className="fa fa-percent"></i></span>
                     </div>
                     <label className="help-block text-danger">{ this.state.errors.soc_on }</label>
                   </div>
@@ -347,8 +356,10 @@ class Power extends Component {
                                 value={ this.state.delay_off_minutes }
                                 onChange={ this.handleInput }
                                 type="number"
+                                min="1"
+                                max="60"
                                 className="form-control"
-                                placeholder="Units in minutes (e.g 65)" />
+                                placeholder="Units in minutes (e.g 5)" />
                               </div>
                               <label className="help-block text-danger">{ this.state.errors.delay_off_minutes }</label>
                             </div>
@@ -404,6 +415,9 @@ class Power extends Component {
     return (
       <div className="row">
         <div className="col-xs-12">
+          {(this.state.mode_verbose
+            ? <AlertInfo message={ this.state.mode_verbose } />
+            : null)}
           {(this.state.config_saved
             ? <AlertSuccess message={"Your power settings have been saved successfully."} />
             : null)}

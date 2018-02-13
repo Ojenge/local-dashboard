@@ -16,18 +16,18 @@ const LONG_TIMEOUT = {
 }
 
 
-const handleError = (err) => {
-    console.log(err);
-    if (err) {
-        if (err.status_code === 401) {
+function handleError(callback) {
+    return function (err) {
+        if (err.status === 401) {
             Auth.clearCredentials();
             window.location = '/login';
-        } else if (err.status_code === undefined) {
+        } else if (err.status === undefined) {
             window.location = '/';
-        }
+        } else {
+            callback(err.response);
+        } 
     }
-}
-
+};
 
 const API = {
     getAuthHeaders: () => {
@@ -44,7 +44,7 @@ const API = {
         request.post(BASE_URL + '/auth')
             .send(payload)
             .timeout(TIMEOUT)
-            .on('error', handleError)
+            .on('error', handleError(cb))
             .then(cb);
     },
     change_password: (payload, cb) => {
@@ -53,7 +53,7 @@ const API = {
             .set(AUTH_HEADER, Auth.getToken())
             .send(payload)
             .timeout(TIMEOUT)
-            .on('error', handleError)
+            .on('error', handleError(cb))
             .then(cb);
     },
     get_system: function(cb) {
@@ -62,7 +62,7 @@ const API = {
             .accept('json')
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
-            .on('error', handleError)
+            .on('error', handleError(cb))
             .then(cb);
     },
     get_power_config: function(cb) {
@@ -71,7 +71,7 @@ const API = {
             .accept('json')
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
-            .on('error', handleError)
+            .on('error', handleError(cb))
             .then(cb);
     },
     configure_power: function(payload, cb) {
@@ -81,7 +81,7 @@ const API = {
             .send(payload)
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(LONG_TIMEOUT)
-            .on('error', handleError)
+            .on('error', handleError(cb))
             .then(cb);
     },
     get_sim_connections: function(cb) {
@@ -90,7 +90,7 @@ const API = {
             .accept('json')
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
-            .on('error', handleError)
+            .on('error', handleError(cb))
             .then(cb);
     },
     configure_sim_connection: function(sim_id, payload, cb) {
@@ -100,7 +100,7 @@ const API = {
             .send(payload)
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(LONG_TIMEOUT)
-            .on('error', handleError)
+            .on('error', handleError(cb))
             .then(cb);
     }
 }
