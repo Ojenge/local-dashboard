@@ -41,10 +41,12 @@ class Dashboard extends Component {
       transportOptions: {
         polling: {
           extraHeaders: API.getAuthHeaders()
-        }
+        },
+        timeout: 5000
       }
     };
-    this.socket = io('/dashboard', opts);
+    // this.socket = io('/dashboard', opts);
+    this.socket = io('http://local.brck.com/dashboard', opts);
     this.socket.on('system', (data) => {
       this.setState({
         system: data
@@ -56,8 +58,9 @@ class Dashboard extends Component {
     this.socket.on('disconnect', (err) => {
       console.log('disconnected', err);
     });
-    this.socket.on('reconnect_failed', (err) => {
-      console.log('reconnect failed');
+    this.socket.on('connect_error', (err) => {
+      console.log('connection failed');
+      API.errorHandler(null)(err || {});
     });
   }
 
