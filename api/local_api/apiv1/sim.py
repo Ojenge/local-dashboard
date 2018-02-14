@@ -7,6 +7,7 @@ from brck.utils import uci_get
 
 from .utils import read_file
 from .utils import get_uci_state
+from .utils import get_signal_strength
 
 from .schema import Validator
 
@@ -96,6 +97,14 @@ def get_wan_connections(sim_id=None):
             elif is_active_sim:
                  info['pin_locked'] = False
                  info['puk_locked'] = False
+                 if net_connected:
+                     connected = True
+                     signal_strength = get_signal_strength('wan')
+                     operator = run_command(['querymodem', 'operator'], output=True) or 'Unknown'
+                     info['network_info'] = dict(
+                         operator=operator,
+                         signal_strength=signal_strength
+                     )
         c_data = dict(
             id=c_id,
             name=name,
