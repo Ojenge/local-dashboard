@@ -21,6 +21,9 @@ EXPECTED_SOC_SETTINGS = {
     'auto_start': 1
 }
 
+DUMMY_VERSION_RESPONSE = u'{"Firmware Version": 1.0.1-carp,"Build": "Oct 23 2017 13:37:04"}'
+EXPECTED_VERSION = '1.0.1-carp : Oct 23 2017 13:37:04'
+
 NORMAL_SOC_SETTINGS = dict(mode='NORMAL', soc_on=10, soc_off=5)
 SOC_SCENARIOS = [
     (dict(mode='NORMAL', soc_on=10, soc_off=5), True,
@@ -84,3 +87,10 @@ def test_validate_soc_settings(payload, valid, out):
 def test_soc_command():
     command = 'WRC15,5,6,0,20,1,1,0,0,0'
     assert soc.payload_to_command(EXPECTED_SOC_SETTINGS) == command
+
+
+def test_get_firmware_version():
+    with mock.patch('local_api.apiv1.soc.read_serial',
+                    side_effect=[DUMMY_VERSION_RESPONSE]):
+        version = soc.get_firmware_version()
+        assert version == EXPECTED_VERSION

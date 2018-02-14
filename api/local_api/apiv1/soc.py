@@ -30,7 +30,6 @@ LOG = __import__('logging').getLogger()
 DEVICE = '/dev/ttyACM0'
 TIMEOUT = 3
 TIME_FORMAT = '%H:%M'
-CONFIG_PATTERN = re.compile("\w+\:\d+")
 REGEX_TIME = re.compile('^(0[0-9]|1[0-9]|2[0-3]):(0[0-9]|[1-5][0-9])$')
 
 MODE_NORMAL = 'NORMAL'
@@ -47,7 +46,7 @@ MODE_DEFAULTS = {
 }
 
 
-def read_serial():
+def read_serial(command):
     """Read SOC configuration via serial
 
     :return: string
@@ -71,14 +70,14 @@ def read_serial():
     return _final
 
 
-def parse_serial(raw_content):
+def parse_serial(raw_content, to_type=int):
     """Parses Serial Response into a dictionary
     :return: dict
     """
-    _stripped = raw_content.replace('"', '')
-    configs = CONFIG_PATTERN.findall(_stripped)
-    tuples = [c.split(":") for c in configs]
-    return dict([(k, int(v)) for k,v in tuples])
+    stripped = re.sub(r'[\{\}\"]', '',  raw_content)
+    configs = stripped.split(',')
+    tuples = [c.split(":", 1) for c in configs]
+    return dict([(k.strip(), to_type(v.strip())) for k,v in tuples])
 
 
 @cached(timeout=(60 * 10))
@@ -89,7 +88,7 @@ def get_soc_settings(no_cache=False):
     """
     soc_settings = {}
     try:
-        resp = read_serial()
+        resp = read_serial('RDC')
         parsed = parse_serial(resp)
         soc_settings['on_time'] = '{d[AlarmPwrOnHour]:02d}:{d[AlarmPwrOnMinute]:02d}'.format(d=parsed)
         soc_settings['off_time'] = '{d[PowerOffHour]:02d}:{d[PowerOffMinute]:02d}'.format(d=parsed)
@@ -105,6 +104,17 @@ def get_soc_settings(no_cache=False):
         LOG.error("Failed to parse SOC settings. Other error: %r", e)
     return soc_settings
 
+
+@cached(timeout=(60 * 60))
+def get_firmware_version():
+    version = 'Unknown'
+    try:
+        resp = read_serial('VER')
+        parsed = parse_serial(resp, to_type=str)
+        version = '{d[Firmware Version]} : {d[Build]}'.format(d=parsed)
+    except Exception as e:
+        LOG.error("Failed to get firmware version: %r", e)
+    return version
 
 
 def validate_payload(payload):
