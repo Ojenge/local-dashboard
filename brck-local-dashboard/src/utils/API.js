@@ -15,7 +15,6 @@ const LONG_TIMEOUT = {
     deadline: 25000
 }
 
-
 function handleError(callback) {
     return function (err) {
         if (err.status === 401) {

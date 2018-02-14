@@ -150,6 +150,14 @@ class Connections extends Component {
     });
   }
 
+  handleViewNetworkInfo = (e, sim) => {
+    e.preventDefault();
+    this.setState({
+      sim_id: sim.id,
+      current_sim: sim
+    });
+  }
+
   configCallback = (res) => {
     this.setState({ working: false, connecting: false });
     if (!res.ok) {
@@ -282,7 +290,7 @@ class Connections extends Component {
             <p className="text-center"><i className="fa fa-check-circle text-green "></i><small>Connected</small>
             </p>
             <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
-            <a href="#" className="btn btn-success btn-block " data-toggle="modal" data-target="#sim3">View</a>
+            <a href="#" onClick={(e) => this.handleViewNetworkInfo(e, sim)} value={sim.id} className="btn btn-success btn-block" data-toggle="modal" data-target="#sim-signal-info">View</a>
           </div>
         </div>
       </div>
@@ -407,6 +415,55 @@ class Connections extends Component {
   }
 
 
+  renderSignalStatusDialog = () => {
+    var net_info = {};
+    if (this.state.current_sim) {
+      net_info = this.state.current_sim.info.network_info || {};
+    }
+    return (
+      <div className="modal fade" id="sim-signal-info" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel3">
+        <div className="modal-dialog" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <button type="button" className="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span> </button>
+              <h4 className="modal-title" id="myModalLabel3">Network Signal Information</h4>
+            </div>
+
+            <div className="modal-body">
+              <table className="table table-bordered table-striped">
+                <tbody>
+                  <tr>
+                    <td>Signal Strength</td>
+                    <td>
+                      <div class="progress progress-xs">
+                        <div class="progress-bar progress-bar-yellow" style={{ width:  net_info.signal_strength + '%' }}></div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge bg-yellow">{ net_info.signal_strength }%</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Operator</td>
+                    <td>{ net_info.operator }</td>
+                    <td/>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="modal-footer">
+              <div class="row">
+                <div class="col-md-12">
+                  <a href="#" className="btn btn-default pull-right" data-dismiss="modal">Back</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   renderMessages = () => {
     return (
       <div className="row">
@@ -446,6 +503,7 @@ class Connections extends Component {
         </div>
         { this.renderConfigureSimDialog() }
         { this.renderConfigureSimLockedDialog() }
+        { this.renderSignalStatusDialog() }
       </Container>
     );
   }

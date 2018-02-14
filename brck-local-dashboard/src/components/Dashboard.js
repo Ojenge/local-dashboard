@@ -46,7 +46,7 @@ class Dashboard extends Component {
       }
     };
     // this.socket = io('/dashboard', opts);
-    this.socket = io('http://local.brck.com/dashboard', opts);
+    this.socket = io('http://local-dev.brck.com/dashboard', opts);
     this.socket.on('system', (data) => {
       this.setState({
         system: data
@@ -60,7 +60,6 @@ class Dashboard extends Component {
     });
     this.socket.on('connect_error', (err) => {
       console.log('connection failed');
-      API.errorHandler(null)(err || {});
     });
   }
 
@@ -217,7 +216,7 @@ class Dashboard extends Component {
             </div>
 
             <div className="col-md-6">
-              <div className="box">
+              {/* <div className="box">
                 <div className="box-header with-border">
                   <h3 className="box-title">Plex</h3>
                 </div>
@@ -232,7 +231,7 @@ class Dashboard extends Component {
                     </label>
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
     ];

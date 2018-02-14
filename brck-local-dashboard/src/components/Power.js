@@ -97,6 +97,7 @@ class Power extends Component {
       on_time: '',
       off_time: '',
       delay_off_minutes: '',
+      battery: {},
       errors: {}
     }
   }
@@ -175,6 +176,41 @@ class Power extends Component {
     }
   }
 
+  renderBatteryStatus = () => {
+    return (
+      <div className="row">
+        <div className="col-md-12">
+          <div className="box">
+            <div className="box-header">
+              <h3 className="box-title">Battery</h3>
+            </div>
+            <div className="box-body">
+              <table className="table table-bordered table-condensed">
+                <tbody>
+                  <tr>
+                    <th>Input Voltage</th>
+                    <th>Input Current</th>
+                    <th>IADP</th>
+                    <th>SoC</th>
+                  </tr>
+                  <tr>
+                    <td>{ this.state.battery.voltage || '0' }V</td>
+                    <td>{ this.state.battery.charging_current || '0' }A</td>
+                    <td>{ this.state.battery.iadp || '0' }A</td>
+                    <td>
+                      { this.state.battery.battery_level || '0' }%
+                      ({ this.state.battery.state })
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   renderModeForm = () => {
     return (
       <div className="row" key="soc-mode">
@@ -200,7 +236,7 @@ class Power extends Component {
                     <label className="help-block text-danger">{ this.state.errors.mode }</label>
                   </div>
                 </div>
-                <div className="col-xs-12 col-md-8 col-lg-10">
+                <div className="col-xs-12 col-md-4 col-lg-2 col-md-offset-4 col-lg-offset-8">
                 </div>
               </div>
             </div>
@@ -440,6 +476,7 @@ class Power extends Component {
     return (
       <div className="content container-fluid">
         { this.renderDialog() }
+        { this.renderBatteryStatus() }
         { this.renderMessages() }
         { this.renderModeForm()  }
         <div className="row">
