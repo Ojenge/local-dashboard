@@ -46,7 +46,7 @@ class Dashboard extends Component {
       }
     };
     // this.socket = io('/dashboard', opts);
-    this.socket = io('http://local-dev.brck.com/dashboard', opts);
+    this.socket = io('/dashboard', opts);
     this.socket.on('system', (data) => {
       this.setState({
         system: data
