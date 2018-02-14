@@ -7,6 +7,10 @@ Utilities for interacting with the filesystem.
 import os
 import re
 import time
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 from brck.utils import run_command
 from brck.utils import uci_get
@@ -144,7 +148,7 @@ def get_storage_status(mount_point='/storage/data'):
 
 
 @cached(timeout=(MINUTE * 5))
-def get_battery_status():
+def get_battery_status(no_cache=False):
     """Gets the battery status of the BRCK device.
 
         Sample Response:
@@ -155,10 +159,14 @@ def get_battery_status():
 
     :return: dict
     """
+    if no_cache:
+        run_command(['check_battery'])
     state = read_file('/tmp/battery/status') or STATE_UNKNOWN
     battery_level = read_file('/tmp/battery/capacity') or 0
+    extended = read_file('/tmp/battery/status_ex') or '{}'
     try:
         battery_level = int(battery_level)
+        extended = json.loads(extended)
     except ValueError:
         battery_level = 0
         LOG.error('Failed to ready battery capacity | Returned: %s', battery_level)
@@ -166,6 +174,10 @@ def get_battery_status():
         state=state.upper(),
         battery_level=battery_level
     )
+    state.update(extended)
+    if 'charging current' in state:
+        state['charging_current'] = state['charging current']
+        state.pop('charging current')
     return state
 
 
@@ -248,13 +260,11 @@ def get_network_status():
 
 
 def get_system_state():
-    mode = get_device_mode()
     storage_state = get_storage_status()
     battery_state = get_battery_status()
     power_state = get_soc_settings()
     network_state = get_network_status()
     state = dict(
-        mode=mode,
         storage=storage_state,
         battery=battery_state,
         power=power_state,

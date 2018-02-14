@@ -13,6 +13,7 @@ from flask_login import login_required
 from flask_login import current_user
 
 from .utils import get_system_state
+from .utils import get_battery_status
 from .errors import APIError
 from .sim import get_wan_connections
 from .sim import configure_sim
@@ -123,12 +124,18 @@ class SystemAPI(ProtectedView):
 
 class PowerAPI(ProtectedView):
     
+    def get_config(self, **kwargs):
+        config = get_power_config(**kwargs)
+        battery = get_battery_status(**kwargs)
+        config['battery'] = battery
+        return config
+
     def get(self):
         """Returns the current power configuration of the device
 
         :return: string JSON representation of system state
         """
-        return jsonify(get_power_config())
+        return jsonify(self.get_config())
     
     def patch(self):
         """Provides an API to perform system power changes
@@ -141,7 +148,7 @@ class PowerAPI(ProtectedView):
         power_config = payload.get('power') or {}
         status_code, errors = configure_power(power_config)
         if status_code == HTTP_OK:
-            return jsonify(get_power_config(no_cache=False))
+            return jsonify(self.get_config(no_cache=True))
         else:
             raise APIError('Invalid Data', errors, 422)
 

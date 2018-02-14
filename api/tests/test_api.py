@@ -32,6 +32,8 @@ DUMMY_CHILLY_RESP = """Station                Connected time 	Signal         	In
 DUMMY_NETWORK_ORDER = 'wan lan'
 DUMMY_SIGNAL_RESP = "24"
 DUMMY_STATE = [DUMMY_CHILLY_RESP, DUMMY_NETWORK_ORDER, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]
+BATTERY_SIDE_EFFECTS = ['CHARGING', '98', u'{"charging current": 0, "iadp": 35, "voltage": 12}']
+
 
 TEST_DATABASE_PATH = '/tmp/testdb.sqlite'
 TEST_DATABASE_URL = 'sqlite:///%s' % (TEST_DATABASE_PATH)
@@ -49,6 +51,11 @@ EXPECTED_NETWORK_RESP = dict(
 
 TEST_USER = 'test_user'
 TEST_PASSWORD = 'test_password'
+EXPECTED_BATTERY =  dict(state='CHARGING',
+                         battery_level=98,
+                         charging_current=0,
+                         iadp=35,
+                         voltage=12)
 
 
 @pytest.fixture
@@ -138,13 +145,13 @@ def test_system_battery_api(client, headers):
     with mock.patch('local_api.apiv1.utils.get_interface_speed', side_effect=[(0, 0)]):
         with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
             with mock.patch('local_api.apiv1.utils.run_command',
-                side_effect=DUMMY_STATE):
-                with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
+                            side_effect=DUMMY_STATE):
+                with mock.patch('local_api.apiv1.utils.read_file', side_effect=BATTERY_SIDE_EFFECTS):
                     resp = client.get('/api/v1/system', headers=headers)
                     assert(resp.status_code == 200)
                     payload = load_json(resp)
                     assert 'battery' in payload
-                    assert payload['battery'] == dict(state='CHARGING', battery_level=98)
+                    assert payload['battery'] == EXPECTED_BATTERY
 
 
 def test_network_status_api(client, headers):
@@ -152,7 +159,7 @@ def test_network_status_api(client, headers):
         with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
             with mock.patch('local_api.apiv1.utils.run_command',
                             side_effect=[DUMMY_CHILLY_RESP, DUMMY_NETWORK_ORDER, DUMMY_WAN_STATE_RESP, '31']):
-                with mock.patch('local_api.apiv1.utils.read_file', side_effect=['CHARGING', '98']):
+                with mock.patch('local_api.apiv1.utils.read_file', side_effect=BATTERY_SIDE_EFFECTS):
                     resp = client.get('/api/v1/system', headers=headers)
                     assert resp.status_code == 200
                     payload = load_json(resp)
@@ -179,27 +186,31 @@ def test_patch_system_ok(client, headers):
 
 
 def test_get_power_config_not_configured(client, headers):
-    not_configured = dict(configured=False, mode=None)
-    with mock.patch('local_api.apiv1.soc.get_power_config',
-                    side_effect=[not_configured]):
-        resp = client.get('/api/v1/power',
-                          content_type='application/json',
-                          headers=headers)
-        assert resp.status_code == 200
-        payload = load_json(resp)
-        assert payload == not_configured
+    not_configured = dict(configured=False, mode=None, battery=EXPECTED_BATTERY)
+    with mock.patch('local_api.apiv1.utils.read_file', side_effect=BATTERY_SIDE_EFFECTS):
+        with mock.patch('local_api.apiv1.soc.get_power_config',
+                        side_effect=[not_configured]):
+            resp = client.get('/api/v1/power',
+                            content_type='application/json',
+                            headers=headers)
+            assert resp.status_code == 200
+            payload = load_json(resp)
+            assert payload == not_configured
 
 
 def test_get_power_config_configured(client, headers):
-    configured = dict(configured=True, mode='ALWAYS_ON')
+    configured = dict(configured=True,
+                      mode='ALWAYS_ON',
+                      battery=EXPECTED_BATTERY)
     with mock.patch('local_api.apiv1.soc.uci_get',
                     side_effect=['ALWAYS_ON']):
-        resp = client.get('/api/v1/power',
-                          content_type='application/json',
-                          headers=headers)
-        assert resp.status_code == 200
-        payload = load_json(resp)
-        assert payload == configured
+        with mock.patch('local_api.apiv1.utils.read_file', side_effect=BATTERY_SIDE_EFFECTS):
+            resp = client.get('/api/v1/power',
+                            content_type='application/json',
+                            headers=headers)
+            assert resp.status_code == 200
+            payload = load_json(resp)
+            assert payload == configured
 
 
 def test_patch_system_not_ok(client, headers):
