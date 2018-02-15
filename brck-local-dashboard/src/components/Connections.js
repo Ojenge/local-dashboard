@@ -5,40 +5,11 @@ import Container from './Container';
 import Loading from './Loading';
 import Header from './Header';
 
+import { AlertSuccess,
+         AlertWarning,
+         AlertError } from './Alerts';
+
 import IconSim from '../media/icons/icon-sim.svg';
-
-
-const AlertSuccess = props => {
-  return (
-    <div className="alert alert-success alert-dismissible">
-      <button type="button" className="close" data-dismiss="alert" aria-hidden="true">×</button>
-      { props.message }
-    </div>
-  );
-}
-
-const AlertWarning = props => {
-  return (
-    <div className="alert alert-danger alert-dismissible">
-      <button type="button" className="close" data-dismiss="alert" aria-hidden="true">×</button>
-      { props.message }
-    </div>
-  );
-}
-
-const AlertError = props => {
-  return (
-    <div className="alert alert-danger alert-dismissible">
-      <button type="button" className="close" data-dismiss="alert" aria-hidden="true">×</button>
-      <h4>{ props.title }</h4>
-      <ol>
-        {props.errors.map((err, key) => 
-          <li key={key}>{ err }</li>
-         )}
-      </ol>
-  </div>
-  );
-}
 
 class Connections extends Component {
 

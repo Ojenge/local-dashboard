@@ -84,6 +84,13 @@ class Container extends Component {
                   <span className="pull-right-container" />
                 </NavLink>
               </li>              
+              <li>
+                <NavLink to="/about">
+                  <i className="fa fa-linux"></i>
+                  <span>About</span>
+                  <span className="pull-right-container" />
+                </NavLink>
+              </li>              
             </ul>
           </section>
         </aside>

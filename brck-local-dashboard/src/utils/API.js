@@ -102,6 +102,14 @@ const API = {
             .timeout(LONG_TIMEOUT)
             .on('error', handleError(cb))
             .then(cb);
+    },
+    'get_software_state': function(cb) {
+        request.get(BASE_URL + '/system/software')
+            .type('json')
+            .set(AUTH_HEADER, Auth.getToken())
+            .timeout(TIMEOUT)
+            .on('error', handleError(cb))
+            .then(cb);
     }
 }
 
