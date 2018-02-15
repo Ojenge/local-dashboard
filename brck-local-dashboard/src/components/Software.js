@@ -89,7 +89,7 @@ class Software extends Component {
                       return (
                         <tr key={ "opkg-id-"+ index }>
                           <td>{ pkg.name }</td>
-                          <td>{ pkg.installed ? <span className="badge bg-green">pkg.version</span> : <span className="badge bg-red">not installed</span> }</td>
+                          <td>{ pkg.installed ? <span className="badge bg-green">{ pkg.version }</span> : <span className="badge bg-red">not installed</span> }</td>
                         </tr>
                       );
                     })}
