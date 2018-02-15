@@ -126,7 +126,7 @@ class SystemAPI(ProtectedView):
 class PowerAPI(ProtectedView):
     
     def get_config(self, **kwargs):
-        if request.args.get('live'):
+        if 'live' in request.args:
             kwargs['no_cache'] = True
         config = get_power_config(**kwargs)
         battery = get_battery_status(**kwargs)
