@@ -32,7 +32,7 @@ DUMMY_CHILLY_RESP = """Station                Connected time 	Signal         	In
 DUMMY_NETWORK_ORDER = 'wan lan'
 DUMMY_SIGNAL_RESP = "24"
 DUMMY_STATE = [DUMMY_CHILLY_RESP, DUMMY_NETWORK_ORDER, DUMMY_WAN_STATE_RESP, DUMMY_SIGNAL_RESP]
-BATTERY_SIDE_EFFECTS = ['CHARGING', '98', u'{"charging current": 0, "iadp": 35, "voltage": 12}']
+BATTERY_SIDE_EFFECTS = ['CHARGING', '98', u'{"charging current": 0, "voltage": 12}']
 
 
 TEST_DATABASE_PATH = '/tmp/testdb.sqlite'
@@ -54,7 +54,6 @@ TEST_PASSWORD = 'test_password'
 EXPECTED_BATTERY =  dict(state='CHARGING',
                          battery_level=98,
                          charging_current=0,
-                         iadp=35,
                          voltage=12)
 
 

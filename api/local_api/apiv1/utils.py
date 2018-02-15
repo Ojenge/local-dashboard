@@ -191,6 +191,8 @@ def get_battery_status(no_cache=False):
     if 'charging current' in state:
         state['charging_current'] = state['charging current']
         state.pop('charging current')
+    if 'iadp' in state:
+        state.pop('iadp')
     return state
 
 

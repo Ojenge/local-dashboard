@@ -182,13 +182,11 @@ class Power extends Component {
                   <tr>
                     <th>Input Voltage</th>
                     <th>Input Current</th>
-                    <th>IADP</th>
                     <th>SoC</th>
                   </tr>
                   <tr>
                     <td>{ this.state.battery.voltage || '0' }V</td>
                     <td>{ this.state.battery.charging_current || '0' }A</td>
-                    <td>{ this.state.battery.iadp || '0' }A</td>
                     <td>
                       { this.state.battery.battery_level || '0' }% { this.renderChargingStatus(this.state.battery.state) }
                     </td>
@@ -233,8 +231,8 @@ class Power extends Component {
               <div className="row">
                   <div className="col-xs-12">
                       {(this.state.mode)
-                       ? <p className="text-orange">{ this.getModeVerbose() }</p>
-                       : <p className="text-muted">No mode selected</p>
+                       ? <p className="text-orange text-bold">{ this.getModeVerbose() }</p>
+                       : <p className="text-muted text-bold">No mode selected</p>
                       }
                   </div>
               </div>
