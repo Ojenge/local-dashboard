@@ -69,8 +69,11 @@ class Power extends Component {
     this.loadState();
   }
 
-  loadState = () => {
-    API.get_power_config(this.dataCallback);
+  loadState = (live) => {
+    if (!this.state.working) {
+      this.setState({ working: true });
+      API.get_power_config(this.dataCallback, live);
+    }
   }
 
   dataCallback = (res) => {
@@ -94,11 +97,17 @@ class Power extends Component {
     this.setState(newState);
   }
 
+  hardRefresh = (e) => {
+    e.preventDefault();
+    this.loadState(true);
+  }
+
   handleModeChange = (e) => {
     this.setState({
       mode: e.target.value
     })
   }
+
 
   getModeVerbose = () => {
     return MODES_VERBOSE[this.state.mode];
@@ -138,6 +147,18 @@ class Power extends Component {
     }
   }
 
+  renderChargingStatus = (status) => {
+    var classNames = "badge";
+    if (status == "DISCHARGING") {
+      classNames += " bg-red";
+    } else if (status == "CHARGING"){
+      classNames += " bg-green";
+    } else {
+      classNames += " bg-gray";
+    }
+    return <span className={classNames} style={{ width: '100px' }}>{ status }</span>
+  }
+
   renderBatteryStatus = () => {
     return (
       <div className="row">
@@ -145,9 +166,18 @@ class Power extends Component {
           <div className="box">
             <div className="box-header">
               <h3 className="box-title">Battery</h3>
+              <div className="box-tools">
+                <div className="input-group input-group-sm" style={{ width: '150px' }}>
+                  <div className="input-group-btn">
+                    <button onClick={ this.hardRefresh } disabled={this.state.working} type="submit" className="btn btn-warning btn-flat pull-right">
+                      <i className="fa fa-refresh"></i> Refresh
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="box-body">
-              <table className="table table-bordered table-condensed">
+            <div className="box-body table-responsive no-padding">
+              <table className="table table-bordered table-condensed table-hover">
                 <tbody>
                   <tr>
                     <th>Input Voltage</th>
@@ -160,8 +190,7 @@ class Power extends Component {
                     <td>{ this.state.battery.charging_current || '0' }A</td>
                     <td>{ this.state.battery.iadp || '0' }A</td>
                     <td>
-                      { this.state.battery.battery_level || '0' }%
-                      ({ this.state.battery.state })
+                      { this.state.battery.battery_level || '0' }% { this.renderChargingStatus(this.state.battery.state) }
                     </td>
                   </tr>
                 </tbody>
@@ -200,6 +229,14 @@ class Power extends Component {
                 </div>
                 <div className="col-xs-12 col-md-4 col-lg-2 col-md-offset-4 col-lg-offset-8">
                 </div>
+              </div>
+              <div className="row">
+                  <div className="col-xs-12">
+                      {(this.state.mode)
+                       ? <p className="text-orange">{ this.getModeVerbose() }</p>
+                       : <p className="text-muted">No mode selected</p>
+                      }
+                  </div>
               </div>
             </div>
           </div>
@@ -415,9 +452,6 @@ class Power extends Component {
     return (
       <div className="row">
         <div className="col-xs-12">
-          {(this.state.mode
-            ? <AlertInfo message={ this.getModeVerbose() } />
-            : null)}
           {(this.state.config_saved
             ? <AlertSuccess message={"Your power settings have been saved successfully."} />
             : null)}

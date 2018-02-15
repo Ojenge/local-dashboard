@@ -65,8 +65,12 @@ const API = {
             .on('error', handleError(cb))
             .then(cb);
     },
-    get_power_config: function(cb) {
-        request.get(BASE_URL + '/power')
+    get_power_config: function(cb, live) {
+        var url_args = '';
+        if (live) {
+            url_args = '?live'
+        }
+        request.get(BASE_URL + '/power' + url_args)
             .type('json')
             .accept('json')
             .set(AUTH_HEADER, Auth.getToken())
@@ -103,7 +107,7 @@ const API = {
             .on('error', handleError(cb))
             .then(cb);
     },
-    'get_software_state': function(cb) {
+    get_software_state: function(cb) {
         request.get(BASE_URL + '/system/software')
             .type('json')
             .set(AUTH_HEADER, Auth.getToken())
