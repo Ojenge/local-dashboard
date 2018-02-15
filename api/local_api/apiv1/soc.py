@@ -55,7 +55,7 @@ def read_serial(command):
     if os.path.exists(DEVICE):
         port = serial.Serial(DEVICE, timeout=TIMEOUT)
         loop = True
-        port.write('RDC')
+        port.write(command)
         while loop:
             line = port.readline()
             if line:

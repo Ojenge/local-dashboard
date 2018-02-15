@@ -80,16 +80,20 @@ class Software extends Component {
 
             <div class="box">
               <div class="box-header">
-                <h3 class="box-title">Packages</h3>
+                <h3 class="box-title">Software Packages</h3>
               </div>
               <div class="box-body table-responsive no-padding">
                 <table class="table table-hover">
                   <tbody>
+                    <tr>
+                      <th>Package Name</th>
+                      <th>Version</th>
+                    </tr>
                     {this.state.software.packages.map(function(pkg, index) {
                       return (
                         <tr key={ "opkg-id-"+ index }>
                           <td>{ pkg.name }</td>
-                          <td>{ pkg.installed ? <span className="badge bg-green">{ pkg.version }</span> : <span className="badge bg-red">not installed</span> }</td>
+                          <td>{ pkg.installed ? <span className="label">{ pkg.version }</span> : <span className="label label-danger">NOT INSTALLED</span> }</td>
                         </tr>
                       );
                     })}
