@@ -19,6 +19,7 @@ from brck.utils import uci_commit
 
 from .schema import Validator
 from .soc import get_soc_settings
+from .soc import get_firmware_version
 from .cache import cached, MINUTE, CACHE
 
 LOG = __import__('logging').getLogger()
@@ -28,7 +29,19 @@ STATE_ERROR = 'ERROR'
 STATE_UNKNOWN = 'UNKNOWN'
 STATE_NO_CONNECTION = 'NO CONNECTION'
 DEVICE_MODES = ['MATATU', 'ALWAYS_ON', 'RETAIL', 'SOLAR_POWERED']
-
+BRCK_PACKAGES = [
+    '3g-monitor',
+    'battery-monitor',
+    'connected_clients',
+    'core-services',
+    'gps-monitor',
+    'moja',
+    'moja-captive',
+    'python-brck-sdk',
+    'querymodem',
+    'scan_wifi',
+    'supabrck-core'
+]
 
 def get_request_log(r):
     """Gets request metadata as a string for logging
@@ -260,6 +273,14 @@ def get_network_status():
 
 
 def get_system_state():
+    """Gets the current system state for the dashboard API
+
+    Includes storage status, battery status, power status and network state.
+
+    See the API documentation for the expected payload schema.
+
+    :return: dictionary
+    """
     storage_state = get_storage_status()
     battery_state = get_battery_status()
     power_state = get_soc_settings()
@@ -271,3 +292,25 @@ def get_system_state():
         network=network_state
     )
     return state
+
+
+def get_software():
+    """Gets the versions of the installed software on the system.
+    
+    This includes packages, firmware and operating system versions.
+    """
+    os_version = run_command(['uname', '-s', '-r', '-v', '-o'], output=True) or 'UNKNOWN'
+    firmware_version = get_firmware_version()
+    packages_text = run_command(['opkg', 'list-installed'], output=True) or ''
+    package_data = dict([p.split(' - ') for p in packages_text.splitlines() if p])
+    # we're only interested in a subset of packages
+    package_list = []
+    for package_name in BRCK_PACKAGES:
+        version = package_data.get(package_name)
+        installed = version is not None
+        package_list.append(dict(name=package_name, version=version, installed=installed))
+    return dict(
+        os=os_version,
+        firmware=firmware_version,
+        packages=package_list
+    )

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import mock
 import pytest
 from copy import copy
@@ -22,7 +23,7 @@ EXPECTED_SOC_SETTINGS = {
 }
 
 DUMMY_VERSION_RESPONSE = u'{"Firmware Version": 1.0.1-carp,"Build": "Oct 23 2017 13:37:04"}'
-EXPECTED_VERSION = '1.0.1-carp : Oct 23 2017 13:37:04'
+EXPECTED_FIRMWARE_VERSION = '1.0.1-carp : Oct 23 2017 13:37:04'
 
 NORMAL_SOC_SETTINGS = dict(mode='NORMAL', soc_on=10, soc_off=5)
 SOC_SCENARIOS = [
@@ -52,6 +53,19 @@ SOC_SCENARIOS = [
 
      (dict(mode='MANUAL', delay_off_minutes=120), False, True),
 ]
+
+EXPECTED_PACKAGE_VERSIONS = [
+    {'installed': True, 'name': '3g-monitor', 'version': 'v0.0.24-9'},
+    {'installed': True, 'name': 'battery-monitor', 'version': 'v0.0.24-9'},
+    {'installed': True, 'name': 'connected_clients', 'version': 'v0.0.24-9'},
+    {'installed': True, 'name': 'core-services', 'version': 'v0.0.2-rc13-6'},
+    {'installed': True, 'name': 'gps-monitor', 'version': 'v0.0.24-9'},
+    {'installed': True, 'name': 'moja', 'version': 'v1.0.19-rc32-1'},
+    {'installed': True, 'name': 'moja-captive', 'version': 'v1.0.7-rc2-9'},
+    {'installed': True, 'name': 'python-brck-sdk', 'version': 'v0.0.1-rc28-3'},
+    {'installed': True, 'name': 'querymodem', 'version': 'v0.0.24-9'},
+    {'installed': True, 'name': 'scan_wifi', 'version': 'v0.0.24-9'},
+    {'installed': True, 'name': 'supabrck-core', 'version': 'v0.11.3-5'}]
 
 
 def test_get_signal_strength():
@@ -93,4 +107,20 @@ def test_get_firmware_version():
     with mock.patch('local_api.apiv1.soc.read_serial',
                     side_effect=[DUMMY_VERSION_RESPONSE]):
         version = soc.get_firmware_version()
-        assert version == EXPECTED_VERSION
+        assert version == EXPECTED_FIRMWARE_VERSION
+
+
+def test_get_software():
+    assert utils.get_software()
+    expected_os_version = 'LATEST'
+    v_file = os.path.join(os.path.dirname(__file__), 'packages-installed.txt')
+    with open(v_file) as fd:
+         package_version_response = fd.read()
+         with mock.patch('local_api.apiv1.utils.get_firmware_version',
+                        side_effect=[EXPECTED_FIRMWARE_VERSION]):
+            with mock.patch('local_api.apiv1.utils.run_command',
+                            side_effect=[expected_os_version, package_version_response]):
+                versions = utils.get_software()
+                assert versions['os'] == expected_os_version
+                assert versions['firmware'] == EXPECTED_FIRMWARE_VERSION
+                assert versions['packages'] == EXPECTED_PACKAGE_VERSIONS

@@ -14,6 +14,7 @@ from flask_login import current_user
 
 from .utils import get_system_state
 from .utils import get_battery_status
+from .utils import get_software
 from .errors import APIError
 from .sim import get_wan_connections
 from .sim import configure_sim
@@ -153,6 +154,16 @@ class PowerAPI(ProtectedView):
             raise APIError('Invalid Data', errors, 422)
 
 
+class SoftwareAPI(ProtectedView):
+    
+    def get(self):
+        """Gets the current software state of the device (os, firmware, packages)
+
+        :return: JSON representation of software version.
+        """
+        return jsonify(get_software())
+
+
 class WANAPI(ProtectedView):
 
     def check_sim_id(self, sim_id):
@@ -205,6 +216,9 @@ api_blueprint.add_url_rule('/ping',
 api_blueprint.add_url_rule('/system',
                            view_func=SystemAPI.as_view('system_api'),
                            methods=[GET, PATCH])
+api_blueprint.add_url_rule('/system/software',
+                           view_func=SoftwareAPI.as_view('software_api'),
+                           methods=[GET])
 api_blueprint.add_url_rule('/power',
                            view_func=PowerAPI.as_view('power_api'),
                            methods=[GET, PATCH])

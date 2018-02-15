@@ -254,6 +254,17 @@ def test_get_sim_network(client, headers):
     assert payload['name'] == 'SIM 1'
 
 
+
+def test_get_software(client, headers):
+    resp = client.get('/api/v1/system/software',
+                      headers=headers)
+    assert resp.status_code == 200
+    payload = load_json(resp)
+    assert 'os' in payload
+    assert 'firmware' in payload
+    assert 'packages' in payload
+
+
 def test_patch_sim(client, headers):
     test_payload = dict(
         configuration=dict(
