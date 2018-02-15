@@ -93,7 +93,7 @@ class Software extends Component {
                       return (
                         <tr key={ "opkg-id-"+ index }>
                           <td>{ pkg.name }</td>
-                          <td>{ pkg.installed ? <span className="label">{ pkg.version }</span> : <span className="label label-danger">NOT INSTALLED</span> }</td>
+                          <td>{ pkg.installed ? <span>{ pkg.version }</span> : <span className="label label-danger">NOT INSTALLED</span> }</td>
                         </tr>
                       );
                     })}
