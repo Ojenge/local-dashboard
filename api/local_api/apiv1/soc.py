@@ -10,7 +10,7 @@ from brck.utils import uci_get
 from brck.utils import uci_commit
 
 from .schema import Validator
-from .cache import cached
+from .cache import cached, MINUTE
 
 """
 {'AlarmPwrOnHour': 6,
@@ -31,6 +31,8 @@ DEVICE = '/dev/ttyACM0'
 TIMEOUT = 3
 TIME_FORMAT = '%H:%M'
 REGEX_TIME = re.compile('^(0[0-9]|1[0-9]|2[0-3]):(0[0-9]|[1-5][0-9])$')
+REGEX_BAT_TEMP = re.compile(r'temperature\"\:([\d\.]+)')
+STATE_UNKNOWN = 'UNKNOWN'
 
 MODE_NORMAL = 'NORMAL'
 MODE_TIMED = 'TIMED'
@@ -80,7 +82,7 @@ def parse_serial(raw_content, to_type=int):
     return dict([(k.strip(), to_type(v.strip())) for k,v in tuples])
 
 
-@cached(timeout=(60 * 10))
+@cached(timeout=(MINUTE * 10))
 def get_soc_settings(no_cache=False):
     """Gets SOC settings in API-compatible format.
 
@@ -105,9 +107,13 @@ def get_soc_settings(no_cache=False):
     return soc_settings
 
 
-@cached(timeout=(60 * 60))
+@cached(timeout=(MINUTE * 60))
 def get_firmware_version():
-    version = 'Unknown'
+    """Gets the firmware version
+
+    :return: string
+    """
+    version = STATE_UNKNOWN
     try:
         resp = read_serial('VER')
         parsed = parse_serial(resp, to_type=str)
@@ -115,6 +121,21 @@ def get_firmware_version():
     except Exception as e:
         LOG.error("Failed to get firmware version: %r", e)
     return version
+
+
+@cached(timeout=(MINUTE * 10), ignore=[STATE_UNKNOWN])
+def get_battery_temperature():
+    """Gets the current battery temperature
+    """
+    bat_temp = STATE_UNKNOWN
+    try:
+        resp = read_serial('BAX') or ''
+        matches = re.findall(REGEX_BAT_TEMP, resp)
+        if len(matches) == 1:
+            bat_temp = float(matches[0])
+    except Exception as e:
+        LOG.error("Failed to get battery temperature: %r", e)
+    return bat_temp
 
 
 def validate_payload(payload):

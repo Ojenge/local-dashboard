@@ -15,6 +15,7 @@ from flask_login import current_user
 from .utils import get_system_state
 from .utils import get_battery_status
 from .utils import get_software
+from .utils import get_diagnostics_data
 from .errors import APIError
 from .sim import get_wan_connections
 from .sim import configure_sim
@@ -165,6 +166,23 @@ class SoftwareAPI(ProtectedView):
         return jsonify(get_software())
 
 
+class DiagnosticsAPI(ProtectedView):
+    
+    def get(self):
+        """Gets diagnostics info for a SupaBRCK
+
+        Includes:
+
+        - battery temperature
+        - device temperature
+        - modem temperature
+        - connected clients
+
+        Raw information may also be downloaded.
+        """
+        return jsonify(get_diagnostics_data())
+
+
 class WANAPI(ProtectedView):
 
     def check_sim_id(self, sim_id):
@@ -219,6 +237,9 @@ api_blueprint.add_url_rule('/system',
                            methods=[GET, PATCH])
 api_blueprint.add_url_rule('/system/software',
                            view_func=SoftwareAPI.as_view('software_api'),
+                           methods=[GET])
+api_blueprint.add_url_rule('/system/diagnostics',
+                           view_func=DiagnosticsAPI.as_view('diagnostics_api'),
                            methods=[GET])
 api_blueprint.add_url_rule('/power',
                            view_func=PowerAPI.as_view('power_api'),

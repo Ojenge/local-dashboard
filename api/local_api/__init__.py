@@ -54,16 +54,72 @@ app.register_blueprint(api_blueprint, url_prefix='/api/v1')
 
 socketio = SocketIO(app)
 
+connected_clients = 0
+
+
+def update_client_count(direction):
+    """Update connected websocket client count
+
+    We only send data downstream if there are connected clients.
+    """
+    global connected_clients
+    connected_clients += direction
+    app.logger.debug('updated connected clients to: %d', connected_clients)
+
+
 def send_system_state():
-    socketio.emit('system', utils.get_system_state(), namespace='/dashboard')
-    eventlet.call_after_global(5, send_system_state)
+    """Sends system state payload to connected websocket clients.
+
+    Also, queues up the next task to send system state.
+
+    :return: None
+    """
+    global connected_clients
+    if connected_clients > 0:
+        socketio.emit('system', utils.get_system_state(), namespace='/dashboard')
+        eventlet.call_after_global(5, send_system_state)
+    else:
+        app.logger.info('skipping sending system state | no clients conected')
+
+
+def send_diagnostics_state():
+    """Sends device diagnostics state payload to connected websocket clients.
+
+    Also, queues up the next task to send diagnostic data.
+
+    :return: None
+    """
+    global connected_clients
+    if connected_clients > 0:
+        socketio.emit('diagnostics', utils.get_diagnostics_data(), namespace='/diagnostics')
+        eventlet.call_after_global(5, send_diagnostics_state)
+    else:
+        app.logger.info('skipping sending diagnostic data | no connected clients')
+
 
 @socketio.on('connect', namespace='/dashboard')
 @auth.authenticated_only
-def on_connect():
-    app.logger.debug('user connected')
-    socketio.emit('message', {'data': 1234}, namespace='/dashboard')
+def on_dashboard_connect():
+    update_client_count(1)
+    eventlet.call_after_global(5, send_system_state)
+    app.logger.debug('user connected / dashboard')
+    socketio.emit('message', {'data': 'READY'}, namespace='/dashboard')
+
+
+@socketio.on('connect', namespace='/diagnostics')
+@auth.authenticated_only
+def on_diagnostic_connect():
+    update_client_count(1)
+    eventlet.call_after_global(5, send_diagnostics_state)
+    app.logger.debug('user connected / diagnostics')
+    socketio.emit('message', {'data': 'READY'}, namespace='/diagnostics')
+
+
+@socketio.on('disconnect')
+def on_disconnect():
+    update_client_count(-1)
+    app.logger.debug('websocket client disconnected')
+
 
 def create_app():
-    eventlet.call_after_global(5, send_system_state)
     return app    

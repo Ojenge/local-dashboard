@@ -15,6 +15,7 @@ import ChangePassword from './ChangePassword';
 import Power from './Power';
 import Auth from '../utils/Auth';
 import Software from './Software';
+import Diagnostics from './Diagnostics';
 
 const CHANGE_PASSWORD_PATH = '/change-password';
 
@@ -52,6 +53,7 @@ class Root extends Component {
           <PrivateRoute exact path='/connect' component={ Connections } />
           <PrivateRoute exact path='/power' component={ Power } />
           <PrivateRoute exact path='/about' component = { Software } />
+          <PrivateRoute exact path='/diagnostics' component = { Diagnostics } />
         </div>
     </Router>
     );

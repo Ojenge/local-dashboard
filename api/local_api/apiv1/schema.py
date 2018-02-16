@@ -40,7 +40,6 @@ class Validator(object):
 
     def ensure_exact(self, key, expected):
         if key not in self.errors:
-            v = self.data.get(key, '')
             if key != expected:
                 self.errors[key] = 'must be: {}'.format(expected)
    

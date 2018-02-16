@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 
 import {AlertError,
-        AlertInfo,
         AlertSuccess} from './Alerts';
 
 import API from '../utils/API';
@@ -149,9 +148,9 @@ class Power extends Component {
 
   renderChargingStatus = (status) => {
     var classNames = "badge";
-    if (status == "DISCHARGING") {
+    if (status === "DISCHARGING") {
       classNames += " bg-red";
-    } else if (status == "CHARGING"){
+    } else if (status === "CHARGING"){
       classNames += " bg-green";
     } else {
       classNames += " bg-gray";

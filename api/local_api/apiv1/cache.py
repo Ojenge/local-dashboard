@@ -18,8 +18,18 @@ if os.getenv('FLASK_TESTING'):
     CACHE = NullCache()
 
 
-def cached(timeout=0):
-    """Caches Result of Function Call
+def cached(timeout=0, ignore=None):
+    """Caches Result of function call.
+
+    The cache key is generated from the function name any arguments.
+
+    Args:
+        timeout (int): Time in seconds to store the response in cache
+        ignore (list(int), optional): List of values that would not be cached.
+
+    Returns:
+        function: Wrapped function
+
     """
     def decorated(f):
         @wraps(f)
@@ -35,8 +45,15 @@ def cached(timeout=0):
                 return cached_val
             else:
                 LOG.debug("Cache MISS: %s", cache_key)
-                res = f(*args, **kwargs)
-                CACHE.set(cache_key, res, timeout=timeout)
+                res = None
+                try:
+                    res = f(*args, **kwargs)
+                except Exception as e:
+                    LOG.error("Error calculating cached value: Raising: %e", e)
+                    raise(e)
+                _ignored = ignore or []
+                if res and res not in _ignored:
+                    CACHE.set(cache_key, res, timeout=timeout)
                 return res
         return wrapped
     return decorated

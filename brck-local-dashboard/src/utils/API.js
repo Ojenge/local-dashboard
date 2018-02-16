@@ -114,6 +114,14 @@ const API = {
             .timeout(TIMEOUT)
             .on('error', handleError(cb))
             .then(cb);
+    },
+    get_diagnostic_data: function(cb) {
+        request.get(BASE_URL + '/system/diagnostics')
+            .type('json')
+            .set(AUTH_HEADER, Auth.getToken())
+            .timeout(TIMEOUT)
+            .on('error', handleError(cb))
+            .then(cb);
     }
 }
 

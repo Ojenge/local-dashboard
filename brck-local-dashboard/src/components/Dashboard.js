@@ -45,7 +45,6 @@ class Dashboard extends Component {
         timeout: 5000
       }
     };
-    // this.socket = io('/dashboard', opts);
     this.socket = io('/dashboard', opts);
     this.socket.on('system', (data) => {
       this.setState({

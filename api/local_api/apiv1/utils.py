@@ -5,8 +5,8 @@ Utilities for interacting with the filesystem.
 """
 
 import os
-import re
 import time
+import psutil
 try:
     import simplejson as json
 except ImportError:
@@ -14,12 +14,12 @@ except ImportError:
 
 from brck.utils import run_command
 from brck.utils import uci_get
-from brck.utils import uci_set
-from brck.utils import uci_commit
 
-from .schema import Validator
-from .soc import get_soc_settings
-from .soc import get_firmware_version
+from .soc import (
+    get_soc_settings,
+    get_firmware_version,
+    get_battery_temperature
+)
 from .cache import cached, MINUTE, CACHE
 
 LOG = __import__('logging').getLogger()
@@ -279,9 +279,9 @@ def get_system_state():
 
     Includes storage status, battery status, power status and network state.
 
-    See the API documentation for the expected payload schema.
+        See the API documentation for the expected payload schema.
 
-    :return: dictionary
+    :return: dict
     """
     storage_state = get_storage_status()
     battery_state = get_battery_status()
@@ -300,8 +300,12 @@ def get_software():
     """Gets the versions of the installed software on the system.
     
     This includes packages, firmware and operating system versions.
+
+        See the REST API documentation for payload schema.
+
+    :return: dict
     """
-    os_version = run_command(['uname', '-s', '-r', '-v', '-o'], output=True) or 'UNKNOWN'
+    os_version = run_command(['uname', '-s', '-r', '-v', '-o'], output=True) or STATE_UNKNOWN
     firmware_version = get_firmware_version()
     packages_text = run_command(['opkg', 'list-installed'], output=True) or ''
     package_data = dict([p.split(' - ') for p in packages_text.splitlines() if p])
@@ -316,3 +320,34 @@ def get_software():
         firmware=firmware_version,
         packages=package_list
     )
+
+
+def get_diagnostics_data():
+    """Gets diagnostics data on the SupaBRCK
+    
+    Includes:
+    
+    - temperature information
+    - connected clients information
+    
+    :return: dict
+    """
+    status = {}
+    client_data = run_command(['connected_clients'], output=True) or '{}'
+    try:
+        _data = json.loads(client_data)
+        status['clients'] = _data.get('clients', [ ])
+    except ValueError as exc:
+        LOG.error('Failed to load connected_clients: %r', exc)
+    modem_temp = run_command(['querymodem', 'temp'], output=True)
+    if modem_temp == False:
+        status['modem'] = dict(temperature=STATE_UNKNOWN)
+    else:
+        status['modem'] = dict(temperature=[float(modem_temp)])
+    bat_temp = get_battery_temperature()
+    # cpu temperatures
+    sensors_temp = psutil.sensors_temperatures() or {}
+    cpu_temps = [t.current for t in sensors_temp.get('coretemp', [])]
+    status['cpu'] = dict(temperature=cpu_temps)
+    status['battery'] = dict(temperature=[bat_temp])
+    return status
