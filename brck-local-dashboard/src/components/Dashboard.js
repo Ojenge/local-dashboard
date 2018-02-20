@@ -110,7 +110,7 @@ class Dashboard extends Component {
         storage_usage: usage
       });
     }
-    return this.state.storage_usage;
+    return Humanize.formatNumber(this.state.storage_usage, 2);
   }
 
   renderLogo = (connType) => {
@@ -198,18 +198,20 @@ class Dashboard extends Component {
                   <h3 className="box-title">Storage</h3>
                 </div>
                 <div className="box-body">
-                  <p>Your SupaBRCK has <strong>{ Humanize.fileSize(this.state.system.storage.total_space) }</strong> of storage.</p>
+                  <p>Your SupaBRCK has <span className="text-bold text-orange">
+                    { Humanize.fileSize(this.state.system.storage.total_space) }</span> of storage available 
+                    <span className="text-bold">({ Humanize.fileSize(this.state.system.storage.used_space) } - { this.getStorageUsage() }% used).</span>
+                  </p>
                   <div className="progress">
-                    <div className="progress-bar progress-bar-yellow"
-                      role="progressbar"
-                      aria-valuenow={ this.getStorageUsage() } 
-                      aria-valuemin="0"
-                      aria-valuemax="100" 
-                      style={{ width: this.getStorageUsage() + '%' }}>
-                      { Humanize.fileSize(this.state.system.storage.used_space) } used
-                      <span className="sr-only">{ this.getStorageUsage() }% used (warning)</span>
-                    </div> 
-                  </div>
+                        <div className="progress-bar progress-bar-yellow"
+                          role="progressbar"
+                          aria-valuenow={ this.getStorageUsage() } 
+                          aria-valuemin="0"
+                          aria-valuemax="100" 
+                          style={{ width: this.getStorageUsage() + '%' }}>
+                            <span className="sr-only">{ this.getStorageUsage() }% used</span>
+                          </div> 
+                    </div>
                 </div>
               </div>
             </div>

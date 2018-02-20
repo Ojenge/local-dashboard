@@ -6,7 +6,7 @@ import json
 import pytest
 import mock
 from datetime import datetime
-from psutil._common import shwtemp
+from psutil._common import shwtemp, snic
 
 import local_api
 from local_api.apiv1 import models
@@ -55,6 +55,52 @@ PSUTIL_TEMP_SIDE_EFFECT = {'coretemp': [shwtemp(label='Core 0', current=55.0, hi
                                         shwtemp(label='Core 2', current=56.0, high=110.0, critical=110.0)]}
 EXPECTED_BAT_TEMPERATURE = [32.0]
 EXPECTED_CPU_TEMPERATURE = [55.0, 56.0]
+# WAN
+DISCONNECTED_UCI_STATE = """network.lan=interface
+network.lan.ifname='eth0'
+network.lan.proto='dhcp'
+network.lan.macaddr='42:1d:12:35:c6:36'
+network.lan.connected='0'"""
+CONNECTED_UCI_STATE = """network.lan=interface
+network.lan.ifname='eth0'
+network.lan.proto='dhcp'
+network.lan.macaddr='42:1d:12:35:c6:36'
+network.lan.up='1'
+network.lan.device='eth0'
+network.lan.connected='1'"""
+DUMMY_PSUTIL_IF_ADDR = {
+    'eth0': [snic(family=2, address='192.168.180.3', netmask='255.255.255.0', broadcast='192.168.180.255', ptp=None)]
+}
+EXPECTED_ETHERNET1_DISCONNECTED = dict(
+    id='ETHERNET1',
+    name='ETHERNET 1',
+    available=False,
+    connected=False,
+    info=dict(
+        dhcp_enabled=True,
+        network=dict(
+            ipaddr='192.168.180.3',
+            netmask='255.255.255.0',
+            gateway='',
+            dns=''
+        )
+    )
+)
+EXPECTED_ETHERNET1_CONNECTED = dict(
+    id='ETHERNET1',
+    name='ETHERNET 1',
+    available=True,
+    connected=True,
+    info=dict(
+        dhcp_enabled=True,
+        network=dict(
+            ipaddr='192.168.180.3',
+            netmask='255.255.255.0',
+            gateway='',
+            dns=''
+        )
+    )
+)
 
 
 # TEST DATABASE SETUP
@@ -141,10 +187,8 @@ def test_ping(client):
 
 
 def _test_expired_token(client, expired_headers):
-    pass
-    # resp = client.get('/api/v1/system', headers=expired_headers)
-    # TODO / FIX Token Expiry
-    # assert resp.status_code == 401
+    resp = client.get('/api/v1/system', headers=expired_headers)
+    assert resp.status_code == 401
 
 
 def test_system_api(client, headers):
@@ -296,6 +340,121 @@ def test_patch_sim(client, headers):
             assert load_json(resp)
 
 
+def test_get_ethernet_networks(client, headers):
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=[DISCONNECTED_UCI_STATE]):
+        with mock.patch('local_api.apiv1.ethernet.psutil.net_if_addrs',
+                       side_effect=[DUMMY_PSUTIL_IF_ADDR]):
+            resp = client.get('/api/v1/networks/ethernet/',
+                            headers=headers)
+            assert resp.status_code == 200
+            payload = load_json(resp)
+            assert payload[0] == EXPECTED_ETHERNET1_DISCONNECTED
+
+
+def test_get_ethernet_networks_single(client, headers):
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=[DISCONNECTED_UCI_STATE]):
+        with mock.patch('local_api.apiv1.ethernet.psutil.net_if_addrs',
+                       side_effect=[DUMMY_PSUTIL_IF_ADDR]):
+            resp = client.get('/api/v1/networks/ethernet/ETHERNET1',
+                            headers=headers)
+            assert resp.status_code == 200
+            payload = load_json(resp)
+            assert payload == EXPECTED_ETHERNET1_DISCONNECTED
+
+
+def test_get_ethernet_networks_connected(client, headers):
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=[CONNECTED_UCI_STATE]):
+        with mock.patch('local_api.apiv1.ethernet.psutil.net_if_addrs',
+                       side_effect=[DUMMY_PSUTIL_IF_ADDR]):
+            resp = client.get('/api/v1/networks/ethernet/ETHERNET1',
+                            headers=headers)
+            assert resp.status_code == 200
+            payload = load_json(resp)
+            assert payload == EXPECTED_ETHERNET1_CONNECTED
+
+
+def test_get_ethernet_networks_unknown(client, headers):
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=[DISCONNECTED_UCI_STATE]):
+        resp = client.get('/api/v1/networks/ethernet/ETHERNET9',
+                          headers=headers)
+        assert resp.status_code == 404
+        assert load_json(resp)
+
+
+def test_patch_ethernet_dhcp(client, headers):
+    test_payload = dict(
+        configuration=dict(
+            dhcp_enabled=True
+        )
+    )
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=[DISCONNECTED_UCI_STATE]):
+        with mock.patch('local_api.apiv1.ethernet.psutil.net_if_addrs',
+                       side_effect=[DUMMY_PSUTIL_IF_ADDR]):
+            resp = client.patch('/api/v1/networks/ethernet/ETHERNET1',
+                                content_type='application/json',
+                                data=json.dumps(test_payload),
+                                headers=headers)
+            assert resp.status_code == 200
+            payload = load_json(resp)
+            assert payload == EXPECTED_ETHERNET1_DISCONNECTED
+
+
+def test_patch_ethernet_static(client, headers):
+    test_payload = dict(
+        configuration=dict(
+            dhcp_enabled=False,
+            network=dict(
+                ipaddr='192.168.0.101',
+                netmask='255.255.255.0',
+                gateway='192.168.0.1',
+                dns='8.8.8.8,localhost'
+            )
+        )
+    )
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=[DISCONNECTED_UCI_STATE]):
+        with mock.patch('local_api.apiv1.ethernet.psutil.net_if_addrs',
+                       side_effect=[DUMMY_PSUTIL_IF_ADDR]):
+                resp = client.patch('/api/v1/networks/ethernet/ETHERNET1',
+                                    content_type='application/json',
+                                    data=json.dumps(test_payload),
+                                    headers=headers)
+                assert resp.status_code == 200
+                payload = load_json(resp)
+                assert payload == EXPECTED_ETHERNET1_DISCONNECTED
+
+
+def test_patch_ethernet_static_invalids(client, headers):
+    test_payload = dict(
+        configuration=dict(
+            dhcp_enabled=False,
+            network=dict(
+                ipaddr='x',
+                netmask='y',
+                dns='8.8.8.8, localhost'
+            )
+        )
+    )
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=[DISCONNECTED_UCI_STATE]):
+            resp = client.patch('/api/v1/networks/ethernet/ETHERNET1',
+                                content_type='application/json',
+                                data=json.dumps(test_payload),
+                                headers=headers)
+            assert resp.status_code == 422
+            payload = load_json(resp)
+            errors = payload['errors']
+            assert 'dns' in errors
+            assert 'ipaddr' in errors
+            assert 'netmask' in errors
+            assert 'gateway' not in errors
+
+
 def test_get_software(client, headers):
     resp = client.get('/api/v1/system/software',
                       headers=headers)
@@ -304,6 +463,7 @@ def test_get_software(client, headers):
     assert 'os' in payload
     assert 'firmware' in payload
     assert 'packages' in payload
+
 
 @pytest.mark.skipif(sys.platform == 'darwin',
                     reason="psutil sensors_temperatures unavailable on mac")

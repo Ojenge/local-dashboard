@@ -7,7 +7,8 @@ import {
 } from 'react-router-dom';
 
 import Dashboard from './Dashboard';
-import Connections from './Connections';
+import SIM from './SIM';
+import Ethernet from './Ethernet';
 import Login from './Login';
 import Logout from './Logout';
 import Boot from './Boot';
@@ -20,6 +21,7 @@ import Diagnostics from './Diagnostics';
 const CHANGE_PASSWORD_PATH = '/change-password';
 
 const PrivateRoute = ({ component: Component, ...rest }) => {
+  document.body.classList.remove('sidebar-open');
   const forcePassChange = (window.location.pathname !== CHANGE_PASSWORD_PATH) && Auth.requiresPasswordChange();
   if (forcePassChange) {
     window.location = CHANGE_PASSWORD_PATH;
@@ -50,7 +52,8 @@ class Root extends Component {
           <PrivateRoute exact path={CHANGE_PASSWORD_PATH} component={ ChangePassword } />
           <PrivateRoute exact path="/logout" component={ Logout } />
           <PrivateRoute exact path='/dashboard' component={ Dashboard } />
-          <PrivateRoute exact path='/connect' component={ Connections } />
+          <PrivateRoute exact path='/connect-sim' component={ SIM } />
+          <PrivateRoute exact path='/connect-lan' component={ Ethernet } />
           <PrivateRoute exact path='/power' component={ Power } />
           <PrivateRoute exact path='/about' component = { Software } />
           <PrivateRoute exact path='/diagnostics' component = { Diagnostics } />

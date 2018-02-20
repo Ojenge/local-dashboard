@@ -1,0 +1,18 @@
+type: object
+properties:
+  ipaddr:
+    type: string
+    description: Static IP configured for this connection
+    example: "10.10.10.10"
+  gateway:
+    type: string
+    description: Default route for this connection
+    example: "10.10.10.1"
+  netmask:
+    type: string
+    description: Subnet mask for this connection
+    example: "255.255.255.0"
+  dns:
+    type: string
+    description: DNS server(s) for this connection (IP or hostnames)
+    example: "8.8.8.8,mydns.com"

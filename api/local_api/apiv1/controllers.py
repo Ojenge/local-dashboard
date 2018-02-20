@@ -9,21 +9,34 @@ import re
 from flask import Blueprint, jsonify, request
 from flask.views import MethodView
 
-from flask_login import login_required
-from flask_login import current_user
-
-from .utils import get_system_state
-from .utils import get_battery_status
-from .utils import get_software
-from .utils import get_diagnostics_data
+from flask_login import (
+    login_required,
+    current_user
+)
 from .errors import APIError
-from .sim import get_wan_connections
-from .sim import configure_sim
-from .soc import configure_power
-from .soc import get_power_config
-from .models import check_password
-from .models import make_token
-from .models import change_password
+from .utils import (
+    get_system_state,
+    get_battery_status,
+    get_software,
+    get_diagnostics_data
+)
+from .sim import (
+    get_wan_connections,
+    configure_sim
+)
+from .ethernet import (
+    get_ethernet_networks,
+    configure_ethernet
+)
+from .soc import (
+    configure_power,
+    get_power_config
+)
+from .models import (
+    check_password,
+    make_token,
+    change_password
+)
 
 api_blueprint = Blueprint('apiv1', __name__)
 
@@ -35,7 +48,8 @@ POST = 'POST'
 HTTP_OK = 200
 
 # Route regexes
-SIM_ID_REGEX = re.compile('^(SIM1|SIM2|SIM3)$')
+SIM_ID_REGEX = re.compile(r'^(SIM1|SIM2|SIM3)$')
+ETHERNET_ID_REGEX = re.compile(r'^(ETHERNET1|ETHERNET2|ETHERNET3)$')
 
 
 @api_blueprint.app_errorhandler(APIError)
@@ -190,7 +204,7 @@ class WANAPI(ProtectedView):
             raise APIError(message='Not Found', status_code=404)
 
     def get(self, sim_id):
-        """Returns a list of active WAN connections.
+        """Returns a list of availalable WAN connections.
 
         This depends on the number of SIM slots available on the SupaBRCK.
         
@@ -215,6 +229,40 @@ class WANAPI(ProtectedView):
         else:
             raise APIError("Invalid Data", errors, 422)
 
+
+class EthernetAPI(ProtectedView):
+    
+    def check_net_id(self, net_id):
+        if net_id is None or ETHERNET_ID_REGEX.match(net_id) is None:
+            raise APIError(message='Not found', status_code=404)
+    
+    def get(self, net_id):
+        """Returns list of available ethernet connections.
+
+            See the API docs for sample responses.
+
+        :return: string (JSON list of connection information)
+        """
+        if net_id is None:
+            connections = get_ethernet_networks()
+            return jsonify(connections)
+        else:
+            self.check_net_id(net_id)
+            connection = get_ethernet_networks(net_id=net_id)[0]
+            return jsonify(connection)
+    
+    def patch(self, net_id):
+        self.check_net_id(net_id)
+        payload = request.get_json()
+        if payload is None:
+            raise APIError('Invalid Data', [], 422)
+        status_code, errors = configure_ethernet(net_id, payload)
+        if status_code == HTTP_OK:
+            return jsonify(get_ethernet_networks(net_id)[0])
+        else:
+            raise APIError('Invalid Data', errors, 422)
+
+
 api_blueprint.add_url_rule('/auth',
                            view_func=AuthenticationView.as_view('auth'),
                            methods=[POST])
@@ -228,6 +276,14 @@ api_blueprint.add_url_rule('/networks/sim/',
                            methods=[GET])
 api_blueprint.add_url_rule('/networks/sim/<string(length=4):sim_id>',
                            view_func=sim_view,
+                           methods=[GET, PATCH])
+eth_view = EthernetAPI.as_view('ethernet_api')
+api_blueprint.add_url_rule('/networks/ethernet/',
+                           defaults={'net_id': None},
+                           view_func=eth_view,
+                           methods=[GET])
+api_blueprint.add_url_rule('/networks/ethernet/<string(length=9):net_id>',
+                           view_func=eth_view,
                            methods=[GET, PATCH])
 api_blueprint.add_url_rule('/ping',
                            view_func=Ping.as_view('ping'),

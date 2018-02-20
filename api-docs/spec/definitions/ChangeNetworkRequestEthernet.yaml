@@ -1,4 +1,11 @@
 type: object
 properties:
   configuration:
-    $ref: '#/definitions/EthernetStatus'
+    type: object
+    properties:
+      dhcp_enabled:
+        type: boolean
+        description: Use DHCP to acquire IP configuration
+        example: true
+      network:
+        $ref: '#/definitions/EthernetIPConfig'

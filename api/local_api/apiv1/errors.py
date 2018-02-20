@@ -8,7 +8,7 @@ class APIError(Exception):
         Exception.__init__(self)
         self.message = message
         self.status_code = status_code
-        self.errors = errors or []
+        self.errors = errors or {}
 
     def to_dict(self):
         """Build response dictionary.

@@ -36,7 +36,6 @@ def generate_expiry():
     :return: datetime.datetime
     """
     d = datetime.utcnow() + timedelta(hours=EXPIRY_HOURS)
-    LOG.error("Generated expiry: %r", d)
     return d
 
 class Principal(db.Model):
@@ -53,11 +52,11 @@ class Principal(db.Model):
     password_hash = db.Column(db.String(256),
                               nullable=False)
     created = db.Column(db.DateTime,
-                        default=datetime.utcnow(),
+                        default=datetime.utcnow,
                         nullable=False)
     updated = db.Column(db.DateTime,
                         default=db.func.now(),
-                        onupdate=datetime.utcnow(),
+                        onupdate=datetime.utcnow,
                         nullable=False)
     password_changed = db.Column(db.Boolean,
                                  default=False)
@@ -93,8 +92,8 @@ class AuthToken(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     token = db.Column(db.String(128), nullable=False, index=True, unique=True)
-    created = db.Column(db.DateTime, default=datetime.utcnow(), nullable=False)
-    expiry = db.Column(db.DateTime, default=generate_expiry(), nullable=False)
+    created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    expiry = db.Column(db.DateTime, default=generate_expiry, nullable=False)
     principal_id = db.Column(db.String, db.ForeignKey('principal.login'), nullable=False)
     principal = db.relationship('Principal',
                                 backref=db.backref('auth_tokens', lazy=True))
@@ -176,8 +175,6 @@ def check_header(auth_key):
     _user = None
     try:
         token  = db.session.query(AuthToken).filter_by(token=auth_key).one()
-        # TODO: Handle proper expiry
-        _user = token.principal
         if token.expiry > datetime.utcnow():
             _user = token.principal
         else:

@@ -69,25 +69,25 @@ class Container extends Component {
                   <span>Dashboard</span>
                   <span className="pull-right-container" />
                 </NavLink>
-              </li>              
+              </li>
               <li>
-                <NavLink to="/connect">
-                  <i className="fa fa-signal"></i>
-                  <span>Connectivity</span>
-                  <span className="pull-right-container" />
-                </NavLink>
-              </li>              
+                    <NavLink to="/connect-sim">
+                      <i className="fa fa-signal"></i>
+                      <span>SIM Connectivity</span>
+                      <span className="pull-right-container" />
+                    </NavLink>
+              </li>
+              <li>
+                    <NavLink to="/connect-lan">
+                      <i className="fa fa-plug"></i>
+                      <span>LAN Connectivity</span>
+                      <span className="pull-right-container" />
+                    </NavLink>
+              </li>
               <li>
                 <NavLink to="/power">
                   <i className="fa fa-power-off"></i>
                   <span>Power</span>
-                  <span className="pull-right-container" />
-                </NavLink>
-              </li>              
-              <li>
-                <NavLink to="/about">
-                  <i className="fa fa-linux"></i>
-                  <span>About</span>
                   <span className="pull-right-container" />
                 </NavLink>
               </li>              
@@ -98,6 +98,13 @@ class Container extends Component {
                   <span className="pull-right-container" />
                 </NavLink>
               </li>              
+              <li>
+                <NavLink to="/about">
+                  <i className="fa fa-linux"></i>
+                  <span>About</span>
+                  <span className="pull-right-container" />
+                </NavLink>
+              </li>
             </ul>
           </section>
         </aside>

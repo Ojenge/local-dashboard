@@ -1,9 +1,10 @@
 {
-  "main.js": "static/js/main.1a8917ad.js",
-  "main.js.map": "static/js/main.1a8917ad.js.map",
+  "main.js": "static/js/main.db8ca3bd.js",
+  "main.js.map": "static/js/main.db8ca3bd.js.map",
   "static/media/brck-logo-lg.svg": "static/media/brck-logo-lg.713e9090.svg",
   "static/media/brck-logo-mini.svg": "static/media/brck-logo-mini.d8e26572.svg",
   "static/media/icon-sim.svg": "static/media/icon-sim.8725235e.svg",
   "static/media/icon_ethernet-white.svg": "static/media/icon_ethernet-white.c27bbec2.svg",
+  "static/media/icon_ethernet.svg": "static/media/icon_ethernet.8f347d9a.svg",
   "static/media/yellow-brck-logo.svg": "static/media/yellow-brck-logo.872490e4.svg"
 }

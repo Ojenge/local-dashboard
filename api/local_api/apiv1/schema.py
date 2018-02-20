@@ -22,10 +22,11 @@ class Validator(object):
     def add_errors(self, errors):
         self.errors.update(errors)
 
-    def ensure_exists(self, key, message=None):
-        v = self.data.get(key)
-        if (not v) and key not in self.errors:
-            self.errors[key] = message or '{} required'.format(key)
+    def ensure_exists(self, *args):
+        for key in args:
+            if key not in self.errors:
+                if not self.data.get(key):
+                    self.errors[key] = '{} required'.format(key)
 
     def ensure_excluded(self, *keys):
         for key in keys:
@@ -87,3 +88,12 @@ class Validator(object):
             if v not in superset and required:
                 options = ','.join(superset)
                 self.errors[key] = 'must be one of {}'.format(options)
+
+    def ensure_passes_test(self, key, func, required=True):
+        if key not in self.errors:
+            try:
+                v = self.data.get(key)
+                if v or required:
+                    func(self.data.get(key))
+            except Exception as e:
+                self.errors[key] = 'invalid format'

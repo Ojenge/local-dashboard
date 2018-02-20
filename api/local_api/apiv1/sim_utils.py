@@ -61,7 +61,6 @@ def run_call(path, value):
     call(command, shell=True)
 
 
-
 def get_sim_state(sim_id):
     """Gets SIM state as stored in UCI
     :return: dict

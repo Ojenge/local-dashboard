@@ -459,7 +459,7 @@ class Connections extends Component {
     return (
       <Container>
         <div>
-          <Header>Connectivity (SIM Assets)</Header>
+          <Header>SIM Connectivity</Header>
           {(this.state.loaded)
           ? null
           : <Loading message="Loading SIM connections" />}
