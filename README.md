@@ -43,6 +43,6 @@ Installation may be performed using `opkg`
     - [x] System State
     - [x] SIM Connection Management
     - [x] Power Management
-    - [ ] LAN Connection Management
-    - [ ] System version and packages view
+    - [x] LAN Connection Management
+    - [x] System version and packages view
     - [ ] Historical views
