@@ -10,6 +10,7 @@ class Loading extends Component {
   }
 
   render() {
+      const textClass = 'login-box-msg ' +  (this.props.textClass || 'text-black');
       return (
         <div className="login-box">
             <div className="login-logo">
@@ -18,7 +19,7 @@ class Loading extends Component {
                 <div className="spinner">
                     <span />
                 </div>
-                <p className="login-box-msg text-yellow">{ this.state.message }</p>
+                <p className={textClass}>{ this.state.message }</p>
             </div>
         </div>
 

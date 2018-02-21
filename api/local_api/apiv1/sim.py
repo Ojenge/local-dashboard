@@ -100,7 +100,7 @@ def get_wan_connections(sim_id=None):
                  if net_connected:
                      connected = True
                      signal_strength = get_signal_strength('wan')
-                     operator = run_command(['querymodem', 'operator'], output=True) or 'Unknown'
+                     operator = run_command(['querymodem', 'carrier'], output=True) or 'Unknown'
                      info['network_info'] = dict(
                          operator=operator,
                          signal_strength=signal_strength

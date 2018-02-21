@@ -58,7 +58,7 @@ class Boot extends Component {
     return (
       this.state.connected
         ? <Redirect to='/dashboard' />
-        : <Loading message={"Trying to connect to your SupaBRCK"} />
+        : <Loading message={"Trying to connect to your SupaBRCK"} textClass={"text-yellow"} />
     );
   }
 
