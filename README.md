@@ -28,6 +28,8 @@ Installation may be performed using `opkg`
 - This will set up the API, database and dashboard, the latter will be exposed at http://local.brck.com when accessed from within the SupaBRCK WiFi network.
 - First-time use will require to change the password from the default credentials (admin/admin)
 
+    You may also login using the device root user account and the associated password.
+
 
 ## Feature notes
 

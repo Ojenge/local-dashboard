@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import spwd
+import crypt
 
 from datetime import timedelta, datetime
 
@@ -9,6 +11,8 @@ from sqlalchemy.orm.exc import NoResultFound
 
 from local_api import db
 from .schema import Validator
+from .cache import CACHE, MINUTE
+from .errors import APIError
 
 
 LOG = __import__('logging').getLogger('sqlalchemy')
@@ -38,6 +42,7 @@ def generate_expiry():
     d = datetime.utcnow() + timedelta(hours=EXPIRY_HOURS)
     return d
 
+
 class Principal(db.Model):
     """User DB Representation
     """
@@ -47,6 +52,8 @@ class Principal(db.Model):
         super(Principal, self).__init__(**kwargs)
         if raw_password:
             self.set_password(raw_password)
+        if self.is_root:
+            self.password_changed = True
 
     login = db.Column(db.String(64), primary_key=True)
     password_hash = db.Column(db.String(256),
@@ -76,6 +83,10 @@ class Principal(db.Model):
 
     def get_id(self):
         return unicode(self.login)
+
+    @property
+    def is_root(self):
+        return self.login == 'root'
 
     def __repr__(self):
         return '<User:%s>' % (self.login)
@@ -122,18 +133,63 @@ def create_user(login, password):
     return completed
 
 
-def check_password(login, password):
-    """Checks provided credentials against database.
+def check_login_attempt(login):
+    """Checks login attemps
 
-    :return: tuple
+    Raises ``.errors.APIError`` if the account has been locked out.
+
+    :return None:
     """
+    max_attempts = 3
+    _key = 'login_attempts_{}'.format(login)
+    attempts = CACHE.get(_key) or 0
+    _attempt_count = attempts + 1
+    LOG.warn('Login: Attempts for [%s] : [%d]', login, _attempt_count)
+    CACHE.set(_key, _attempt_count, timeout=(MINUTE * 60))
+    if _attempt_count >= max_attempts:
+        LOG.error('Login: Access blocked for [%s]', login)
+        raise APIError(message='Unauthorized', status_code=401)        
+
+
+def check_system_login(login, password):
+    """Checks login credentials against system user credentials. 
+
+    :param str login: system user's login
+    :param str password: system user's password in cleartext
+
+    :return bool: ``True`` if authentication was successful, otherwise `False`.
+    """
+    valid = False
+    try:
+        cryptedpass = spwd.getspnam(login)[1]
+        if cryptedpass:
+            valid = crypt.crypt(password, cryptedpass) == cryptedpass
+        else:
+            LOG.error('Authentication failed for system user: %s', login)
+    except (KeyError, Exception) as e:
+        LOG.error('Failed to read /etc/passwd or other error: %r', e)
+    return valid
+
+
+def check_password(login, password):
+    """Checks provided credentials against database or system user.
+
+    :param str login: login username
+    :param str password: cleartext password
+
+    :return: bool
+    """
+    check_login_attempt(login)
     is_verified = False
     try:
         user = db.session.query(Principal).filter_by(login=login).one()
-        salt, pass_hash = user.password_hash.split(':')
-        computed = KDF.PBKDF2(password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
-        if computed == pass_hash:
-            is_verified = True
+        if user.is_root:
+            is_verified = check_system_login(user.login, password)
+        else:
+            salt, pass_hash = user.password_hash.split(':')
+            computed = KDF.PBKDF2(password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
+            if computed == pass_hash:
+                is_verified = True
     except NoResultFound:
         LOG.error("User not found with login: %s", login)
         # simulate a password check anyway

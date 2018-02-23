@@ -120,6 +120,8 @@ EXPECTED_NETWORK_RESP = dict(
 
 TEST_USER = 'test_user'
 TEST_PASSWORD = 'test_password'
+ROOT_USER = 'root'
+ROOT_PASSWORD = 'fakepass'
 EXPECTED_BATTERY =  dict(state='CHARGING',
                          battery_level=98,
                          charging_current=0,
@@ -142,6 +144,7 @@ def headers():
     local_api.db.create_all()
     models.HASH_ROUNDS = 1
     assert models.create_user(TEST_USER, TEST_PASSWORD)
+    assert models.create_user(ROOT_USER, ROOT_PASSWORD)
     _token = models.make_token(TEST_USER)
     return {'X-Auth-Token-Key': _token['token']}
 
@@ -173,6 +176,22 @@ def test_get_auth_token(client, headers):
     assert 'token' in payload
     assert 'expiry' in payload
     assert payload['password_changed'] == False
+
+
+@pytest.mark.skipif(sys.platform == 'darwin',
+                    reason="spwd not available on MAC")
+def test_get_auth_token_as_system_user(client, headers):
+    _auth = dict(login=ROOT_USER, password=ROOT_PASSWORD)
+    with mock.patch('local_api.apiv1.models.check_system_login',
+                    side_effect=[True]):
+        resp = client.post('/api/v1/auth',
+                           content_type='application/json',
+                           data=json.dumps(_auth))
+        assert resp.status_code == 200
+        payload = load_json(resp)
+        assert 'token' in payload
+        assert 'expiry' in payload
+        assert payload['password_changed'] == True
 
 
 def test_unauthorized(client):
