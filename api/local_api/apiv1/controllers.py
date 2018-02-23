@@ -269,7 +269,7 @@ api_blueprint.add_url_rule('/auth',
 api_blueprint.add_url_rule('/auth/password',
                            view_func=ChangePasswordView.as_view('change_password'),
                            methods=[PATCH])
-sim_view = WANAPI.as_view('user_api')
+sim_view = WANAPI.as_view('sim_api')
 api_blueprint.add_url_rule('/networks/sim/',
                            defaults={'sim_id': None},
                            view_func=sim_view,

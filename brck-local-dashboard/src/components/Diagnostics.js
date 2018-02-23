@@ -93,12 +93,12 @@ class Diagnostics extends Component {
   renderTemperature = (temp, index) => {
       var _temp = temp;
       var _suffix = '\u00B0C';
-      if (!this.state.use_degrees) {
-        _temp = (temp * 1.8) + 32;
-        _suffix = '\u00B0F';
-      }
-      _temp = Humanize.formatNumber(_temp, 2);
       if (temp !== UNKNOWN) {
+        if (!this.state.use_degrees) {
+          _temp = (temp * 1.8) + 32;
+          _suffix = '\u00B0F';
+        }  
+        _temp = Humanize.formatNumber(_temp, 2);
         _temp += _suffix;
       }
       return <span key={ 'temp-key-' + index } className="badge bg-gray">{ _temp }</span>;

@@ -340,10 +340,11 @@ def get_diagnostics_data():
     except ValueError as exc:
         LOG.error('Failed to load connected_clients: %r', exc)
     modem_temp = run_command(['querymodem', 'temp'], output=True)
-    if modem_temp == False:
-        status['modem'] = dict(temperature=STATE_UNKNOWN)
-    else:
+    try:
         status['modem'] = dict(temperature=[float(modem_temp)])
+    except (ValueError, TypeError) as e:
+        LOG.error('Failed to get modem temperature: %r', e)
+        status['modem'] = dict(temperature=[STATE_UNKNOWN])
     bat_temp = get_battery_temperature()
     # cpu temperatures
     sensors_temp = psutil.sensors_temperatures() or {}
