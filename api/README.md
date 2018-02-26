@@ -60,7 +60,8 @@ gunicorn --bind localhost:5000 --reload --worker-class eventlet --workers 1 run:
 - [x] SIM connectivity API
 - [x] LAN Connectivity API
 - [ ] WiFi connectivity API
-- [x] Storage status API
+- [x] System software API
+- [x] Diagnostics API 
 - [x] Power management API (SOC)
 - [ ] Plex
 - [ ] FTP
