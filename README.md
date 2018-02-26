@@ -31,20 +31,31 @@ Installation may be performed using `opkg`
     You may also login using the device root user account and the associated password.
 
 
+## Dependencies
+
+These are the runtime dependencies installed via opkg.
+
+    Note that python dependencies required by the API will be transformed into opkg packages.
+
+- dnsmasq (this is already available on OpenWrt)
+- supabrck-core
+- connected_clients
+- querymodem
+- python-flask
+- python-psutil
+- python-gunicorn
+- nginx
+
+
 ## Feature notes
 
 - API 
-    - [x] Authentication (default login + password change interface)
-    - [x] Device(s) status API (connection, storage)
-    - [x] Firmware type management API
-    - [x] SIM connection management
-    - [ ] Plex?
-    - [ ] Configuration? FTP / File Management
-    - [ ] Compute (features)
+    - See the API README: https://github.com/brck/local-dashboard/blob/master/api/README.md
 - Frontend
     - [x] System State
     - [x] SIM Connection Management
     - [x] Power Management
     - [x] LAN Connection Management
     - [x] System version and packages view
+    - [x] Diagnostics view
     - [ ] Historical views
