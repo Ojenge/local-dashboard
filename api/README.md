@@ -40,36 +40,31 @@ Mocking is implemented for functions requiring a live device environment.
 FLASK_CONFIG=production FLASK_APP=./local_api/__init__.py flask db upgrade
 ```
 
-The default database will be located in: `./local_api/dashboard.sqlite`
-
-This value may be overriden by a `DATABASE_URL` environmental variable.
-
-    See the production artificacts for the DB location when local dash is installed via `opkg`.
-
+    Note that the OPKG installer runs database migrations as part of the post-installation process.
 
 ### Running
 
 The application may either be started using any of these approaches
 
 ```shell
-python run.py
-# or with flask_script
-FLASK_APP=./local_api/__init__.py flask run
-# or using gunicorn
-gunicorn --bind localhost:8000 --workers 2 run:app
+make run
+# or directly via gunicorn
+gunicorn --bind localhost:5000 --reload --worker-class eventlet --workers 1 run:app
 ```
 
 
-### TODOS
+### Features
 
-- [x] Battery status API
-- [x] Connection status API
+- [x] Authentication (os user/application user)
+- [x] System status API (storage, connectivity battery)
+- [x] SIM connectivity API
+- [x] LAN Connectivity API
+- [ ] WiFi connectivity API
 - [x] Storage status API
-- [ ] SOC/Turn-on/Turn-off configuration API
+- [x] Power management API (SOC)
 - [ ] Plex
 - [ ] FTP
-- [ ] Authentication
 
 ### Generating a release
 
-TBD
+- Standard process via `brck-feeds` and brck-ci.
