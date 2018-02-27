@@ -1,0 +1,19 @@
+type: object
+properties:
+  ssid:
+    type: string
+    description: SSID to broadcast on this interface
+    example: Moja Wifi 2
+  encryption:
+    $ref: '#/definitions/EncryptionType'
+  mode:
+    $ref: '#/definitions/WIFIMode'
+  network:
+    $ref: '#/definitions/WIFIIPConfig'
+  channel:
+    type: number
+    description: Wireless channel when running in AP mode
+  hidden:
+    $ref: '#/definitions/BooleanFlag'
+  hwmode:
+    $ref: '#/definitions/HWMode' 

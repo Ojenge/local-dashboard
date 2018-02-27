@@ -17,6 +17,7 @@ html, body {
     min-height: 100%;
     width: 100%;
     background-color: #EDEDED;
+    padding-bottom: 50px;
 }
 
 .innerRoot {

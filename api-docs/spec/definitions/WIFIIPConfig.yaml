@@ -1,0 +1,14 @@
+type: object
+properties:
+  ipaddr:
+    type: string
+    description: IP configured for this connection
+    example: "10.10.10.10"
+  gateway:
+    type: string
+    description: Default route for this connection
+    example: "10.10.10.1"
+  netmask:
+    type: string
+    description: Subnet mask for this connection
+    example: "255.255.255.0"

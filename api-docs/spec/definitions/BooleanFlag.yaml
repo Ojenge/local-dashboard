@@ -1,0 +1,5 @@
+type: string
+description: Flag
+enum:
+- 0
+- 1

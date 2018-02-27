@@ -69,20 +69,22 @@ def get_wan_connections(sim_id=None):
     net_state = get_uci_state('network.wan')
     net_connected = net_state.get('network.wan.connected', '') == '1'
     active_sim = uci_get('brck.active_sim')
-    for (i, path) in enumerate(conn_paths):
+    sim_statuses = [read_file(p) for p in conn_paths]
+    # when only one SIM is available - assume that's the active SIM
+    active_sims = len([s for s in sim_statuses if s == '1'])
+    for (i, sim_status) in enumerate(sim_statuses):
         key = i + 1
         c_id = 'SIM%d' %(key)
         name = 'SIM %d' % (key)
-        file_resp = read_file(path)
         available = False
         connected = False
-        if file_resp != False and file_resp == '1':
+        if sim_status != False and sim_status == '1':
             available = True
         info = {}
         if available:
             sim_state = get_sim_state(key)
             info['apn_configured'] = sim_state.get('apn', '') != ''
-            is_active_sim = str(key) == active_sim
+            is_active_sim = (active_sims == 1 and net_connected) or (str(key) == active_sim)
             if is_active_sim and (not net_connected):
                 sim_status = run_command(['querymodem', 'check_pin'],
                                          output=True) or ''

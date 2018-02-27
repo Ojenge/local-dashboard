@@ -9,6 +9,7 @@ import {
 import Dashboard from './Dashboard';
 import SIM from './SIM';
 import Ethernet from './Ethernet';
+import WIFI from './WIFI';
 import Login from './Login';
 import Logout from './Logout';
 import Boot from './Boot';
@@ -54,6 +55,7 @@ class Root extends Component {
           <PrivateRoute exact path='/dashboard' component={ Dashboard } />
           <PrivateRoute exact path='/connect-sim' component={ SIM } />
           <PrivateRoute exact path='/connect-lan' component={ Ethernet } />
+          <PrivateRoute exact path='/connect-wifi' component={ WIFI } />
           <PrivateRoute exact path='/power' component={ Power } />
           <PrivateRoute exact path='/about' component = { Software } />
           <PrivateRoute exact path='/diagnostics' component = { Diagnostics } />

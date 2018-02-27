@@ -128,6 +128,61 @@ EXPECTED_BATTERY =  dict(state='CHARGING',
                          voltage=12)
 
 
+# wifi
+EXPECTED_WIFI_UNCOFIGURED = dict(
+    id='WIFI1',
+    name='Wireless 1',
+    connected = False,
+    available=False,
+    info={}
+)
+EXPECTED_WIFI_CONFIGURED = dict(
+    id='WIFI1',
+    name='Wireless 1',
+    connected = True,
+    available = True,
+    info = dict(
+        mode='ap',
+        hidden='0',
+        ssid='Moja-Wifi-LDASH2',
+        encryption='none',
+        hwmode='11a',
+        channel='48',
+        network={}
+    )
+)
+# wifi
+WIFI_UCI_STATE = """wireless.radio0=wifi-device
+wireless.radio0.type='mac80211'
+wireless.radio0.path='pci0000:00/0000:00:1c.0/0000:01:00.0'
+wireless.radio0.htmode='HT40'
+wireless.radio0.hwmode='11g'
+wireless.radio0.channel='11'
+wireless.radio0.noscan='0'
+wireless.radio0.log_level='1'
+wireless.radio0.ht_capab='SHORT-GI-40' 'TX-STBC' 'RX-STBC1' 'DSSS_CCK-40'
+wireless.radio1=wifi-device
+wireless.radio1.type='mac80211'
+wireless.radio1.path='pci0000:00/0000:00:1c.3/0000:04:00.0'
+wireless.radio1.htmode='HT40-'
+wireless.radio1.hwmode='11a'
+wireless.radio1.channel='48'
+wireless.wifibridge=wifi-iface
+wireless.wifibridge.device='radio1'
+wireless.wifibridge.network='wwan'
+wireless.wifibridge.mode='ap'
+wireless.wifibridge.hidden='0'
+wireless.wifibridge.encryption='none'
+wireless.wifibridge.ssid='Moja-Wifi-LDASH2'
+wireless.wifiap=wifi-iface
+wireless.wifiap.device='radio0'
+wireless.wifiap.mode='ap'
+wireless.wifiap.encryption='none'
+wireless.wifiap.network='wifi'
+wireless.wifiap.hidden='0'
+wireless.wifiap.ssid='Moja-LDASH'"""
+
+
 @pytest.fixture
 def client(request):
     if os.path.exists(TEST_DATABASE_PATH):
@@ -140,8 +195,9 @@ def client(request):
 @pytest.fixture
 def headers():
     # initialize user
-    local_api.db.drop_all()
     local_api.db.create_all()
+    models.db.session.execute("DELETE FROM principal")
+    models.db.session.commit()
     models.HASH_ROUNDS = 1
     assert models.create_user(TEST_USER, TEST_PASSWORD)
     assert models.create_user(ROOT_USER, ROOT_PASSWORD)
@@ -472,6 +528,75 @@ def test_patch_ethernet_static_invalids(client, headers):
             assert 'ipaddr' in errors
             assert 'netmask' in errors
             assert 'gateway' not in errors
+
+
+
+def test_get_wifi_networks_no_conf(client, headers):
+    resp = client.get('/api/v1/networks/wifi/',
+                      headers=headers)
+    assert resp.status_code == 200
+    payload = load_json(resp)
+    assert payload[0] == EXPECTED_WIFI_UNCOFIGURED
+
+
+def test_patch_wifi_ap_mode(client, headers):
+    test_payload = dict(
+        configuration=dict(
+            mode='ap',
+            encryption='none',
+            ssid='MojaFree',
+            channel='11',
+            hidden='1',
+            hwmode='11b'
+        )
+    )
+    # before mocking this should fail (no device to configure)
+    resp = client.patch('/api/v1/networks/wifi/WIFI1',
+                        content_type='application/json',
+                        data=json.dumps(test_payload),
+                        headers=headers)
+    assert resp.status_code == 422
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=[WIFI_UCI_STATE]):
+        with mock.patch('local_api.apiv1.wifi.uci_get',
+                        side_effect=['pci0000:00/0000:00:1c.3/0000:04:00.0', '1', '1']):
+                resp = client.patch('/api/v1/networks/wifi/WIFI1',
+                                    content_type='application/json',
+                                    data=json.dumps(test_payload),
+                                    headers=headers)
+                assert resp.status_code == 200
+                payload = load_json(resp)
+                assert payload == EXPECTED_WIFI_CONFIGURED
+
+
+def test_patch_wifi_invalid(client, headers):
+    test_payload = dict(
+        configuration=dict(
+            mode='ap',
+            encryption='none',
+            ssid='MojaFree',
+            channel='11',
+            hidden='1',
+            hwmode='11x'
+        )
+    )
+    resp = client.patch('/api/v1/networks/wifi/WIFI1',
+                        content_type='application/json',
+                        data=json.dumps(test_payload),
+                        headers=headers)
+    assert resp.status_code == 422
+
+
+def test_get_wifi_networks_available(client, headers):
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=[WIFI_UCI_STATE]):
+        with mock.patch('local_api.apiv1.wifi.uci_get',
+                        side_effect=['1']):
+            resp = client.get('/api/v1/networks/wifi/',
+                            headers=headers)
+            assert resp.status_code == 200
+            payload = load_json(resp)
+            assert payload[0] == EXPECTED_WIFI_CONFIGURED
 
 
 def test_get_software(client, headers):

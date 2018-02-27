@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-import spwd
+try:
+    import spwd
+except ImportError:
+    spwd = None
 import crypt
 
 from datetime import timedelta, datetime
@@ -133,20 +136,31 @@ def create_user(login, password):
     return completed
 
 
+def log_failed_login_attempt(login):
+    """Log failed login attempts
+
+    Stores failed login attempt in cache for up to one hour.
+
+    :return: None
+    """
+    _key = 'login_attempts_{}'.format(login)
+    attempts = CACHE.get(_key) or 0
+    _attempt_count = attempts + 1
+    CACHE.set(_key, _attempt_count, timeout=(MINUTE * 60))
+ 
+
 def check_login_attempt(login):
     """Checks login attemps
 
     Raises ``.errors.APIError`` if the account has been locked out.
 
-    :return None:
+    :return: None
     """
     max_attempts = 3
     _key = 'login_attempts_{}'.format(login)
     attempts = CACHE.get(_key) or 0
-    _attempt_count = attempts + 1
-    LOG.warn('Login: Attempts for [%s] : [%d]', login, _attempt_count)
-    CACHE.set(_key, _attempt_count, timeout=(MINUTE * 60))
-    if _attempt_count >= max_attempts:
+    LOG.warn('Login: Attempts for [%s] : [%d]', login, attempts)
+    if attempts >= max_attempts:
         LOG.error('Login: Access blocked for [%s]', login)
         raise APIError(message='Unauthorized', status_code=401)        
 
@@ -160,6 +174,8 @@ def check_system_login(login, password):
     :return bool: ``True`` if authentication was successful, otherwise `False`.
     """
     valid = False
+    if spwd is None:
+        return valid
     try:
         cryptedpass = spwd.getspnam(login)[1]
         if cryptedpass:
@@ -194,6 +210,8 @@ def check_password(login, password):
         LOG.error("User not found with login: %s", login)
         # simulate a password check anyway
         KDF.PBKDF2(password, 'salt', dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
+    if not is_verified:
+        log_failed_login_attempt(login)
     return is_verified
 
 

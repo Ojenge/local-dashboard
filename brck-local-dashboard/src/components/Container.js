@@ -85,6 +85,13 @@ class Container extends Component {
                     </NavLink>
               </li>
               <li>
+                    <NavLink to="/connect-wifi">
+                      <i className="fa fa-wifi"></i>
+                      <span>WiFi Connectivity</span>
+                      <span className="pull-right-container" />
+                    </NavLink>
+              </li>
+              <li>
                 <NavLink to="/power">
                   <i className="fa fa-power-off"></i>
                   <span>Power</span>

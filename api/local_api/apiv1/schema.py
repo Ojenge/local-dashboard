@@ -85,9 +85,12 @@ class Validator(object):
     def ensure_inclusion(self, key, superset, required=True):
         if key not in self.errors:
             v = self.data.get(key)
-            if v not in superset and required:
-                options = ','.join(superset)
-                self.errors[key] = 'must be one of {}'.format(options)
+            if not v and not required:
+                pass
+            else:
+                if v not in superset:
+                    options = ','.join(superset)
+                    self.errors[key] = 'must be one of {}'.format(options)
 
     def ensure_passes_test(self, key, func, required=True):
         if key not in self.errors:

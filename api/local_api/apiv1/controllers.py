@@ -28,6 +28,10 @@ from .ethernet import (
     get_ethernet_networks,
     configure_ethernet
 )
+from .wifi import (
+    get_wireless_config,
+    configure_wifi
+)
 from .soc import (
     configure_power,
     get_power_config
@@ -48,8 +52,9 @@ POST = 'POST'
 HTTP_OK = 200
 
 # Route regexes
-SIM_ID_REGEX = re.compile(r'^(SIM1|SIM2|SIM3)$')
-ETHERNET_ID_REGEX = re.compile(r'^(ETHERNET1|ETHERNET2|ETHERNET3)$')
+SIM_ID_REGEX = re.compile(r'^SIM[1-3]$')
+ETHERNET_ID_REGEX = re.compile(r'^ETHERNET[1-3]$')
+WIFI_ID_REGEX = re.compile(r'^WIFI[1]$')
 
 
 @api_blueprint.app_errorhandler(APIError)
@@ -263,6 +268,41 @@ class EthernetAPI(ProtectedView):
             raise APIError('Invalid Data', errors, 422)
 
 
+class WIFIAPI(ProtectedView):
+    
+    def check_net_id(self, net_id):
+        if net_id is None or WIFI_ID_REGEX.match(net_id) is None:
+            raise APIError(message='Not found', status_code=404)
+    
+    def get(self, net_id):
+        """Returns list of available wifi connections.
+
+            See the API docs for sample responses.
+
+        :return: string (JSON list of connection information)
+        """
+        if net_id is None:
+            connections = get_wireless_config()
+            return jsonify(connections)
+        else:
+            self.check_net_id(net_id)
+            connection = get_wireless_config(net_id)[0]
+            return jsonify(connection)
+
+
+    def patch(self, net_id):
+        self.check_net_id(net_id)
+        payload = request.get_json()
+        if payload is None:
+            raise APIError('Invalid Data', [], 422)
+        status_code, errors = configure_wifi(net_id, payload)
+        if status_code == HTTP_OK:
+            return jsonify(get_wireless_config(net_id)[0])
+        else:
+            raise APIError('Invalid Data', errors, 422)
+
+
+
 api_blueprint.add_url_rule('/auth',
                            view_func=AuthenticationView.as_view('auth'),
                            methods=[POST])
@@ -284,6 +324,14 @@ api_blueprint.add_url_rule('/networks/ethernet/',
                            methods=[GET])
 api_blueprint.add_url_rule('/networks/ethernet/<string(length=9):net_id>',
                            view_func=eth_view,
+                           methods=[GET, PATCH])
+wifi_view = WIFIAPI.as_view('wif_api')
+api_blueprint.add_url_rule('/networks/wifi/',
+                           defaults={'net_id': None},
+                           view_func=wifi_view,
+                           methods=[GET])
+api_blueprint.add_url_rule('/networks/wifi/<string(length=5):net_id>',
+                           view_func=wifi_view,
                            methods=[GET, PATCH])
 api_blueprint.add_url_rule('/ping',
                            view_func=Ping.as_view('ping'),

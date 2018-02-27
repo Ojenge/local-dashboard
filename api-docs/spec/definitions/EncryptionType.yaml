@@ -1,0 +1,8 @@
+type: string
+description: Encryption Type
+enum:
+- none
+- psk
+- psk2
+- wep
+- wpa

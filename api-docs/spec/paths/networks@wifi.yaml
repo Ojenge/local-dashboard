@@ -1,0 +1,11 @@
+get:
+  tags:
+    - Network
+  summary: Get WiFi connections.
+  responses:
+    200:
+      description: Network state retrieved successfully
+      schema:
+        type: array
+        items:
+          $ref: '#/definitions/ConnectionStateWIFI'

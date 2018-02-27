@@ -126,6 +126,25 @@ const API = {
             .on('error', handleError(cb))
             .then(cb);
     },
+    get_wifi_connections: function(cb) {
+        request.get(BASE_URL + '/networks/wifi/')
+            .type('json')
+            .accept('json')
+            .set(AUTH_HEADER, Auth.getToken())
+            .timeout(TIMEOUT)
+            .on('error', handleError(cb))
+            .then(cb);
+    },
+    configure_wifi_connection: function(net_id, payload, cb) {
+        request.patch(BASE_URL + '/networks/wifi/' + net_id)
+            .type('json')
+            .accept('json')
+            .send(payload)
+            .set(AUTH_HEADER, Auth.getToken())
+            .timeout(TIMEOUT)
+            .on('error', handleError(cb))
+            .then(cb);
+    },
     get_software_state: function(cb) {
         request.get(BASE_URL + '/system/software')
             .type('json')

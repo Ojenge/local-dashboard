@@ -4,6 +4,4 @@ properties:
     type: boolean
     description: Reports the DHCP configuration for the interface
   network:
-    type: object
-    description: IP Configuration info (static IP configuration) for the interface
     $ref: '#/definitions/EthernetIPConfig'

@@ -1,0 +1,6 @@
+type: string
+description: Wireless protocol
+enum:
+- 11a
+- 11b
+- 11g

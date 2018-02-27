@@ -1,0 +1,26 @@
+type: object
+properties:
+  configuration:
+    type: object
+    properties:
+      mode:
+        type: string
+        description: Wireless mode
+        example: ap
+      encryption:
+        $ref: '#/definitions/EncryptionType'
+      ssid:
+        type: string
+        description: The SSID to connect to (STA mode) or to broadcast (AP mode)
+        example: BRCKWIFI2
+      key:
+        type: string
+        description: The passphrase to be used to access the network (either mode)
+        example: brckwifi2
+      channel:
+        type: number
+        description: Wireless channel when running in AP mode
+      hidden:
+        $ref: '#/definitions/BooleanFlag'
+      hwmode:
+        $ref: '#/definitions/HWMode' 

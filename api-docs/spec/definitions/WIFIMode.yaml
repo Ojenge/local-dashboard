@@ -1,0 +1,5 @@
+type: string
+description: Wireless Mode
+enum:
+- ap
+- sta
