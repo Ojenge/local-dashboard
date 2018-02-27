@@ -258,6 +258,8 @@ def get_network_status():
                 net_type = net.upper()
                 if net in ['wan', 'wan2']:
                     net_type = net_state.get('network.{}.proto'.format(net), STATE_UNKNOWN).upper()
+                elif net == 'wwan':
+                    net_type = 'Wireless'
                 break
 
     up, down = get_interface_speed(active_net)

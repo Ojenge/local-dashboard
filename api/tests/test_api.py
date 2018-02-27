@@ -181,7 +181,11 @@ wireless.wifiap.encryption='none'
 wireless.wifiap.network='wifi'
 wireless.wifiap.hidden='0'
 wireless.wifiap.ssid='Moja-LDASH'"""
-
+WIFI_NET_STATE = """network.wwan=interface
+network.wwan.proto='dhcp'
+network.wwan.up='1'
+network.wwan.ifname='wlan1'
+network.wwan.connected='1'"""
 
 @pytest.fixture
 def client(request):
@@ -557,7 +561,7 @@ def test_patch_wifi_ap_mode(client, headers):
                         headers=headers)
     assert resp.status_code == 422
     with mock.patch('local_api.apiv1.utils.run_command',
-                    side_effect=[WIFI_UCI_STATE]):
+                    side_effect=[WIFI_NET_STATE, WIFI_UCI_STATE]):
         with mock.patch('local_api.apiv1.wifi.uci_get',
                         side_effect=['pci0000:00/0000:00:1c.3/0000:04:00.0', '1', '1']):
                 resp = client.patch('/api/v1/networks/wifi/WIFI1',
@@ -589,7 +593,7 @@ def test_patch_wifi_invalid(client, headers):
 
 def test_get_wifi_networks_available(client, headers):
     with mock.patch('local_api.apiv1.utils.run_command',
-                    side_effect=[WIFI_UCI_STATE]):
+                    side_effect=[WIFI_NET_STATE, WIFI_UCI_STATE]):
         with mock.patch('local_api.apiv1.wifi.uci_get',
                         side_effect=['1']):
             resp = client.get('/api/v1/networks/wifi/',

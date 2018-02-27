@@ -24,9 +24,9 @@ SIM_STATUS_FILES = [
 
 REG_PIN_LOCK = re.compile('^.*(PIN).*$')
 REG_PUK_LOCK = re.compile('^.*(PUK).*$')
-REG_PIN = re.compile('^\d{4,8}$')
-REG_PUK = re.compile('^\d{8}$')
-REG_APN = re.compile('[\w\.\-]{1,64}')
+REG_PIN = re.compile(r'^\d{4,8}$')
+REG_PUK = re.compile(r'^\d{8}$')
+REG_APN = re.compile(r'[\w\.\-]{1,64}')
 
 
 def get_wan_connections(sim_id=None):

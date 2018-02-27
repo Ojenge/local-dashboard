@@ -47,18 +47,19 @@ def get_wireless_config(wifi_id=None):
     net_info = []
     conn_ids = [wifi_id] if wifi_id else CONNECTION_IDS
     for conn_id in conn_ids:
-        net_state = get_uci_state('wireless')
-        available = bool(net_state.get(RADIO_UCI[conn_id]))
+        net_state = get_uci_state('network.wwan')
+        wifi_state = get_uci_state('wireless')
+        available = bool(wifi_state.get(RADIO_UCI[conn_id]))
         connected = False
         info = {}
         if available:
-            connected =  uci_get('network.wwan.connected') == '1'
-            info['ssid'] = net_state.get('wireless.wifibridge.ssid') or STATE_NOT_CONFIGURED 
-            info['encryption'] = net_state.get('wireless.wifibridge.encryption', STATE_NONE)
-            info['mode'] = net_state.get('wireless.wifibridge.mode') or STATE_NOT_CONFIGURED
-            info['hidden'] = net_state.get('wireless.wifibridge.hidden', '0')
-            info['channel'] = net_state.get('wireless.radio1.channel') or STATE_AUTO
-            info['hwmode'] = net_state.get('wireless.radio1.hwmode')
+            connected =  net_state.get('network.wwan.connected') == '1'
+            info['ssid'] = wifi_state.get('wireless.wifibridge.ssid') or STATE_NOT_CONFIGURED 
+            info['encryption'] = wifi_state.get('wireless.wifibridge.encryption', STATE_NONE)
+            info['mode'] = wifi_state.get('wireless.wifibridge.mode') or STATE_NOT_CONFIGURED
+            info['hidden'] = wifi_state.get('wireless.wifibridge.hidden', '0')
+            info['channel'] = wifi_state.get('wireless.radio1.channel') or STATE_AUTO
+            info['hwmode'] = wifi_state.get('wireless.radio1.hwmode')
             info['network'] = {}
         net_info.append(dict(
             id=conn_id,
