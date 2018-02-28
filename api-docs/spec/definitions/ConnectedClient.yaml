@@ -1,0 +1,33 @@
+type: object
+properties:
+  mac_address:
+    type: string
+    description: "MAC address of the connected device"
+    example: "00:00:00:00:00:00"
+  name:
+    type: string
+    description: "Name of the connected device if available"
+    example: "Lumia900"
+  ip:
+    type: string
+    description: "IP Address assigned to this device"
+    example: "192.168.180.2"
+  connected_time:
+    type: integer
+    description: "How long this device has been connected to the wireless network"
+    example: 5
+  session_id:
+    type: string
+    example: "5a96768300000001"
+  idle_time:
+    type: string
+    description: "How long the device has been idle on the WiFi"
+    example: "1020"
+  rx_bytes:
+    type: string
+    description: "Number of bytes received"
+    example: "5000"
+  tx_bytes:
+    type: string
+    description: "Number of bytes transmitted"
+    example: "5000"

@@ -1,0 +1,12 @@
+type: object
+properties:
+  clients:
+    type: array
+    items:
+      $ref: '#/definitions/ConnectedClient'
+  modem:
+    $ref: '#/definitions/TemperatureRecord'
+  cpu:
+    $ref: '#/definitions/TemperatureRecord'
+  battery:
+    $ref: '#/definitions/TemperatureRecord'

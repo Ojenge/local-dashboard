@@ -1,0 +1,6 @@
+type: object
+properties:
+  temperature:
+    type: array
+    items:
+      $ref: '#/definitions/TemperatureValue'

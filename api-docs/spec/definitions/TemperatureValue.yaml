@@ -1,0 +1,3 @@
+type: number
+description: "Temperature value"
+example: 20.0

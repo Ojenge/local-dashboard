@@ -1,0 +1,9 @@
+get:
+  tags:
+    - System
+  summary: Get diagnostic data from the device
+  responses:
+    200:
+      description: The diagnostic was retrieved without error
+      schema:
+        $ref: '#/definitions/Diagnostics'

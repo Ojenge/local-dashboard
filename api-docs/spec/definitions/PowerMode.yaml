@@ -1,0 +1,8 @@
+type: string
+description: Power Mode
+enum:
+- NORMAL
+- TIMED
+- ALWAYS_ON
+- VEHICLE
+- MANUAL

@@ -1,0 +1,13 @@
+type: object
+properties:
+  name:
+    type: string
+    description: Package name
+    example: moja-captive
+  version:
+    type: string
+    description: Package version
+    example: "v1.0.0-rc3"
+  installed:
+    type: boolean
+    description: Whether the package is installed

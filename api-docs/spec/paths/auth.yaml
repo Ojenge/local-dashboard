@@ -1,6 +1,6 @@
 post:
   tags:
-    - Authentication
+    - Auth Tokens
   summary: Generate authentication credentials
   parameters:
     - name: credentials

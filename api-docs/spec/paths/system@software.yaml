@@ -1,0 +1,9 @@
+get:
+  tags:
+    - System
+  summary: Get software status
+  responses:
+    200:
+      description: The software state was retrieved without error
+      schema:
+        $ref: '#/definitions/SoftwareStatus'

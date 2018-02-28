@@ -1,5 +1,10 @@
 type: object
 properties:
+  configured:
+    type: boolean
+    description: Whether the power mode for this device has been configured
+  mode:
+    $ref: '#/definitions/PowerMode'
   soc_on:
     $ref: '#/definitions/StateOfCharge'
   soc_off:
@@ -8,3 +13,24 @@ properties:
     $ref: '#/definitions/Time'
   off_time:
     $ref: '#/definitions/Time'
+  delay_off:
+    type: integer
+    description: "If the device should turn off if not charging"
+    example: 1
+    minimum: 0
+    maximum: 1
+  delay_off_minutes:
+    type: integer
+    description: "How long to wait before turning of the device if delay_off is enabled"
+  retail:
+    type: integer
+    description: "When this is set the unit responds to power buttton presses"
+    example: 0
+    minimum: 0
+    maximum: 1
+  auto_start:
+    type: integer
+    description: "Whether set to 1, the device stays on as long as charge is above soc_on with no regard to time. Otherwise the device auto starts if time is within on_time and off_time and power charge is above soc."
+    example: 0
+    minimum: 0
+    maximum: 1
