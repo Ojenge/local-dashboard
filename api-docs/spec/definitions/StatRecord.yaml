@@ -1,0 +1,10 @@
+type: object
+properties:
+  value:
+    type: number
+    description: Stat Value
+    example: 77
+  timestamp:
+    type: string
+    description: Stat Timestamp
+    example: "2018-02-28T00:00:00+0000"

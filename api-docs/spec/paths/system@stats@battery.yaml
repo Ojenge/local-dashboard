@@ -1,0 +1,9 @@
+get:
+  tags:
+    - Statistics
+  summary: Load battery stats.
+  responses:
+    200:
+      description: Stat Records
+      schema:
+        $ref: '#/definitions/StatListing'
