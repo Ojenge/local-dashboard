@@ -180,8 +180,10 @@ def connect_sim(sim_id, pin='', puk='', apn='', username='', password=''):
                 run_call(modem_flag_path, '1')
             time.sleep(5)
             if pin:
-                pin_resp = run_command(['querymodem', 'set_pin', 'puk', 'pin'],
-                                        output=True)
+                command_parts = ['querymodem', 'set_pin', pin]
+                if puk:
+                    command_parts.append(puk)
+                pin_resp = run_command(command_parts, output=True)
                 if REG_ERROR.match(pin_resp):
                     errors['pin'] = 'PIN/PUK error'
             if not errors:
@@ -189,10 +191,10 @@ def connect_sim(sim_id, pin='', puk='', apn='', username='', password=''):
                 carrier_resp = run_command(['querymodem', 'carrier'], output=True)
                 if REG_ERROR.match(carrier_resp):
                     errors['network'] = 'Failed to connect to network'
-            run_command(['ifdown', 'wan'])
-            run_command(['ifup', 'wan'])
+                run_command(['ifdown', 'wan'])
+                run_command(['ifup', 'wan'])
         else:
-            LOG.error("uknown modem configuration")
+            LOG.error("unknown modem configuration")
     else:
         errors['network'] = 'no modem found'
     return errors
