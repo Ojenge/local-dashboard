@@ -184,7 +184,7 @@ def connect_sim(sim_id, pin='', puk='', apn='', username='', password=''):
                 if puk:
                     command_parts.append(puk)
                 pin_resp = run_command(command_parts, output=True)
-                if REG_ERROR.match(pin_resp):
+                if not REG_OK.match(pin_resp):
                     errors['pin'] = 'PIN/PUK error'
             if not errors:
                 time.sleep(3)
