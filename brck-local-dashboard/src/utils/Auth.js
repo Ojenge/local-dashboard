@@ -20,6 +20,7 @@ const Auth = {
     },
     clearCredentials: () => {
         localStorage.removeItem(STORE_KEY);
+        localStorage.removeItem(PASSWORD_STATE_KEY);
     }
 }
 

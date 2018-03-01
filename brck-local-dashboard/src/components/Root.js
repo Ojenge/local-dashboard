@@ -23,7 +23,7 @@ const CHANGE_PASSWORD_PATH = '/change-password';
 
 const PrivateRoute = ({ component: Component, ...rest }) => {
   document.body.classList.remove('sidebar-open');
-  const forcePassChange = (window.location.pathname !== CHANGE_PASSWORD_PATH) && Auth.requiresPasswordChange();
+  const forcePassChange = (window.location.pathname !== CHANGE_PASSWORD_PATH) && Auth.requiresPasswordChange() && Auth.isAuthenticated();
   if (forcePassChange) {
     window.location = CHANGE_PASSWORD_PATH;
   }
