@@ -7,11 +7,14 @@ import re
 import time
 from subprocess import call
 
-from brck.utils import run_command
-from brck.utils import is_service_running
-from brck.utils import uci_get
-from brck.utils import uci_set
-from brck.utils import uci_commit
+from brck.utils import (
+    run_command,
+    is_service_running,
+    start_service,
+    uci_get,
+    uci_set,
+    uci_commit
+)
 
 from .utils import read_file, get_uci_state
 
@@ -152,6 +155,7 @@ def connect_sim(sim_id, pin='', puk='', apn='', username='', password=''):
     errors = {}
     sim_no = int(sim_id[-1])
     if is_service_running(THREEG_MONITOR_SERVICE):
+        LOG.warn("Stopping 3g-monitor")
         stop_service(THREEG_MONITOR_SERVICE)
     m1, m2 = get_modems()
     modem = 0
@@ -193,6 +197,8 @@ def connect_sim(sim_id, pin='', puk='', apn='', username='', password=''):
                     errors['network'] = 'Failed to connect to network'
                 run_command(['ifdown', 'wan'])
                 run_command(['ifup', 'wan'])
+            LOG.warn('Restarting 3g-monitor')
+            start_service(THREEG_MONITOR_SERVICE)
         else:
             LOG.error("unknown modem configuration")
     else:
