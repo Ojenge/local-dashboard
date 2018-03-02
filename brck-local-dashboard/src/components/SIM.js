@@ -11,7 +11,7 @@ import { AlertSuccess,
 
 import IconSim from '../media/icons/icon-sim.svg';
 
-class Connections extends Component {
+class SIMConnections extends Component {
 
   constructor(props) {
     super(props);
@@ -22,7 +22,8 @@ class Connections extends Component {
       apn_user: '',
       apn_password: '',
       pin: '',
-      puk: ''
+      puk: '',
+      errors: {}
     }
   }
 
@@ -82,7 +83,7 @@ class Connections extends Component {
       }
     }
     var payload = { configuration: config }
-    this.setState({ working: true });
+    this.setState({ working: true, connecting: true });
     API.configure_sim_connection(this.state.sim_id, payload, this.configCallback);
   }
 
@@ -133,7 +134,8 @@ class Connections extends Component {
     this.setState({ working: false, connecting: false });
     if (!res.ok) {
         this.setState({
-            config_error: true
+            config_error: true,
+            errors: res.body.errors || {}
         });
     } else {
         var connections = this.state.connections;
@@ -200,7 +202,12 @@ class Connections extends Component {
             <p className="text-center"><i className="fa fa-times-circle text-red "></i><small>Not Connected</small>
             </p>
             <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
-            <a href="#" onClick={(e) => this.handleConfigureAPN(sim) } value={sim.id} className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2">Configure</a>
+            { (sim.info.pin_locked || sim.info.puk_locked)
+              ? (
+                <a href="#" onClick={(e) => { e.preventDefault(); this.handleUnlockSIM(e, sim) }} value={sim.id} className="btn btn-danger btn-block" data-toggle="modal" data-target="#sim-locked">Set PIN</a>
+              ): (
+                <a href="#" onClick={(e) => this.handleConfigureAPN(sim) } value={sim.id} className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2">Configure APN</a>
+              ) }
           </div>
         </div>
       </div>
@@ -220,7 +227,7 @@ class Connections extends Component {
             <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
             { (sim.info.pin_locked || sim.info.puk_locked)
               ? (
-                <a href="#" onClick={ (e) => { e.preventDefault(); this.handleUnlockSIM(e, sim) }} className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim-locked">Connect</a>
+                <a href="#" onClick={ (e) => { e.preventDefault(); this.handleUnlockSIM(e, sim) }} className="btn btn-danger btn-block" data-toggle="modal" data-target="#sim-locked">Set PIN</a>
               ) : (
                 <a href="#" onClick={ (e) => this.handleConnect(e, sim) } className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim2-connect">Connect</a>
               )
@@ -274,6 +281,8 @@ class Connections extends Component {
       return this.renderActiveSIM(sim);
     } else if (sim.available && !sim.connected && isConnecting) {
       return this.renderConnecting(sim);
+    } else if (sim.available && !sim.connected && sim.info.apn_configured && (sim.info.pin_locked || sim.info.puk_locked)) {
+      return this.renderConfigureSim(sim);
     } else if (sim.available && !sim.connected && sim.info.apn_configured) {
       return this.renderConnect(sim);
     } else if (sim.available && !sim.connected && !sim.info.pin_locked) {
@@ -406,12 +415,12 @@ class Connections extends Component {
                   <tr>
                     <td>Signal Strength</td>
                     <td>
-                      <div class="progress progress-xs">
-                        <div class="progress-bar progress-bar-yellow" style={{ width:  net_info.signal_strength + '%' }}></div>
+                      <div className="progress progress-xs">
+                        <div className="progress-bar progress-bar-yellow" style={{ width:  net_info.signal_strength + '%' }}></div>
                       </div>
                     </td>
                     <td>
-                      <span class="badge bg-yellow">{ net_info.signal_strength }%</span>
+                      <span className="badge bg-yellow">{ net_info.signal_strength }%</span>
                     </td>
                   </tr>
                   <tr>
@@ -422,9 +431,9 @@ class Connections extends Component {
                 </tbody>
               </table>
             </div>
-            <div class="modal-footer">
-              <div class="row">
-                <div class="col-md-12">
+            <div className="modal-footer">
+              <div className="row">
+                <div className="col-md-12">
                   <a href="#" className="btn btn-default pull-right" data-dismiss="modal">Back</a>
                 </div>
               </div>
@@ -436,6 +445,16 @@ class Connections extends Component {
   }
 
   renderMessages = () => {
+    var errors = [];
+    if (this.state.errors) {
+      for (var key in this.state.errors) {
+        errors.push(this.state.errors[key]);
+      }
+    } else {
+      errors = ["Make sure the SIM is data-enabled and has data bundles or credit",
+                "Make sure the APN/PIN/PUK information is typed in correctly",
+                "Contact your mobile service provider for APN support"];
+    }
     return (
       <div className="row">
         <div className="col-xs-12">
@@ -443,8 +462,8 @@ class Connections extends Component {
             ? <AlertSuccess message={"Your APN settings have been successfully configured."} />
             : null)}
           {(this.state.config_error
-            ? <AlertError title={"We could not connect with the APN information provided"}
-                errors={["Make sure the APN/PIN/PUK information is typed in correctly", "Contact your mobile service provider for APN support"]} />
+            ? <AlertError title={"We could not connect with the APN/PIN information provided"}
+                errors={ errors } />
             : null)}
           {(this.state.conn_error
            ? <AlertWarning message={"Could not connect with the selected SIM - You can try another SIM."} />
@@ -480,4 +499,4 @@ class Connections extends Component {
   }
 }
 
-export default Connections;
+export default SIMConnections;

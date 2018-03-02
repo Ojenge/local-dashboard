@@ -7,7 +7,7 @@ import {
 } from 'react-router-dom';
 
 import Dashboard from './Dashboard';
-import SIM from './SIM';
+import SIMConnections from './SIM';
 import Ethernet from './Ethernet';
 import WIFI from './WIFI';
 import Login from './Login';
@@ -53,7 +53,7 @@ class Root extends Component {
           <PrivateRoute exact path={CHANGE_PASSWORD_PATH} component={ ChangePassword } />
           <PrivateRoute exact path="/logout" component={ Logout } />
           <PrivateRoute exact path='/dashboard' component={ Dashboard } />
-          <PrivateRoute exact path='/connect-sim' component={ SIM } />
+          <PrivateRoute exact path='/connect-sim' component={ SIMConnections } />
           <PrivateRoute exact path='/connect-lan' component={ Ethernet } />
           <PrivateRoute exact path='/connect-wifi' component={ WIFI } />
           <PrivateRoute exact path='/power' component={ Power } />

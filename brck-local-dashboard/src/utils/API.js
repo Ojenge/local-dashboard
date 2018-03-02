@@ -11,8 +11,8 @@ const TIMEOUT = {
 };
 
 const LONG_TIMEOUT = {
-    response: 20000,
-    deadline: 25000
+    response: 25000,
+    deadline: 30000
 }
 
 function handleError(callback) {

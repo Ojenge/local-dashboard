@@ -22,8 +22,8 @@ from .utils import read_file, get_uci_state
 LOG = __import__('logging').getLogger()
 
 THREEG_MONITOR_SERVICE = '3g-monitor'
-REG_OK = re.compile('^.*OK.*$')
-REG_ERROR = re.compile('^.*ERROR.*$')
+REG_OK = re.compile('^.*OK.*$', re.MULTILINE)
+REG_ERROR = re.compile('^.*ERROR.*$', re.MULTILINE)
 MODEM1_PATTERN = re.compile(r'.*(/1\-2\.2/).*')
 MODEM2_PATTERN = re.compile(r'.*(/1\-2\.3/).*')
 
