@@ -11,6 +11,8 @@ import { AlertSuccess,
 
 import IconSim from '../media/icons/icon-sim.svg';
 
+const CONNECTING_TIMEOUT = 10000;
+
 class SIMConnections extends Component {
 
   constructor(props) {
@@ -42,6 +44,10 @@ class SIMConnections extends Component {
     if (!this.state.connecting) {
       API.get_sim_connections(this.dataCallback);
     }
+  }
+
+  clearConnecting = () => {
+    this.setState({ connecting: false });
   }
 
   dataCallback = (res) => {
@@ -131,7 +137,7 @@ class SIMConnections extends Component {
   }
 
   configCallback = (res) => {
-    this.setState({ working: false, connecting: false });
+    this.setState({ working: false});
     if (!res.ok) {
         this.setState({
             config_error: true,
@@ -150,10 +156,11 @@ class SIMConnections extends Component {
         });
         this.loadConnections();
     }
+    window.setTimeout(this.clearConnecting, CONNECTING_TIMEOUT);
   }
 
   connCallback = (err, res) => {
-    this.setState({ working: false, connecting: false });
+    this.setState({ working:false });
     if (err || !res.ok) {
       this.setState({
           conn_error: true
@@ -170,6 +177,7 @@ class SIMConnections extends Component {
           connections: connections
       });
       this.loadConnections();
+      window.setTimeout(this.clearConnecting, CONNECTING_TIMEOUT);
     }
   }
 
@@ -445,28 +453,28 @@ class SIMConnections extends Component {
   }
 
   renderMessages = () => {
+    const default_errors = ["Make sure the SIM is data-enabled and has data bundles or credit",
+                            "Make sure the APN/PIN/PUK information is typed in correctly",
+                            "Contact your mobile service provider for APN support"];
     var errors = [];
     if (this.state.errors) {
       for (var key in this.state.errors) {
         errors.push(this.state.errors[key]);
       }
-    } else {
-      errors = ["Make sure the SIM is data-enabled and has data bundles or credit",
-                "Make sure the APN/PIN/PUK information is typed in correctly",
-                "Contact your mobile service provider for APN support"];
     }
+    errors = errors.concat(default_errors);
     return (
       <div className="row">
         <div className="col-xs-12">
           {(this.state.config_saved
             ? <AlertSuccess message={"Your APN settings have been successfully configured."} />
             : null)}
-          {(this.state.config_error
+          {((this.state.config_error && !this.state.connecting)
             ? <AlertError title={"We could not connect with the APN/PIN information provided"}
                 errors={ errors } />
             : null)}
-          {(this.state.conn_error
-           ? <AlertWarning message={"Could not connect with the selected SIM - You can try another SIM."} />
+          {((this.state.conn_error && !this.state.connecting)
+           ? <AlertError title={"Could not connect with the selected SIM - You can try another SIM."} errors={errors} />
            : null )}
         </div>
       </div>

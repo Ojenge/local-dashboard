@@ -106,13 +106,17 @@ def set_sim_state(sim_id, pin=None, puk=None, apn=None, username=None, password=
         uci_set('brck.active_sim', str(sim_id))
         if apn:
             uci_set('network.wan.apn', apn)
+            change_count += 1
         if username:
             uci_set('network.wan.username', username)
+            change_count += 1
         if password:
             uci_set('network.wan.password', password)
+            change_count += 1
         change_count += 1
     if change_count > 0:
         uci_commit('brck')
+        uci_commit('network.wan')
 
 
 def get_modems():
