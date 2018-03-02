@@ -39,6 +39,7 @@ These are the runtime dependencies installed via opkg.
 
 - dnsmasq (this is already available on OpenWrt)
 - supabrck-core
+- python-brck-sdk
 - connected_clients
 - querymodem
 - python-flask
