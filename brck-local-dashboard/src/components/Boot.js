@@ -55,9 +55,6 @@ class Boot extends Component {
   }
 
   render() {
-    if (this.state.connected && this.props.history.length > 0) {
-      this.props.history.goBack();
-    }
     return (
       this.state.connected
         ? <Redirect to='/dashboard' />
