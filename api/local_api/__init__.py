@@ -30,7 +30,7 @@ app = Flask(__name__)
 
 # Logging configuration
 stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.DEBUG)
+stream_handler.setLevel(logging.INFO)
 app.logger.addHandler(stream_handler)
 # CORS
 CORS(app)
@@ -53,6 +53,8 @@ from local_api.apiv1.controllers import api_blueprint
 app.register_blueprint(api_blueprint, url_prefix='/api/v1')
 
 
+NS_SIM_CONNECTIVITY = '/sim-connectivity'
+
 socketio = SocketIO(app)
 
 connected_clients = 0
@@ -65,7 +67,7 @@ def update_client_count(direction):
     """
     global connected_clients
     connected_clients += direction
-    app.logger.debug('updated connected clients to: %d', connected_clients)
+    app.logger.info('updated connected clients to: %d', connected_clients)
 
 
 def send_system_state():
@@ -103,7 +105,7 @@ def send_diagnostics_state():
 def on_dashboard_connect():
     update_client_count(1)
     eventlet.call_after_global(5, send_system_state)
-    app.logger.debug('user connected / dashboard')
+    app.logger.info('user connected / dashboard')
     socketio.emit('message', {'data': 'READY'}, namespace='/dashboard')
 
 
@@ -112,15 +114,24 @@ def on_dashboard_connect():
 def on_diagnostic_connect():
     update_client_count(1)
     eventlet.call_after_global(5, send_diagnostics_state)
-    app.logger.debug('user connected / diagnostics')
+    app.logger.info('user connected / diagnostics')
     socketio.emit('message', {'data': 'READY'}, namespace='/diagnostics')
+
+
+
+@socketio.on('connect', namespace=NS_SIM_CONNECTIVITY)
+@auth.authenticated_only
+def on_sim_connectivity_connect():
+    update_client_count(1)
+    app.logger.info('user connected / sim-connectivity')
+    socketio.emit('message', {'data': 'READY'}, namespace=NS_SIM_CONNECTIVITY)
 
 
 @socketio.on('disconnect')
 def on_disconnect():
     update_client_count(-1)
-    app.logger.debug('websocket client disconnected')
+    app.logger.info('websocket client disconnected')
 
 
 def create_app():
-    return app    
+    return app

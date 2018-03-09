@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import io from 'socket.io-client';
 
 import API from '../utils/API';
 import Container from './Container';
@@ -13,6 +14,18 @@ import IconSim from '../media/icons/icon-sim.svg';
 
 const CONNECTING_TIMEOUT = 10000;
 
+const ENABLE_3G_MONITOR = 'ENABLE_3G_MONITOR';
+const REQUIRES_PIN = 'REQUIRES_PIN';
+const REQUIRES_PUK = 'REQUIRES_PUK';
+const REQUIRES_APN = 'REQUIRES_APN';
+
+const FAILURE_STATES = [
+  'NO_CONNECTION',
+  'PIN_REJECTED',
+  'NO_CARRIER',
+  'NO_CONNECTION'
+];
+
 class SIMConnections extends Component {
 
   constructor(props) {
@@ -20,6 +33,8 @@ class SIMConnections extends Component {
     this.state = {
       loaded: false,
       connections: [],
+      conn_events: [],
+      last_event: null,
       apn: '',
       apn_user: '',
       apn_password: '',
@@ -32,12 +47,41 @@ class SIMConnections extends Component {
   componentDidMount() {
     this.loadConnections();
     this.interval = window.setInterval(this.loadConnections, 10000);
+    this.initializeSocket();
   }
 
   componentWillUnmount() {
     if(this.interval) {
       window.clearInterval(this.interval);
     }
+    if (this.socket) {
+      this.socket.disconnect();
+    }
+  }
+
+  initializeSocket = () => {
+    const opts = {
+      transportOptions: {
+        polling: {
+          extraHeaders: API.getAuthHeaders()
+        },
+        timeout: 5000
+      }
+    };
+    this.socket = io('/sim-connectivity', opts);
+    this.socket.on('conn_event', (data) => {
+      var _conn_events = this.state.conn_events;
+      _conn_events.push(data);
+      this.setState({
+        conn_events: _conn_events,
+        last_event: data.event
+      });
+      if (FAILURE_STATES.indexOf(data.event) >= 0) {
+        this.setState({
+          conn_error: true
+        });
+      }
+    }); 
   }
 
   loadConnections = () => {
@@ -79,8 +123,19 @@ class SIMConnections extends Component {
     });
   }
 
+
+  resetConnState = () => {
+    this.setState({
+      last_event: null,
+      conn_error: false,
+      config_error: false,
+      conn_events: []
+    });
+  }
+
   handleSubmitAPN = (e) => {
     e.preventDefault();
+    this.resetConnState();
     var config = {
       network: {
         apn: this.state.apn,
@@ -96,6 +151,7 @@ class SIMConnections extends Component {
 
   handleSubmitPIN = (e) => {
     e.preventDefault();
+    this.resetConnState();
     var config = {};
     if (this.state.pin) {
       config.pin = this.state.pin
@@ -113,11 +169,32 @@ class SIMConnections extends Component {
     e.preventDefault();
     this.setState({
       sim_id: sim.id,
-      current_sim: sim
+      current_sim: sim,
+      conn_error: false
     });
     var payload = { configuration: {} };
     this.setState({ working: true, connecting: true });
     API.configure_sim_connection(sim.id, payload, this.connCallback);
+  }
+
+  handleConnectSIM = (e, sim) => {
+    e.preventDefault();
+    this.resetConnState();
+    this.setState({
+      sim_id: sim.id,
+      current_sim: sim,
+    });
+    var payload = { configuration: {} };
+    this.setState({ working: true, connecting: true });
+    API.configure_sim_connection(sim.id, payload, this.connCallback);
+  }
+
+  handleCloseConnecting = (e) => {
+    e.preventDefault();
+    this.setState({
+      conn_events: [],
+      last_event: null
+    })
   }
 
   handleUnlockSIM = (e, sim) => {
@@ -137,7 +214,7 @@ class SIMConnections extends Component {
   }
 
   configCallback = (res) => {
-    this.setState({ working: false});
+    this.setState({ working: false, connecting: false });
     if (!res.ok) {
         this.setState({
             config_error: true,
@@ -156,12 +233,11 @@ class SIMConnections extends Component {
         });
         this.loadConnections();
     }
-    window.setTimeout(this.clearConnecting, CONNECTING_TIMEOUT);
   }
 
-  connCallback = (err, res) => {
-    this.setState({ working:false });
-    if (err || !res.ok) {
+  connCallback = (res) => {
+    this.setState({ working:false, connecting: false });
+    if (!res.ok) {
       this.setState({
           conn_error: true
       });
@@ -173,11 +249,9 @@ class SIMConnections extends Component {
       });
 
       this.setState({
-          conn_error: !res.body[0].connected,
           connections: connections
       });
       this.loadConnections();
-      window.setTimeout(this.clearConnecting, CONNECTING_TIMEOUT);
     }
   }
 
@@ -247,6 +321,24 @@ class SIMConnections extends Component {
     );
   }
 
+  renderConnectSIM = (sim) => {
+    return (
+      <div className="col-md-4 col-sm-6" key={ sim.id }>
+        <div className="box box-solid connection-type">
+          <div className="box-header with-border">
+            <h3 className="box-title text-center">{ sim.name }: Available</h3>
+          </div>
+          <div className="box-body">
+            <p className="text-center"><i className="fa fa-times-circle text-red "></i><small>Not Connected</small>
+            </p>
+            <img src={IconSim} alt="SIM" className="center-block connectivity-icon" />
+            <a href="#" onClick={ (e) => this.handleConnectSIM(e, sim) } className="btn btn-primary btn-block" data-backdrop='static' data-keyboard="false" data-toggle="modal" data-target="#sim-connect">Connect</a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   renderConnecting= (sim) => {
     return (
       <div className="col-md-4 col-sm-6" key={ sim.id }>
@@ -287,14 +379,14 @@ class SIMConnections extends Component {
     var isConnecting = (sim.id === this.state.sim_id) && (this.state.connecting);
     if(sim.connected) {
       return this.renderActiveSIM(sim);
-    } else if (sim.available && !sim.connected && isConnecting) {
-      return this.renderConnecting(sim);
-    } else if (sim.available && !sim.connected && sim.info.apn_configured && (sim.info.pin_locked || sim.info.puk_locked)) {
-      return this.renderConfigureSim(sim);
-    } else if (sim.available && !sim.connected && sim.info.apn_configured) {
-      return this.renderConnect(sim);
-    } else if (sim.available && !sim.connected && !sim.info.pin_locked) {
-      return this.renderConfigureSim(sim);
+    } else if (sim.available) {
+      return this.renderConnectSIM(sim);
+    // } else if (sim.available && !sim.connected && sim.info.apn_configured && (sim.info.pin_locked || sim.info.puk_locked)) {
+    //   return this.renderConfigureSim(sim);
+    // } else if (sim.available && !sim.connected && sim.info.apn_configured) {
+    //   return this.renderConnect(sim);
+    // } else if (sim.available && !sim.connected && !sim.info.pin_locked) {
+    //   return this.renderConfigureSim(sim);
     } else {
       return this.renderNoSim(sim);
     }
@@ -344,6 +436,101 @@ class SIMConnections extends Component {
                   </form>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    );
+  }
+
+  renderConnectSimDialog = () => {
+    const eventSize = this.state.conn_events.length;
+    const last_event = eventSize - 1;
+    const done = this.state.last_event == ENABLE_3G_MONITOR;
+    const iconClass = "fa fa-check text-white";
+    const iconClassActive = "fa fa-spinner fa-spin text-yellow";
+    const lastFive = (last_event - 5);
+    const minIndex = (lastFive >= 0) ? lastFive : 0;
+    return (
+      <div className="modal fade" id="sim-connect" tabIndex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div className="modal-dialog" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h4 className="modal-title" id="myModalLabel">Connecting</h4>
+            </div>
+
+            <div className="modal-body">
+              <div className="row">
+                <div className="col-md-12">
+                  { this.state.conn_events.map(function(conn_event, index) {
+                      if (index === last_event) {
+                        return (
+                          <div className="alert bg-gray" key={ "conn-event-" + index }>
+                            <h4>
+                              <i className={ done ? iconClass : iconClassActive } /> { conn_event.description }
+                            </h4>
+                          </div>
+                        )
+                      } else if (index >= minIndex) {
+                        return (
+                          <div className="alert bg-gray" key={ "conn-event-" + index }>
+                            <p>
+                              <i className={ iconClass } /> { conn_event.description }
+                            </p>
+                          </div>
+                        )
+                      }
+                  }) }
+                  { (this.state.last_event == REQUIRES_PIN)
+                    ? (
+                        <div className="input-group">
+                            <span className="input-group-addon">PIN</span>
+                            <input type="number" name="pin" value={ this.state.pin } onChange={ this.handleInput } className="form-control" />
+                            <span className="input-group-btn">
+                                <button className="btn btn-primary btn-flat" onClick={ this.handleSubmitPIN }>Save</button>
+                            </span>
+                        </div>
+                    ) : null
+
+                  }
+                  { (this.state.last_event == REQUIRES_PUK)
+                    ? (
+                      <div>
+                        <div className="input-group">
+                            <span className="input-group-addon">PUK</span>
+                            <input type="number" name="puk" value={ this.state.puk } onChange={ this.handleInput } className="form-control" />
+                        </div>
+                        <div className="input-group">
+                            <span className="input-group-addon">NEW PIN</span>
+                            <input type="number" name="pin" value={ this.state.pin } onChange={ this.handleInput } className="form-control" />
+                        </div>
+                        <div className="input-group">
+                          <button className="btn btn-primary btn-flat" onClick={ this.handleSubmitPIN }>Save</button>
+                        </div>
+                      </div>
+                    ) : null
+
+                  }
+                  { (this.state.last_event == REQUIRES_APN)
+                    ? (
+                        <div className="input-group">
+                            <span className="input-group-addon">APN</span>
+                            <input type="text" name="apn" value={ this.state.apn } onChange={ this.handleInput } className="form-control" />
+                            <span className="input-group-btn">
+                                <button className="btn btn-primary btn-flat" onClick={ this.handleSubmitAPN }>Save</button>
+                            </span>
+                        </div>
+                    ) : null
+
+                  }
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              { (this.state.last_event == ENABLE_3G_MONITOR)
+                ? <a href="." onClick={ this.handleCloseConnecting } className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim-connect">Done</a>
+                : null
+              }
             </div>
           </div>
         </div>
@@ -455,7 +642,7 @@ class SIMConnections extends Component {
   renderMessages = () => {
     const default_errors = ["Make sure the SIM is data-enabled and has data bundles or credit",
                             "Make sure the APN/PIN/PUK information is typed in correctly",
-                            "Contact your mobile service provider for APN support"];
+                            "Make sure the PIN is correct or disabled"];
     var errors = [];
     if (this.state.errors) {
       for (var key in this.state.errors) {
@@ -499,6 +686,7 @@ class SIMConnections extends Component {
             </div>
           </div>
         </div>
+        { this.renderConnectSimDialog() }
         { this.renderConfigureSimDialog() }
         { this.renderConfigureSimLockedDialog() }
         { this.renderSignalStatusDialog() }

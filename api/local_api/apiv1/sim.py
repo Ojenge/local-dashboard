@@ -22,6 +22,7 @@ SIM_STATUS_FILES = [
     '/sys/class/gpio/gpio341/value'
 ]
 
+REG_ERROR = re.compile('^.*(ERROR).*$')
 REG_PIN_LOCK = re.compile('^.*(PIN).*$')
 REG_PUK_LOCK = re.compile('^.*(PUK).*$')
 REG_PIN = re.compile(r'^\d{4,8}$')
@@ -102,7 +103,10 @@ def get_wan_connections(sim_id=None):
                  if net_connected:
                      connected = True
                      signal_strength = get_signal_strength('wan')
-                     operator = run_command(['querymodem', 'carrier'], output=True) or 'Unknown'
+                     operator = run_command(['querymodem', 'carrier'], output=True)
+                     if REG_ERROR.match(operator) or operator == "0":
+                         operator = 'Unknown'
+                         connected = False
                      info['network_info'] = dict(
                          operator=operator,
                          signal_strength=signal_strength
