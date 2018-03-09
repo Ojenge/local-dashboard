@@ -324,8 +324,6 @@ def connect_sim_actual(sim_id, modem_id):
                         if REG_READY.match(check_sim_ready_status):
                             emit_event(io, SIM_READY, ns)
                             ready = True
-                            emit_event(io, WAIT_CARRIER, ns)
-                            eventlet.sleep(6)
                         else:
                             emit_event(io, DELETE_PUK, ns)
                             uci_delete(puk_path)
@@ -357,8 +355,6 @@ def connect_sim_actual(sim_id, modem_id):
                         if REG_READY.match(check_sim_ready_status):
                             emit_event(io, SIM_READY, ns)
                             ready = True
-                            emit_event(io, WAIT_CARRIER, ns)
-                            eventlet.sleep(6)
                         else:
                             emit_event(io, DELETE_PIN, ns)
                             uci_delete(pin_path)
@@ -379,6 +375,8 @@ def connect_sim_actual(sim_id, modem_id):
                 ready = True
             if ready:
                 if uci_get('network.wan.apn'):
+                    emit_event(io, WAIT_CARRIER, ns)
+                    eventlet.sleep(10)
                     emit_event(io, CHECK_CARRIER, ns)
                     carrier_resp = run_command(['querymodem', 'carrier'], output=True)
                     LOG.warn("SIM|CHECK CARRIER STATUS|%s", carrier_resp)
