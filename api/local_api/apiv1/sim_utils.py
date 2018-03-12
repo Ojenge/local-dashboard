@@ -373,6 +373,8 @@ def connect_sim_actual(sim_id, modem_id):
             elif REG_READY.match(pin_status):
                 emit_event(io, PIN_NOT_REQUIRED, ns)
                 ready = True
+            else:
+                emit_event(io, SIM_NOT_READY, ns)
             if ready:
                 if uci_get('network.wan.apn'):
                     emit_event(io, WAIT_CARRIER, ns)

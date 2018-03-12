@@ -20,6 +20,10 @@ properties:
         type: string
         description: SIM IMEI
         example: 350089999084990
+      imsi:
+        type: string
+        description: SIM IMSI
+        example: 6390301234567890
       cell_id:
         type: string
         description: Network Cell ID
@@ -36,7 +40,7 @@ properties:
         type: string
         description: Mobile Country Code
         example: 639
-      network_type:
+      net_type:
         type: string
         description: Mobile Network Type
         enum:

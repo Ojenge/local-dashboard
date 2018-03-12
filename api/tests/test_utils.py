@@ -7,6 +7,7 @@ from copy import copy
 
 from local_api.apiv1 import utils
 from local_api.apiv1 import soc
+from local_api.apiv1 import sim
 
 DUMMY_SOC_RESPONSE = """{"SocPwrOnLevel":15,"SocPwrOffLevel":5,"AlarmPwrOnHour":06,"AlarmPwrOnMinute":00,
 "PowerOffHour":20,"PowerOffMinute":01,"IsAutoStart":1,"DelayedOffTimerEnable":0,"DelayOffTimerMinutes":0,"RetailMode":0}
@@ -124,3 +125,16 @@ def test_get_software():
                 assert versions['os'] == expected_os_version
                 assert versions['firmware'] == EXPECTED_FIRMWARE_VERSION
                 assert versions['packages'] == EXPECTED_PACKAGE_VERSIONS
+
+
+
+def test_get_modem_net_info():
+    _creg = '2,1,"017A","00072731",6'
+    expected = dict(
+        net_type='3G',
+        cell_id=468785,
+        lac=378
+    )
+    with mock.patch('local_api.apiv1.sim.run_command',
+            side_effect=['OK', _creg, 'OK']):
+            assert sim.get_modem_network_info() == expected

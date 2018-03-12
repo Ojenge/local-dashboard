@@ -32,6 +32,7 @@ class SIMConnections extends Component {
     super(props);
     this.state = {
       loaded: false,
+      connected: true,
       connections: [],
       conn_events: [],
       last_event: null,
@@ -621,6 +622,41 @@ class SIMConnections extends Component {
                   <tr>
                     <td>Operator</td>
                     <td>{ net_info.operator }</td>
+                    <td/>
+                  </tr>
+                  <tr>
+                    <td>Network Type</td>
+                    <td>{ net_info.net_type }</td>
+                    <td/>
+                  </tr>
+                  <tr>
+                    <td>IMEI</td>
+                    <td>{ net_info.imei }</td>
+                    <td/>
+                  </tr>
+                  <tr>
+                    <td>IMSI</td>
+                    <td>{ net_info.imsi }</td>
+                    <td/>
+                  </tr>
+                  <tr>
+                    <td>MCC</td>
+                    <td>{ net_info.mcc }</td>
+                    <td/>
+                  </tr>
+                  <tr>
+                    <td>MNC</td>
+                    <td>{ net_info.mnc }</td>
+                    <td/>
+                  </tr>
+                  <tr>
+                    <td>Cell ID</td>
+                    <td>{ net_info.cell_id }</td>
+                    <td/>
+                  </tr>
+                  <tr>
+                    <td>Location Code</td>
+                    <td>{ net_info.lac }</td>
                     <td/>
                   </tr>
                 </tbody>

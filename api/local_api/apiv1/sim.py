@@ -14,6 +14,8 @@ from .schema import Validator
 from .sim_utils import connect_sim
 from .sim_utils import get_sim_state
 
+from .cache import cached, MINUTE
+
 LOG = __import__('logging').getLogger()
 
 SIM_STATUS_FILES = [
@@ -29,6 +31,43 @@ REG_PIN = re.compile(r'^\d{4,8}$')
 REG_PUK = re.compile(r'^\d{8}$')
 REG_APN = re.compile(r'[\w\.\-]{1,64}')
 
+MOBILE_TECH_MAP = {
+    '0': 'GSM',
+    '1': 'GSM',
+    '2': '3G',
+    '3': 'Edge',
+    '4': '3G',
+    '5': '3G',
+    '6': '3G',
+    '7': '4G'
+}
+
+
+@cached(timeout=(MINUTE*10))
+def get_modem_network_info(*args):
+    """Gets network information.
+    """
+    net_info = {}
+    LOG.warn("Enabling unsolicited responses from modem")
+    if run_command(['querymodem', 'AT+CREG=2']):
+        try:
+            info_str = run_command(['querymodem', 'AT+CREG?'], output=True)
+            LOG.debug("CREG INFO: %r", info_str)
+            info_str = info_str.replace('"', '')
+            _creg, _reg, lac, cell_id, net_type = info_str.split(',')
+            net_info = dict(
+                lac=int('0x{}'.format(lac), 16),
+                cell_id=int('0x{}'.format(cell_id), 16),
+                net_type=MOBILE_TECH_MAP.get(net_type, 'Uknown')
+            )
+        except Exception as e:
+            LOG.error("Failed to load modem network information: %r", e)
+        finally:
+            run_command(['querymodem', 'AT+CREG=0'])
+            LOG.warn("Disabling unsolicited responses")
+    else:
+        LOG.warn("Failed to enabled unsolicited responses from Modem")
+    return net_info
 
 def get_wan_connections(sim_id=None):
     """Returns list of SIM connections
@@ -98,19 +137,30 @@ def get_wan_connections(sim_id=None):
                 else:
                     info['puk_locked'] = False
             elif is_active_sim:
-                 info['pin_locked'] = False
-                 info['puk_locked'] = False
-                 if net_connected:
-                     connected = True
-                     signal_strength = get_signal_strength('wan')
-                     operator = run_command(['querymodem', 'carrier'], output=True)
-                     if REG_ERROR.match(operator) or operator == "0":
-                         operator = 'Unknown'
-                         connected = False
-                     info['network_info'] = dict(
-                         operator=operator,
-                         signal_strength=signal_strength
-                     )
+                info['pin_locked'] = False
+                info['puk_locked'] = False
+                if net_connected:
+                    ex_net_info = {}
+                    connected = True
+                    signal_strength = get_signal_strength('wan')
+                    operator = run_command(['querymodem', 'carrier'], output=True)
+                    imei = run_command(['querymodem', 'imei'], output=True)
+                    imsi = run_command(['querymodem', 'imsi'], output=True)
+                    if REG_ERROR.match(operator) or operator == "0":
+                        operator = 'Unknown'
+                        connected = False
+                    else:
+                        ex_net_info['imei'] = imei
+                        ex_net_info['imsi'] = imsi
+                        ex_net_info['mcc'] = imsi[0:3]
+                        ex_net_info['mnc'] = ''
+                        # ex_net_info['mnc'] = imsi[3:6].lstrip('0')
+                        ex_net_info.update(get_modem_network_info(imsi, imei))
+                    ex_net_info.update(dict(
+                        operator=operator,
+                        signal_strength=signal_strength
+                    ))
+                    info['network_info'] = ex_net_info
         c_data = dict(
             id=c_id,
             name=name,
