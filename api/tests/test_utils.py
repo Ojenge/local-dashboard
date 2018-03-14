@@ -129,12 +129,22 @@ def test_get_software():
 
 
 def test_get_modem_net_info():
-    _creg = '2,1,"017A","00072731",6'
+    _xcell_info = '0,2,639,  3,017a,72731,306,10637, 52,  9,255'
+    _xcell_info_01 = '0,2,639, 23,017a,72731,306,10637, 52,  9,255'
     expected = dict(
-        net_type='3G',
+        mnc='  3',
+        net_type='UMTS (3G)',
+        cell_id=468785,
+        lac=378
+    )
+    expected_01 = dict(
+        mnc=' 23',
+        net_type='UMTS (3G)',
         cell_id=468785,
         lac=378
     )
     with mock.patch('local_api.apiv1.sim.run_command',
-            side_effect=['OK', _creg, 'OK']):
+            side_effect=[_xcell_info, _xcell_info_01, '']):
             assert sim.get_modem_network_info() == expected
+            assert sim.get_modem_network_info() == expected_01
+            assert sim.get_modem_network_info() == {}

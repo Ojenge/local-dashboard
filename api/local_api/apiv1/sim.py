@@ -6,13 +6,13 @@ from brck.utils import run_command
 from brck.utils import uci_get
 
 from .utils import read_file
-from .utils import get_uci_state
 from .utils import get_signal_strength
 
 from .schema import Validator
 
 from .sim_utils import connect_sim
 from .sim_utils import get_sim_state
+from .sim_utils import get_connection_status
 
 from .cache import cached, MINUTE
 
@@ -32,41 +32,32 @@ REG_PUK = re.compile(r'^\d{8}$')
 REG_APN = re.compile(r'[\w\.\-]{1,64}')
 
 MOBILE_TECH_MAP = {
-    '0': 'GSM',
-    '1': 'GSM',
-    '2': '3G',
-    '3': 'Edge',
-    '4': '3G',
-    '5': '3G',
-    '6': '3G',
-    '7': '4G'
+    '0': 'GSM (EDGE)',
+    '2': 'UMTS (3G)',
+    '5': 'LTE (4G)'
 }
 
 
-@cached(timeout=(MINUTE*10))
+@cached(timeout=(MINUTE*10), ignore=[{}])
 def get_modem_network_info(*args):
     """Gets network information.
     """
     net_info = {}
-    LOG.warn("Enabling unsolicited responses from modem")
-    if run_command(['querymodem', 'AT+CREG=2']):
-        try:
-            info_str = run_command(['querymodem', 'AT+CREG?'], output=True)
-            LOG.debug("CREG INFO: %r", info_str)
-            info_str = info_str.replace('"', '')
-            _creg, _reg, lac, cell_id, net_type = info_str.split(',')
-            net_info = dict(
-                lac=int('0x{}'.format(lac), 16),
-                cell_id=int('0x{}'.format(cell_id), 16),
-                net_type=MOBILE_TECH_MAP.get(net_type, 'Uknown')
-            )
-        except Exception as e:
-            LOG.error("Failed to load modem network information: %r", e)
-        finally:
-            run_command(['querymodem', 'AT+CREG=0'])
-            LOG.warn("Disabling unsolicited responses")
-    else:
-        LOG.warn("Failed to enabled unsolicited responses from Modem")
+    try:
+        info_str = run_command(['querymodem', 'AT+XCELLINFO?'], output=True)
+        if not info_str:
+            info_str = run_command(['querymodem', 'AT+XCELLINFO?'], output=True)
+        LOG.debug("XCELL_INFO INFO: %r", info_str)
+        cell_data = info_str.split(',')
+        _mode, cell_type, _mcc, mnc, lac, cell_id = cell_data[:6]
+        net_info = dict(
+            mnc=mnc,
+            lac=int('0x{}'.format(lac), 16),
+            cell_id=int('0x{}'.format(cell_id), 16),
+            net_type=MOBILE_TECH_MAP.get(cell_type, 'Unknown')
+        )
+    except Exception as e:
+        LOG.error("Failed to load modem network information: %r", e)
     return net_info
 
 def get_wan_connections(sim_id=None):
@@ -106,8 +97,7 @@ def get_wan_connections(sim_id=None):
         sim_id_num = int(sim_id[-1])
         if sim_id_num in [1, 2, 3]:
             conn_paths = [SIM_STATUS_FILES[sim_id_num - 1]]
-    net_state = get_uci_state('network.wan')
-    net_connected = net_state.get('network.wan.connected', '') == '1'
+    net_connected = get_connection_status()
     active_sim = uci_get('brck.active_sim')
     sim_statuses = [read_file(p) for p in conn_paths]
     # when only one SIM is available - assume that's the active SIM
@@ -152,9 +142,7 @@ def get_wan_connections(sim_id=None):
                     else:
                         ex_net_info['imei'] = imei
                         ex_net_info['imsi'] = imsi
-                        ex_net_info['mcc'] = imsi[0:3]
-                        ex_net_info['mnc'] = ''
-                        # ex_net_info['mnc'] = imsi[3:6].lstrip('0')
+                        ex_net_info['mcc'] = imsi[:3]
                         ex_net_info.update(get_modem_network_info(imsi, imei))
                     ex_net_info.update(dict(
                         operator=operator,

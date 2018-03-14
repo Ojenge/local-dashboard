@@ -80,6 +80,7 @@ DELETE_PUK = 'DELETE_PUK'
 PIN_NOT_REQUIRED = 'PIN_NOT_REQUIRED'
 SIM_READY = 'SIM_READY'
 SIM_NOT_READY = 'SIM_NOT_READY'
+ACTIVE_SIM_RESET = 'ACTIVE_SIM_RESET'
 DISABLE_PIN = 'DISABLE_PIN'
 CHECK_CARRIER = 'CHECK_CARRIER'
 WAIT_CARRIER = 'WAIT_CARRIER'
@@ -115,6 +116,7 @@ CONN_STATES_VERBOSE = {
     PIN_NOT_REQUIRED: 'PIN not required',
     SIM_READY: 'SIM is ready',
     SIM_NOT_READY: 'SIM not ready - giving up',
+    ACTIVE_SIM_RESET: 'Restoring previous active SIM configuration',
     CHECK_CARRIER: 'Checking Carrier',
     WAIT_CARRIER: 'Waiting for carrier detection',
     NO_CARRIER: 'No carrier detected - giving up',
@@ -127,6 +129,8 @@ CONN_STATES_VERBOSE = {
     ENABLE_3G_MONITOR: 'Restarting 3G monitor'
 }
 
+
+DEFAULT_PIN = '0000'
 
 def enable_service(name):
     run_command(['/etc/init.d/{}'.format(name), 'enable'])
@@ -149,6 +153,14 @@ def run_call(path, value):
     LOG.debug('Running: %s', command)
     call(command, shell=True)
 
+
+def get_connection_status():
+    """Gets the connection status via 3g-wan interface
+
+    :return bool:
+    """
+    command = ['ping', '-c', '2', '-I', '3g-wan', '-W', '1', '8.8.8.8']
+    return run_command(command)
 
 def get_sim_state(sim_id):
     """Gets SIM state as stored in UCI
@@ -264,7 +276,7 @@ def emit_event(io, event, namespace):
     io.emit('conn_event', payload, namespace=namespace)
 
 
-def connect_sim_actual(sim_id, modem_id):
+def connect_sim_actual(sim_id, modem_id, previous_sim):
     """Connects to the selected SIM in interactive fashion.
 
     This method pushes all events to a websocket topic for consumption.
@@ -311,12 +323,13 @@ def connect_sim_actual(sim_id, modem_id):
                 pin = uci_get(pin_path)
                 if puk:
                     emit_event(io, SET_PUK, ns)
-                    pin_args = ['querymodem', 'set_pin', puk]
-                    if pin:
-                        pin_args.append(pin)
-                    set_puk_status = run_command(pin_args, output=True)
+                    pin = pin or DEFAULT_PIN
+                    set_puk_status = run_command(['querymodem', 'AT+CPIN={},{}'.format(puk, pin)], output=True)
                     LOG.warn("SIM|SET PUK STATUS|%s", set_puk_status)
                     if not REG_ERROR.match(set_puk_status):
+                        emit_event(io, DISABLE_PIN, ns)
+                        disable_pin(pin)
+                        eventlet.sleep(3)
                         emit_event(io, PUK_OK, ns)
                         emit_event(io, CHECK_READY, ns)
                         eventlet.sleep(5)
@@ -343,7 +356,7 @@ def connect_sim_actual(sim_id, modem_id):
                 pin = uci_get(pin_path)
                 if pin:
                     emit_event(io, SET_PIN, ns)
-                    set_pin_status = run_command(['querymodem', 'set_pin', pin], output=True)
+                    set_pin_status = run_command(['querymodem', 'AT+CPIN={}'.format(pin)], output=True)
                     LOG.warn("SIM|SET PIN STATUS|%s", set_pin_status)
                     if not REG_ERROR.match(set_pin_status):
                         emit_event(io, PIN_OK, ns)
@@ -375,6 +388,13 @@ def connect_sim_actual(sim_id, modem_id):
                 ready = True
             else:
                 emit_event(io, SIM_NOT_READY, ns)
+                if previous_sim in ['1', '2', '3']:
+                    uci_set('brck.active_sim', previous_sim)
+                    uci_commit('brck')
+                else:
+                    uci_delete('brck.active_sim')
+                uci_commit('brck')
+                emit_event(io, ACTIVE_SIM_RESET, ns)
             if ready:
                 if uci_get('network.wan.apn'):
                     emit_event(io, WAIT_CARRIER, ns)
@@ -393,11 +413,15 @@ def connect_sim_actual(sim_id, modem_id):
                         LOG.warn("Bringing up WAN")
                         run_command(['ifup', 'wan'])
                         emit_event(io, WAIT_CONNECTION, ns)
-                        eventlet.sleep(60)
-                        net_state = get_uci_state('network.wan')
-                        if net_state.get('network.wan.connected') == '1':
-                            emit_event(io, CONNECTED, ns)
-                        else:
+                        _connected = False
+                        for _ in xrange(6):
+                            _connected = get_connection_status()
+                            if _connected:
+                                emit_event(io, CONNECTED, ns)
+                                break
+                            else:
+                                eventlet.sleep(10)
+                        if not _connected:
                             emit_event(io, NO_CONNECTION, ns)
                 else:
                     emit_event(io, REQUIRES_APN, ns)
@@ -419,6 +443,7 @@ def connect_sim_actual(sim_id, modem_id):
 def connect_sim(sim_id, pin='', puk='', apn='', username='', password=''):
     """Attempts to establish a connect to the with this SIM
     """
+    previous_sim = uci_get('brck.active_sim')
     errors = {}
     sim_id = int(sim_id[-1])
     m1, m2 = get_modems()
@@ -436,7 +461,7 @@ def connect_sim(sim_id, pin='', puk='', apn='', username='', password=''):
                       username=username,
                       password=password,
                       active=True)
-        eventlet.call_after_global(1, connect_sim_actual, sim_id, modem)
+        eventlet.call_after_global(1, connect_sim_actual, sim_id, modem, previous_sim)
     else:
         errors['network'] = 'no modem found'
     return errors
