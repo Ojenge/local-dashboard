@@ -26,8 +26,8 @@ THREEG_MONITOR_SERVICE = '3g-monitor'
 REG_OK = re.compile('^.*OK.*$', re.MULTILINE)
 REG_ERROR = re.compile('^.*ERROR.*$', re.MULTILINE)
 REG_READY = re.compile('^READY.*$')
-REG_PIN = re.compile('^PIN.*$')
-REG_PUK = re.compile('^PUK.*$')
+REG_PIN = re.compile('^.*PIN.*$')
+REG_PUK = re.compile('^.*PUK.*$')
 MODEM1_PATTERN = re.compile(r'.*(/1\-2\.2/).*')
 MODEM2_PATTERN = re.compile(r'.*(/1\-2\.3/).*')
 
