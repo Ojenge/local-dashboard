@@ -62,8 +62,8 @@ class Validator(object):
         v0 = self.data.get(key_a, None)
         v1 = self.data.get(key_b, None)
         if v0 != v1:
-            self.errors[key_a] = 'must not be equal to: %s' % key_b
-            self.errors[key_b] = 'must not be equal to: %s' % key_a
+            self.errors[key_a] = 'must be the same as: %s' % key_b
+            self.errors[key_b] = 'must be the same as: %s' % key_a
 
     def ensure_range(self, key, min, max, type=None):
         if not key in self.errors:

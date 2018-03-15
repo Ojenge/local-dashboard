@@ -23,7 +23,7 @@ from .utils import read_file, get_uci_state
 LOG = __import__('logging').getLogger()
 
 THREEG_MONITOR_SERVICE = '3g-monitor'
-REG_OK = re.compile('^.*OK.*$', re.MULTILINE)
+REG_OK = re.compile('OK.*$')
 REG_ERROR = re.compile('^.*ERROR.*$', re.MULTILINE)
 REG_READY = re.compile('^READY.*$')
 REG_PIN = re.compile('^.*PIN.*$')
@@ -326,7 +326,7 @@ def connect_sim_actual(sim_id, modem_id, previous_sim):
                     pin = pin or DEFAULT_PIN
                     set_puk_status = run_command(['querymodem', 'AT+CPIN={},{}'.format(puk, pin)], output=True)
                     LOG.warn("SIM|SET PUK STATUS|%s", set_puk_status)
-                    if not REG_ERROR.match(set_puk_status):
+                    if REG_OK.match(set_puk_status):
                         emit_event(io, DISABLE_PIN, ns)
                         disable_pin(pin)
                         eventlet.sleep(3)
@@ -358,7 +358,7 @@ def connect_sim_actual(sim_id, modem_id, previous_sim):
                     emit_event(io, SET_PIN, ns)
                     set_pin_status = run_command(['querymodem', 'AT+CPIN={}'.format(pin)], output=True)
                     LOG.warn("SIM|SET PIN STATUS|%s", set_pin_status)
-                    if not REG_ERROR.match(set_pin_status):
+                    if REG_OK.match(set_pin_status):
                         emit_event(io, PIN_OK, ns)
                         emit_event(io, DISABLE_PIN, ns)
                         disable_pin(pin)
