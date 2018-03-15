@@ -266,6 +266,20 @@ def sim_exists(sim_id):
     return exists
 
 
+def restore_sim(sim_id):
+    """Restores UCI settings for the current SIM
+
+    :param str sim_id: SIM ID (1, 2 or 3)
+    """
+    LOG.warn("Restoring previous SIM to|%r", sim_id)
+    if sim_id in ['1', '2', '3']:
+        uci_set('brck.active_sim', sim_id)
+        uci_commit('brck')
+    else:
+        uci_delete('brck.active_sim')
+    uci_commit('brck')
+
+
 def emit_event(io, event, namespace):
     """Emits event to websocket
     """
@@ -274,7 +288,6 @@ def emit_event(io, event, namespace):
                'description': description}
     LOG.warn('Sending websocket event: %r', payload)
     io.emit('conn_event', payload, namespace=namespace)
-
 
 def connect_sim_actual(sim_id, modem_id, previous_sim):
     """Connects to the selected SIM in interactive fashion.
@@ -285,160 +298,172 @@ def connect_sim_actual(sim_id, modem_id, previous_sim):
     :param int modem_Id: Modem ID (1 or 2)
     """
     from local_api import socketio as io, NS_SIM_CONNECTIVITY as ns
-    if is_service_running(THREEG_MONITOR_SERVICE):
-        LOG.warn("Stopping 3g-monitor")
-        disable_service(THREEG_MONITOR_SERVICE)
-        stop_service(THREEG_MONITOR_SERVICE)
-        emit_event(io, DISABLE_3G_MONITOR, ns)
-    else:
-        LOG.warn("3g-monitor is already stopped")
-    flags = SIM_FLAGS.get('%d-%d' % (modem_id, sim_id))
-    if flags:
-        LOG.warn("Bringing down WAN")
-        run_command(['ifdown', 'wan'])
-        emit_event(io, STOP_WAN, ns)
-        emit_event(io, SELECT_SIM, ns)
-        for (key, flag) in enumerate(flags):
-            port_path = SIM_CONFIG_PATHS[key]
-            run_call(port_path, flag)
-        for modem_flag_path in MODEM_FLAG_PATHS:
-            run_call(modem_flag_path, '0')
-            eventlet.sleep(1)
-            run_call(modem_flag_path, '1')
-        eventlet.sleep(5)
-        emit_event(io, CHECK_SIM, ns)
-        check_imei_status = run_command(['querymodem', 'imei'], output=True)
-        LOG.warn("SIM|IMEI STATUS|%s", check_imei_status)
-        requires_input = False
-        if not REG_ERROR.match(check_imei_status):
-            emit_event(io, SIM_DETECTED, ns)
-            emit_event(io, CHECK_PIN, ns)
-            pin_status = run_command(['querymodem', 'check_pin'], output=True)
-            LOG.warn("SIM|PIN STATUS|%s", pin_status)
-            puk_path = 'brck.sim{}.puk'.format(sim_id)
-            pin_path = 'brck.sim{}.pin'.format(sim_id)
-            ready = False
-            if REG_PUK.match(pin_status):
-                puk = uci_get(puk_path)
-                pin = uci_get(pin_path)
-                if puk:
-                    emit_event(io, SET_PUK, ns)
-                    pin = pin or DEFAULT_PIN
-                    set_puk_status = run_command(['querymodem', 'AT+CPIN={},{}'.format(puk, pin)], output=True)
-                    LOG.warn("SIM|SET PUK STATUS|%s", set_puk_status)
-                    if REG_OK.match(set_puk_status):
-                        emit_event(io, DISABLE_PIN, ns)
-                        disable_pin(pin)
-                        eventlet.sleep(3)
-                        emit_event(io, PUK_OK, ns)
-                        emit_event(io, CHECK_READY, ns)
-                        eventlet.sleep(5)
-                        check_sim_ready_status = run_command(['querymodem', 'check_pin'], output=True)
-                        if REG_READY.match(check_sim_ready_status):
-                            emit_event(io, SIM_READY, ns)
-                            ready = True
+    try:
+        if is_service_running(THREEG_MONITOR_SERVICE):
+            LOG.warn("Stopping 3g-monitor")
+            disable_service(THREEG_MONITOR_SERVICE)
+            stop_service(THREEG_MONITOR_SERVICE)
+            emit_event(io, DISABLE_3G_MONITOR, ns)
+        else:
+            LOG.warn("3g-monitor is already stopped")
+        flags = SIM_FLAGS.get('%d-%d' % (modem_id, sim_id))
+        if flags:
+            LOG.warn("Bringing down WAN")
+            run_command(['ifdown', 'wan'])
+            emit_event(io, STOP_WAN, ns)
+            emit_event(io, SELECT_SIM, ns)
+            for (key, flag) in enumerate(flags):
+                port_path = SIM_CONFIG_PATHS[key]
+                run_call(port_path, flag)
+            for modem_flag_path in MODEM_FLAG_PATHS:
+                run_call(modem_flag_path, '0')
+                eventlet.sleep(1)
+                run_call(modem_flag_path, '1')
+            eventlet.sleep(5)
+            emit_event(io, CHECK_SIM, ns)
+            check_imei_status = run_command(['querymodem', 'imei'], output=True)
+            LOG.warn("SIM|IMEI STATUS|%s", check_imei_status)
+            requires_input = False
+            if not REG_ERROR.match(check_imei_status):
+                emit_event(io, SIM_DETECTED, ns)
+                emit_event(io, CHECK_PIN, ns)
+                pin_status = run_command(['querymodem', 'check_pin'], output=True)
+                if not pin_status:
+                    eventlet.sleep(2)
+                    pin_status = run_command(['querymodem', 'check_pin'], output=True)
+                LOG.warn("SIM|PIN STATUS|%s", pin_status)
+                puk_path = 'brck.sim{}.puk'.format(sim_id)
+                pin_path = 'brck.sim{}.pin'.format(sim_id)
+                ready = False
+                if REG_PUK.match(pin_status):
+                    puk = uci_get(puk_path)
+                    pin = uci_get(pin_path)
+                    if puk:
+                        emit_event(io, SET_PUK, ns)
+                        pin = pin or DEFAULT_PIN
+                        set_puk_status = run_command(['querymodem', 'AT+CPIN={},{}'.format(puk, pin)], output=True)
+                        LOG.warn("SIM|SET PUK STATUS|%s", set_puk_status)
+                        if REG_OK.match(set_puk_status):
+                            emit_event(io, DISABLE_PIN, ns)
+                            disable_pin(pin)
+                            eventlet.sleep(3)
+                            emit_event(io, PUK_OK, ns)
+                            emit_event(io, CHECK_READY, ns)
+                            eventlet.sleep(5)
+                            check_sim_ready_status = run_command(['querymodem', 'check_pin'], output=True)
+                            if REG_READY.match(check_sim_ready_status):
+                                emit_event(io, SIM_READY, ns)
+                                ready = True
+                            else:
+                                emit_event(io, DELETE_PUK, ns)
+                                uci_delete(puk_path)
+                                uci_commit('brck')
+                                emit_event(io, SIM_NOT_READY, ns)
                         else:
+                            emit_event(io, PUK_REJECTED, ns)
                             emit_event(io, DELETE_PUK, ns)
                             uci_delete(puk_path)
                             uci_commit('brck')
-                            emit_event(io, SIM_NOT_READY, ns)
+                            emit_event(io, REQUIRES_PUK, ns)
+                            requires_input = True
                     else:
-                        emit_event(io, PUK_REJECTED, ns)
-                        emit_event(io, DELETE_PUK, ns)
-                        uci_delete(puk_path)
-                        uci_commit('brck')
                         emit_event(io, REQUIRES_PUK, ns)
                         requires_input = True
-                else:
-                    emit_event(io, REQUIRES_PUK, ns)
-                    requires_input = True
-            elif REG_PIN.match(pin_status):
-                pin = uci_get(pin_path)
-                if pin:
-                    emit_event(io, SET_PIN, ns)
-                    set_pin_status = run_command(['querymodem', 'AT+CPIN={}'.format(pin)], output=True)
-                    LOG.warn("SIM|SET PIN STATUS|%s", set_pin_status)
-                    if REG_OK.match(set_pin_status):
-                        emit_event(io, PIN_OK, ns)
-                        emit_event(io, DISABLE_PIN, ns)
-                        disable_pin(pin)
-                        emit_event(io, CHECK_READY, ns)
+                elif REG_PIN.match(pin_status):
+                    pin = uci_get(pin_path)
+                    if pin:
+                        emit_event(io, SET_PIN, ns)
+                        set_pin_status = run_command(['querymodem', 'AT+CPIN={}'.format(pin)], output=True)
+                        LOG.warn("SIM|SET PIN STATUS|%s", set_pin_status)
                         eventlet.sleep(5)
-                        check_sim_ready_status = run_command(['querymodem', 'check_pin'], output=True)
-                        if REG_READY.match(check_sim_ready_status):
-                            emit_event(io, SIM_READY, ns)
-                            ready = True
+                        sim_status = run_command(['querymodem', 'check_pin'], output=True)
+                        if REG_OK.match(set_pin_status) or REG_READY.match(sim_status):
+                            emit_event(io, PIN_OK, ns)
+                            emit_event(io, DISABLE_PIN, ns)
+                            disable_pin(pin)
+                            emit_event(io, CHECK_READY, ns)
+                            eventlet.sleep(5)
+                            check_sim_ready_status = run_command(['querymodem', 'check_pin'], output=True)
+                            if REG_READY.match(check_sim_ready_status):
+                                emit_event(io, SIM_READY, ns)
+                                ready = True
+                            else:
+                                emit_event(io, DELETE_PIN, ns)
+                                uci_delete(pin_path)
+                                uci_commit('brck')
+                                emit_event(io, SIM_NOT_READY, ns)
                         else:
+                            emit_event(io, PIN_REJECTED, ns)
                             emit_event(io, DELETE_PIN, ns)
                             uci_delete(pin_path)
                             uci_commit('brck')
-                            emit_event(io, SIM_NOT_READY, ns)
+                            emit_event(io, REQUIRES_PIN, ns)
+                            requires_input = True
                     else:
-                        emit_event(io, PIN_REJECTED, ns)
-                        emit_event(io, DELETE_PIN, ns)
-                        uci_delete(pin_path)
-                        uci_commit('brck')
                         emit_event(io, REQUIRES_PIN, ns)
                         requires_input = True
+                elif REG_READY.match(pin_status):
+                    emit_event(io, PIN_NOT_REQUIRED, ns)
+                    ready = True
                 else:
-                    emit_event(io, REQUIRES_PIN, ns)
-                    requires_input = True
-            elif REG_READY.match(pin_status):
-                emit_event(io, PIN_NOT_REQUIRED, ns)
-                ready = True
+                    emit_event(io, SIM_NOT_READY, ns)
+                    restore_sim(previous_sim)
+                    emit_event(io, ACTIVE_SIM_RESET, ns)
+                if ready:
+                    if uci_get('network.wan.apn'):
+                        emit_event(io, WAIT_CARRIER, ns)
+                        eventlet.sleep(10)
+                        emit_event(io, CHECK_CARRIER, ns)
+                        carrier_resp = run_command(['querymodem', 'carrier'], output=True)
+                        LOG.warn("SIM|CHECK CARRIER STATUS|%s", carrier_resp)
+                        if REG_ERROR.match(carrier_resp) or carrier_resp == "0":
+                            emit_event(io, NO_CARRIER, ns)
+                            # emit_event(io, RESTART_MODEM, ns)
+                            # restart_modem()
+                            # eventlet.sleep(10)
+                        else:
+                            emit_event(io, CARRIER_DETECTED, ns)
+                            emit_event(io, START_WAN, ns)
+                            LOG.warn("Bringing up WAN")
+                            run_command(['ifup', 'wan'])
+                            emit_event(io, WAIT_CONNECTION, ns)
+                            _connected = False
+                            for _ in xrange(6):
+                                _connected = get_connection_status()
+                                if _connected:
+                                    emit_event(io, CONNECTED, ns)
+                                    break
+                                else:
+                                    eventlet.sleep(10)
+                            if not _connected:
+                                emit_event(io, NO_CONNECTION, ns)
+                    else:
+                        emit_event(io, REQUIRES_APN, ns)
+                        requires_input = True
             else:
                 emit_event(io, SIM_NOT_READY, ns)
-                if previous_sim in ['1', '2', '3']:
-                    uci_set('brck.active_sim', previous_sim)
-                    uci_commit('brck')
-                else:
-                    uci_delete('brck.active_sim')
-                uci_commit('brck')
-                emit_event(io, ACTIVE_SIM_RESET, ns)
-            if ready:
-                if uci_get('network.wan.apn'):
-                    emit_event(io, WAIT_CARRIER, ns)
-                    eventlet.sleep(10)
-                    emit_event(io, CHECK_CARRIER, ns)
-                    carrier_resp = run_command(['querymodem', 'carrier'], output=True)
-                    LOG.warn("SIM|CHECK CARRIER STATUS|%s", carrier_resp)
-                    if REG_ERROR.match(carrier_resp) or carrier_resp == "0":
-                        emit_event(io, NO_CARRIER, ns)
-                        # emit_event(io, RESTART_MODEM, ns)
-                        # restart_modem()
-                        # eventlet.sleep(10)
-                    else:
-                        emit_event(io, CARRIER_DETECTED, ns)
-                        emit_event(io, START_WAN, ns)
-                        LOG.warn("Bringing up WAN")
-                        run_command(['ifup', 'wan'])
-                        emit_event(io, WAIT_CONNECTION, ns)
-                        _connected = False
-                        for _ in xrange(6):
-                            _connected = get_connection_status()
-                            if _connected:
-                                emit_event(io, CONNECTED, ns)
-                                break
-                            else:
-                                eventlet.sleep(10)
-                        if not _connected:
-                            emit_event(io, NO_CONNECTION, ns)
-                else:
-                    emit_event(io, REQUIRES_APN, ns)
-                    requires_input = True
         else:
-            emit_event(io, SIM_NOT_READY, ns)
-    else:
-        LOG.error('No such modem configuration exists: SIM: %d MODEM: %d', sim_id, modem_id)
-        emit_event(io, NO_MODEM, ns)
-    if not requires_input:
-        LOG.warn("Bringing up WAN")
+            LOG.error('No such modem configuration exists: SIM: %d MODEM: %d', sim_id, modem_id)
+            emit_event(io, NO_MODEM, ns)
+        if not requires_input:
+            LOG.warn("Bringing up WAN")
+            run_command(['ifup', 'wan'])
+            emit_event(io, ENABLE_3G_MONITOR, ns)
+            LOG.warn('Enabling 3G Monitor')
+            enable_service(THREEG_MONITOR_SERVICE)
+            start_service(THREEG_MONITOR_SERVICE)
+    except Exception as e:
+        restore_sim(previous_sim)
+        LOG.error("Failed to connect with SIM CARD|%d|%r", sim_id, e)
+        emit_event(io, ACTIVE_SIM_RESET, ns)
+        restore_sim(previous_sim)
+        emit_event(io, NO_CONNECTION, ns)
         run_command(['ifup', 'wan'])
         emit_event(io, ENABLE_3G_MONITOR, ns)
         LOG.warn('Enabling 3G Monitor')
         enable_service(THREEG_MONITOR_SERVICE)
         start_service(THREEG_MONITOR_SERVICE)
-
+        
 
 def connect_sim(sim_id, pin='', puk='', apn='', username='', password=''):
     """Attempts to establish a connect to the with this SIM
