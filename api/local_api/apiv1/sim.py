@@ -44,9 +44,9 @@ def get_modem_network_info(*args):
     """
     net_info = {}
     try:
-        info_str = run_command(['querymodem', 'AT+XCELLINFO?'], output=True)
+        info_str = run_command(['querymodem', 'run', 'AT+XCELLINFO?'], output=True)
         if not info_str:
-            info_str = run_command(['querymodem', 'AT+XCELLINFO?'], output=True)
+            info_str = run_command(['querymodem', 'run', 'AT+XCELLINFO?'], output=True)
         LOG.debug("XCELL_INFO INFO: %r", info_str)
         cell_data = info_str.split(',')
         _mode, cell_type, _mcc, mnc, lac, cell_id = cell_data[:6]

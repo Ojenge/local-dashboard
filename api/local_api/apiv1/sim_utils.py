@@ -240,15 +240,15 @@ def restart_modem():
     """Restarts the current modem
     """
     LOG.warn("Restarting modem")
-    s0 = run_command(['querymodem', 'AT+CFUN=4'])
-    s1 = run_command(['querymodem', 'AT+CFUN=6'])
+    s0 = run_command(['querymodem', 'run', 'AT+CFUN=4'])
+    s1 = run_command(['querymodem', 'run', 'AT+CFUN=6'])
     LOG.warn("Restart modem status|%r|%r", s0, s1)
 
 
 def disable_pin(pin):
     """Disable PIN
     """
-    s0 = run_command(['querymodem', "AT+CLCK=SC,0,{}".format(pin)])
+    s0 = run_command(['querymodem', 'run', "AT+CLCK=SC,0,{}".format(pin)])
     LOG.warn("Disable PIN status|%r", s0)
 
 
@@ -341,7 +341,7 @@ def connect_sim_actual(sim_id, modem_id, previous_sim):
                     if puk:
                         emit_event(io, SET_PUK, ns)
                         pin = pin or DEFAULT_PIN
-                        set_puk_status = run_command(['querymodem', 'AT+CPIN={},{}'.format(puk, pin)], output=True)
+                        set_puk_status = run_command(['querymodem', 'run', 'AT+CPIN={},{}'.format(puk, pin)], output=True)
                         LOG.warn("SIM|SET PUK STATUS|%s", set_puk_status)
                         if REG_OK.match(set_puk_status):
                             emit_event(io, DISABLE_PIN, ns)
@@ -373,7 +373,7 @@ def connect_sim_actual(sim_id, modem_id, previous_sim):
                     pin = uci_get(pin_path)
                     if pin:
                         emit_event(io, SET_PIN, ns)
-                        set_pin_status = run_command(['querymodem', 'AT+CPIN={}'.format(pin)], output=True)
+                        set_pin_status = run_command(['querymodem', 'run','AT+CPIN={}'.format(pin)], output=True)
                         LOG.warn("SIM|SET PIN STATUS|%s", set_pin_status)
                         eventlet.sleep(5)
                         sim_status = run_command(['querymodem', 'check_pin'], output=True)

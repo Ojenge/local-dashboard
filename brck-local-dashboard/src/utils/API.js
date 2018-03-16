@@ -93,7 +93,7 @@ const API = {
             .type('json')
             .accept('json')
             .set(AUTH_HEADER, Auth.getToken())
-            .timeout(TIMEOUT)
+            .timeout(LONG_TIMEOUT)
             .on('error', handleError(cb))
             .then(cb);
     },
