@@ -8,7 +8,7 @@ from binascii import hexlify
 from flask_script import Manager
 from flask_migrate import MigrateCommand
 from local_api import app
-from local_api.apiv1.models import create_user
+from local_api.apiv1.models import create_user, delete_user
 
 manager = Manager(app)
 manager.add_command('db', MigrateCommand)
@@ -17,12 +17,24 @@ manager.add_command('db', MigrateCommand)
 @manager.command
 def add_admin_user():
     print('\n---------------------------\n')
-    print("Adding admin user...")
-    status = create_user('admin', 'admin')
+    print("[WARNING] This feature is deprecated.")
+    # print("Adding admin user...")
+    # status = create_user('admin', 'admin')
+    # if status:
+    #     print('[SUCCESS] Admin user has been created')
+    # else:
+    #     print('[ERROR] Admin user creation failed. This may already have been done.')
+
+
+@manager.command
+def del_user(login):
+    print('\n---------------------------\n')
+    print("[INFO] Deleting user with login: {}".format(login))
+    status = delete_user(login)
     if status:
-        print('[SUCCESS] Admin user has been created')
+        print("[SUCCESS] User with login [{}] deleted.".format(login))
     else:
-        print('[ERROR] Admin user creation failed. This may already have been done.')
+        print("[ERROR] User with login [{}] not deleted.".format(login))
 
 @manager.command
 def add_root_user():

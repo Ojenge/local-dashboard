@@ -26,10 +26,18 @@ Installation may be performed using `opkg`
 `opkg install local-dashboard`
 
 - This will set up the API, database and dashboard, the latter will be exposed at http://local.brck.com when accessed from within the SupaBRCK WiFi network.
-- First-time use will require to change the password from the default credentials (admin/admin)
+- Login as the root user account and the associated password.
 
-    You may also login using the device root user account and the associated password.
 
+## Logging
+
+Logs are stored here:
+
+```
+/opt/log/local-dashboard.log
+```
+
+Note that up to 5 log file will be persisted. Logs are rotated daily or when they exceed 10MB in size.
 
 ## Dependencies
 
@@ -53,10 +61,11 @@ These are the runtime dependencies installed via opkg.
 - API 
     - See the API README: https://github.com/brck/local-dashboard/blob/master/api/README.md
 - Frontend
-    - [x] System State
+    - [x] System State (Connections, Storage, Battery)
     - [x] SIM Connection Management
     - [x] Power Management
     - [x] LAN Connection Management
+    - [x] WiFi Bridge connection Management (if available)
     - [x] System version and packages view
     - [x] Diagnostics view
     - [ ] Historical views

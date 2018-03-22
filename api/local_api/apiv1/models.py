@@ -110,7 +110,9 @@ class AuthToken(db.Model):
     expiry = db.Column(db.DateTime, default=generate_expiry, nullable=False)
     principal_id = db.Column(db.String, db.ForeignKey('principal.login'), nullable=False)
     principal = db.relationship('Principal',
-                                backref=db.backref('auth_tokens', lazy=True))
+                                backref=db.backref('auth_tokens',
+                                                   cascade="all, delete-orphan",
+                                                   lazy=True))
 
     def generate_token(self):
         rand = Random.new()
@@ -123,6 +125,10 @@ class AuthToken(db.Model):
 
 def create_user(login, password):
     """Create a user record
+
+    :param str login: User Login
+    :param str password: User Password
+
     :return: bool
     """
     completed = False
@@ -133,6 +139,27 @@ def create_user(login, password):
         completed = True
     except Exception as exc:
         LOG.error('user creation failed: %s : %r', login, exc)
+    return completed
+
+
+def delete_user(login):
+    """Delete a user record
+
+    :param str login: Login
+
+    :return: bool
+    """
+    completed = False
+    assert isinstance(login, basestring)
+    try:
+        user = db.session.query(Principal).filter_by(login=login).one()
+        db.session.delete(user)
+        db.session.commit()
+        completed = True
+    except NoResultFound:
+        LOG.error('No such user exists: %s', login)
+    except Exception as exc:
+        LOG.error('Failed to delete user: %s : %r', login, exc)
     return completed
 
 
