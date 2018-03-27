@@ -189,7 +189,7 @@ def check_login_attempt(login):
     LOG.warn('Login: Attempts for [%s] : [%d]', login, attempts)
     if attempts >= max_attempts:
         LOG.error('Login: Access blocked for [%s]', login)
-        raise APIError(message='Unauthorized', status_code=401)        
+        raise APIError(message='Account Locked', status_code=401)        
 
 
 def check_system_login(login, password):
