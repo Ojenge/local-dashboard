@@ -44,8 +44,7 @@ const API = {
         request.post(BASE_URL + '/auth')
             .send(payload)
             .timeout(TIMEOUT)
-            .on('error', handleError(cb))
-            .then(cb);
+            .end(cb);
     },
     change_password: (payload, cb) => {
         request.patch(BASE_URL + '/auth/password')
