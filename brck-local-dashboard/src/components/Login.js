@@ -41,11 +41,12 @@ class Login extends Component {
         }
     }
 
-    loginCallback = (res) => {
+    loginCallback = (err, res) => {
         this.setState({ working: false });
-        if (!res.ok) {
+        if (err || !res.ok) {
             this.setState({
-                login_error: true
+                login_error: true,
+                login_error_message: res.body.message
             });
         } else {
             var token = res.body.token;
@@ -93,6 +94,7 @@ class Login extends Component {
                 </div>
                 <div className="login-box-body">
                     <p className="login-box-msg">Sign in to start your session</p>
+        {this.state.login_error ? <p className=" login-box-msg text-red">{ this.state.login_error_message }</p> : null }
 
                     <form action="." method="post">
                     <div className={"form-group has-feedback" + (this.state.login_error ? " has-error" : "") }>
@@ -100,7 +102,6 @@ class Login extends Component {
                             autoFocus={1}
                             value={ this.state.login }
                             onChange={this.handleInput} />
-                        { this.state.login_error ? <span className="help-block">Check Login</span> : null }
                         <span className="glyphicon glyphicon-user form-control-feedback"></span>
                     </div>
                     <div className={"form-group has-feedback" + (this.state.login_error ? " has-error" : "") }>
@@ -108,7 +109,6 @@ class Login extends Component {
                             value={this.state.password}
                             onChange={ this.handleInput }
                             onKeyDown={ this.handleKeyDown } />
-                        { this.state.login_error ? <span className="help-block">Check Password</span> : null }
                         <span className="glyphicon glyphicon-lock form-control-feedback"></span>
                     </div>
                     <div className="row">
