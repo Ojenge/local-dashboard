@@ -87,11 +87,15 @@ def get_signal_strength(net_type):
     """
     if net_type == 'wan':
         signal_strength = 0
+        model_id = run_command(['querymodem', 'model_id'], output=True)
         resp = run_command(['querymodem', 'signal'], output=True)
         try:
             rssi = int(resp or '')
-            if (rssi >= 0 and rssi <= 31):
-                signal_strength = (rssi * 827 + 127) >> 8
+            if model_id == 'MU736' or not model_id:
+                if (rssi >= 0 and rssi <= 31):
+                    signal_strength = (rssi * 827 + 127) >> 8
+            else:
+                signal_strength = 0 if (rssi == 255) else rssi
         except ValueError:
             LOG.error("Failed to load signal strength: QueryModem Response: %s", resp)
     else:

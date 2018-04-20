@@ -4,6 +4,7 @@ import os
 import mock
 import pytest
 from copy import copy
+from itertools import chain
 
 from local_api.apiv1 import utils
 from local_api.apiv1 import soc
@@ -72,13 +73,36 @@ EXPECTED_PACKAGE_VERSIONS = [
 def test_get_signal_strength():
     assert utils.get_signal_strength('wan') == 0
     assert utils.get_signal_strength('lan') == 100
+    _side_effect = list(chain(*[['ME936', v] for v in ['99', '0', '1', '30', '31', '255', '']]))
     with mock.patch('local_api.apiv1.utils.run_command',
-                    side_effect=['99', '0', '1', '30', '31']):
+                    side_effect=_side_effect):
+        assert utils.get_signal_strength('wan') == 99
+        assert utils.get_signal_strength('wan') == 0
+        assert utils.get_signal_strength('wan') == 1
+        assert utils.get_signal_strength('wan') == 30
+        assert utils.get_signal_strength('wan') == 31
+        assert utils.get_signal_strength('wan') == 0
+        assert utils.get_signal_strength('wan') == 0
+    _side_effect = list(chain(*[['MU736', v] for v in ['99', '0', '1', '30', '31', '255', '']]))
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=_side_effect):
         assert utils.get_signal_strength('wan') == 0
         assert utils.get_signal_strength('wan') == 0
         assert utils.get_signal_strength('wan') == 3
         assert utils.get_signal_strength('wan') == 97
         assert utils.get_signal_strength('wan') == 100
+        assert utils.get_signal_strength('wan') == 0
+        assert utils.get_signal_strength('wan') == 0
+    _side_effect = list(chain(*[[None, v] for v in ['99', '0', '1', '30', '31', '255', '']]))
+    with mock.patch('local_api.apiv1.utils.run_command',
+                    side_effect=_side_effect):
+        assert utils.get_signal_strength('wan') == 0
+        assert utils.get_signal_strength('wan') == 0
+        assert utils.get_signal_strength('wan') == 3
+        assert utils.get_signal_strength('wan') == 97
+        assert utils.get_signal_strength('wan') == 100
+        assert utils.get_signal_strength('wan') == 0
+        assert utils.get_signal_strength('wan') == 0
 
 
 def test_get_soc_settings():
