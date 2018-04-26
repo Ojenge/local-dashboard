@@ -26,7 +26,9 @@ Installation may be performed using `opkg`
 `opkg install local-dashboard`
 
 - This will set up the API, database and dashboard, the latter will be exposed at http://local.brck.com when accessed from within the SupaBRCK WiFi network.
-- Login as the root user account and the associated password.
+- Login as the `root` user account and the device password.
+
+> Repeated failed authentication attempts will lock out access to the local dashboard for `one hour`
 
 
 ## Logging
