@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# node modlues folder
+/node_modules
+
 # C extensions
 *.so
 
@@ -86,6 +89,7 @@ celerybeat-schedule
 .venv
 venv/
 ENV/
+dash/
 
 # Spyder project settings
 .spyderproject
@@ -99,3 +103,11 @@ ENV/
 
 # mypy
 .mypy_cache/
+settings.json
+
+#iml files
+*.iml
+
+#api cache
+api/.pytest_cache/
+

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 API Controllers for the local dashboard
 """
@@ -9,41 +8,17 @@ import re
 from flask import Blueprint, jsonify, request
 from flask.views import MethodView
 
-from flask_login import (
-    login_required,
-    current_user
-)
+from flask_login import (login_required, current_user)
 from .errors import APIError
-from .utils import (
-    get_system_state,
-    get_battery_status,
-    get_software,
-    get_diagnostics_data
-)
-from .sim import (
-    get_wan_connections,
-    configure_sim
-)
-from .ethernet import (
-    get_ethernet_networks,
-    configure_ethernet
-)
-from .wifi import (
-    get_wireless_config,
-    configure_wifi
-)
-from .soc import (
-    configure_power,
-    get_power_config
-)
-from .models import (
-    check_password,
-    make_token,
-    change_password
-)
+from .utils import (get_system_state, get_battery_status, get_software,
+                    get_diagnostics_data, get_power_data)
+from .sim import (get_wan_connections, configure_sim)
+from .ethernet import (get_ethernet_networks, configure_ethernet)
+from .wifi import (get_wireless_config, configure_wifi)
+from .soc import (configure_power, get_power_config)
+from .models import (check_password, make_token, change_password)
 
 api_blueprint = Blueprint('apiv1', __name__)
-
 
 GET = 'GET'
 POST = 'POST'
@@ -85,12 +60,10 @@ class AuthenticationView(MethodView):
 
 
 class Ping(MethodView):
-    
     def get(self):
         """Provides a PING API
         """
-        return jsonify(dict(about='SupaBRCK Local Dashboard',
-                            version='0.1'))
+        return jsonify(dict(about='SupaBRCK Local Dashboard', version='0.1'))
 
 
 class ProtectedView(MethodView):
@@ -101,7 +74,6 @@ class ProtectedView(MethodView):
 
 
 class ChangePasswordView(ProtectedView):
-    
     def patch(self):
         """Sets a new user password
         :return: string json
@@ -114,9 +86,7 @@ class ChangePasswordView(ProtectedView):
             raise APIError('Invalid Data', errors, 422)
 
 
-
 class SystemAPI(ProtectedView):
-
     def get(self):
         """Returns a JSON struct of the system API
 
@@ -144,13 +114,14 @@ class SystemAPI(ProtectedView):
 
 
 class PowerAPI(ProtectedView):
-    
     def get_config(self, **kwargs):
         if 'live' in request.args:
             kwargs['no_cache'] = True
         config = get_power_config(**kwargs)
         battery = get_battery_status(**kwargs)
+        power = get_power_data(**kwargs)
         config['battery'] = battery
+        config['power'] = power
         return config
 
     def get(self):
@@ -159,7 +130,7 @@ class PowerAPI(ProtectedView):
         :return: string JSON representation of system state
         """
         return jsonify(self.get_config())
-    
+
     def patch(self):
         """Provides an API to perform system power changes
 
@@ -175,8 +146,40 @@ class PowerAPI(ProtectedView):
         else:
             raise APIError('Invalid Data', errors, 422)
 
+
+class SampleAPI(ProtectedView):
+    def get_config(self, **kwargs):
+        if 'live' in request.args:
+            kwargs['no_cache'] = True
+        config = get_power_config(**kwargs)
+        battery = get_battery_status(**kwargs)
+        config['battery'] = battery
+        return config
+
+    def get(self):
+        """Returns the current power configuration of the device
+
+        :return: string JSON representation of system state
+        """
+        return jsonify(self.get_config())
+
+    def patch(self):
+        """Provides an API to perform system power changes
+
+            See System API documentation (Configuring the system)
+        
+        :return: string JSON representation of new system state or error
+        """
+        payload = request.get_json() or {}
+        power_config = payload.get('power') or {}
+        status_code, errors = configure_power(power_config)
+        if status_code == HTTP_OK:
+            return jsonify(self.get_config(no_cache=True))
+        else:
+            raise APIError('Invalid Data', errors, 422)
+
+
 class SoftwareAPI(ProtectedView):
-    
     def get(self):
         """Gets the current software state of the device (os, firmware, packages)
 
@@ -186,7 +189,6 @@ class SoftwareAPI(ProtectedView):
 
 
 class DiagnosticsAPI(ProtectedView):
-    
     def get(self):
         """Gets diagnostics info for a SupaBRCK
 
@@ -203,7 +205,6 @@ class DiagnosticsAPI(ProtectedView):
 
 
 class WANAPI(ProtectedView):
-
     def check_sim_id(self, sim_id):
         if sim_id is None or SIM_ID_REGEX.match(sim_id) is None:
             raise APIError(message='Not Found', status_code=404)
@@ -236,11 +237,10 @@ class WANAPI(ProtectedView):
 
 
 class EthernetAPI(ProtectedView):
-    
     def check_net_id(self, net_id):
         if net_id is None or ETHERNET_ID_REGEX.match(net_id) is None:
             raise APIError(message='Not found', status_code=404)
-    
+
     def get(self, net_id):
         """Returns list of available ethernet connections.
 
@@ -255,7 +255,7 @@ class EthernetAPI(ProtectedView):
             self.check_net_id(net_id)
             connection = get_ethernet_networks(net_id=net_id)[0]
             return jsonify(connection)
-    
+
     def patch(self, net_id):
         self.check_net_id(net_id)
         payload = request.get_json()
@@ -269,11 +269,10 @@ class EthernetAPI(ProtectedView):
 
 
 class WIFIAPI(ProtectedView):
-    
     def check_net_id(self, net_id):
         if net_id is None or WIFI_ID_REGEX.match(net_id) is None:
             raise APIError(message='Not found', status_code=404)
-    
+
     def get(self, net_id):
         """Returns list of available wifi connections.
 
@@ -289,7 +288,6 @@ class WIFIAPI(ProtectedView):
             connection = get_wireless_config(net_id)[0]
             return jsonify(connection)
 
-
     def patch(self, net_id):
         self.check_net_id(net_id)
         payload = request.get_json()
@@ -302,49 +300,56 @@ class WIFIAPI(ProtectedView):
             raise APIError('Invalid Data', errors, 422)
 
 
-
-api_blueprint.add_url_rule('/auth',
-                           view_func=AuthenticationView.as_view('auth'),
-                           methods=[POST])
-api_blueprint.add_url_rule('/auth/password',
-                           view_func=ChangePasswordView.as_view('change_password'),
-                           methods=[PATCH])
+api_blueprint.add_url_rule(
+    '/auth', view_func=AuthenticationView.as_view('auth'), methods=[POST])
+api_blueprint.add_url_rule(
+    '/auth/password',
+    view_func=ChangePasswordView.as_view('change_password'),
+    methods=[PATCH])
 sim_view = WANAPI.as_view('sim_api')
-api_blueprint.add_url_rule('/networks/sim/',
-                           defaults={'sim_id': None},
-                           view_func=sim_view,
-                           methods=[GET])
-api_blueprint.add_url_rule('/networks/sim/<string(length=4):sim_id>',
-                           view_func=sim_view,
-                           methods=[GET, PATCH])
+api_blueprint.add_url_rule(
+    '/networks/sim/',
+    defaults={'sim_id': None},
+    view_func=sim_view,
+    methods=[GET])
+api_blueprint.add_url_rule(
+    '/networks/sim/<string(length=4):sim_id>',
+    view_func=sim_view,
+    methods=[GET, PATCH])
 eth_view = EthernetAPI.as_view('ethernet_api')
-api_blueprint.add_url_rule('/networks/ethernet/',
-                           defaults={'net_id': None},
-                           view_func=eth_view,
-                           methods=[GET])
-api_blueprint.add_url_rule('/networks/ethernet/<string(length=9):net_id>',
-                           view_func=eth_view,
-                           methods=[GET, PATCH])
+api_blueprint.add_url_rule(
+    '/networks/ethernet/',
+    defaults={'net_id': None},
+    view_func=eth_view,
+    methods=[GET])
+api_blueprint.add_url_rule(
+    '/networks/ethernet/<string(length=9):net_id>',
+    view_func=eth_view,
+    methods=[GET, PATCH])
 wifi_view = WIFIAPI.as_view('wif_api')
-api_blueprint.add_url_rule('/networks/wifi/',
-                           defaults={'net_id': None},
-                           view_func=wifi_view,
-                           methods=[GET])
-api_blueprint.add_url_rule('/networks/wifi/<string(length=5):net_id>',
-                           view_func=wifi_view,
-                           methods=[GET, PATCH])
-api_blueprint.add_url_rule('/ping',
-                           view_func=Ping.as_view('ping'),
-                           methods=[GET])
-api_blueprint.add_url_rule('/system',
-                           view_func=SystemAPI.as_view('system_api'),
-                           methods=[GET, PATCH])
-api_blueprint.add_url_rule('/system/software',
-                           view_func=SoftwareAPI.as_view('software_api'),
-                           methods=[GET])
-api_blueprint.add_url_rule('/system/diagnostics',
-                           view_func=DiagnosticsAPI.as_view('diagnostics_api'),
-                           methods=[GET])
-api_blueprint.add_url_rule('/power',
-                           view_func=PowerAPI.as_view('power_api'),
-                           methods=[GET, PATCH])
+api_blueprint.add_url_rule(
+    '/networks/wifi/',
+    defaults={'net_id': None},
+    view_func=wifi_view,
+    methods=[GET])
+api_blueprint.add_url_rule(
+    '/networks/wifi/<string(length=5):net_id>',
+    view_func=wifi_view,
+    methods=[GET, PATCH])
+api_blueprint.add_url_rule(
+    '/ping', view_func=Ping.as_view('ping'), methods=[GET])
+api_blueprint.add_url_rule(
+    '/system', view_func=SystemAPI.as_view('system_api'), methods=[GET, PATCH])
+api_blueprint.add_url_rule(
+    '/system/software',
+    view_func=SoftwareAPI.as_view('software_api'),
+    methods=[GET])
+api_blueprint.add_url_rule(
+    '/system/diagnostics',
+    view_func=DiagnosticsAPI.as_view('diagnostics_api'),
+    methods=[GET])
+api_blueprint.add_url_rule(
+    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET, PATCH])
+
+api_blueprint.add_url_rule(
+    '/power/sample', view_func=SampleAPI.as_view('sample_api'), methods=[GET])
