@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 Utilities for interacting with the filesystem.
 """
@@ -14,8 +15,11 @@ except ImportError:
 from brck.utils import run_command
 from brck.utils import uci_get
 
-from .soc import (get_soc_settings, get_firmware_version,
-                  get_battery_temperature)
+from .soc import (
+    get_soc_settings,
+    get_firmware_version,
+    get_battery_temperature
+)
 from .cache import cached, MINUTE, CACHE
 
 LOG = __import__('logging').getLogger()
@@ -26,11 +30,18 @@ STATE_UNKNOWN = 'UNKNOWN'
 STATE_NO_CONNECTION = 'NO CONNECTION'
 DEVICE_MODES = ['MATATU', 'ALWAYS_ON', 'RETAIL', 'SOLAR_POWERED']
 BRCK_PACKAGES = [
-    '3g-monitor', 'battery-monitor', 'connected_clients', 'core-services',
-    'gps-monitor', 'moja', 'moja-captive', 'python-brck-sdk', 'querymodem',
-    'scan_wifi', 'supabrck-core'
+    '3g-monitor',
+    'battery-monitor',
+    'connected_clients',
+    'core-services',
+    'gps-monitor',
+    'moja',
+    'moja-captive',
+    'python-brck-sdk',
+    'querymodem',
+    'scan_wifi',
+    'supabrck-core'
 ]
-
 
 def get_request_log(r):
     """Gets request metadata as a string for logging
@@ -40,6 +51,7 @@ def get_request_log(r):
     :return: string
     """
     return "%s|%s|%s" % (r.remote_addr, r.path, r.user_agent)
+
 
 
 def get_uci_state(option, command='show', as_dict=True):
@@ -63,9 +75,8 @@ def get_uci_state(option, command='show', as_dict=True):
     out = response
     if as_dict:
         out = dict()
-        if not (response is False) and len(response):
-            out.update(
-                [l.replace("'", "").split('=') for l in response.splitlines()])
+        if not(response is False) and len(response):
+            out.update([l.replace("'", "").split('=') for l in response.splitlines()])
     return out
 
 
@@ -86,9 +97,7 @@ def get_signal_strength(net_type):
             else:
                 signal_strength = 0 if (rssi == 255) else rssi
         except ValueError:
-            LOG.error(
-                "Failed to load signal strength: QueryModem Response: %s",
-                resp)
+            LOG.error("Failed to load signal strength: QueryModem Response: %s", resp)
     else:
         signal_strength = 100
     return signal_strength
@@ -138,16 +147,20 @@ def get_storage_status(mount_point='/storage/data'):
     Assumes that everything is mounted under /
     :return: dict
     """
-    state = dict(total_space=0, used_space=0, available_space=0)
+    state = dict(
+        total_space=0,
+        used_space=0,
+        available_space=0
+    )
     try:
         stats = os.statvfs(mount_point)
         state = dict(
             total_space=stats.f_blocks * stats.f_frsize,
             used_space=(stats.f_blocks - stats.f_bfree) * stats.f_frsize,
-            available_space=stats.f_bavail * stats.f_frsize)
+            available_space=stats.f_bavail * stats.f_frsize
+        )
     except OSError:
-        LOG.error('Failed to get storage status for mountpoint at: %s',
-                  mount_point)
+        LOG.error('Failed to get storage status for mountpoint at: %s', mount_point)
     return state
 
 
@@ -165,7 +178,6 @@ def get_battery_status(no_cache=False):
     """
     if no_cache:
         run_command(['check_battery'])
-
     state = read_file('/tmp/battery/status') or STATE_UNKNOWN
     battery_level = read_file('/tmp/battery/capacity') or 0
     extended = read_file('/tmp/battery/status_ex') or '{}'
@@ -174,11 +186,11 @@ def get_battery_status(no_cache=False):
         extended = json.loads(extended)
     except ValueError:
         battery_level = 0
-        LOG.error('Failed to ready battery capacity | Returned: %s',
-                  battery_level)
+        LOG.error('Failed to ready battery capacity | Returned: %s', battery_level)
     state = dict(
-        state=state.upper(), 
-        battery_level=battery_level)
+        state=state.upper(),
+        battery_level=battery_level
+    )
     state.update(extended)
     if 'charging current' in state:
         state['charging_current'] = state['charging current']
@@ -238,34 +250,33 @@ def get_network_status():
     chilli_list = run_command(['connected_clients', 'list'], output=True)
     if chilli_list:
         num_clients = (chilli_list.splitlines().__len__() - 1)
-    net_order = get_uci_state(
-        'brck.network.order', command='get', as_dict=False)
+    net_order = get_uci_state('brck.network.order', command='get', as_dict=False)
     active_net = None
     if net_order:
         nets = [n.strip() for n in net_order.split(' ')]
         net_state = get_uci_state('network')
         for net in nets:
-            conn_state = net_state.get('network.{}.connected'.format(net),
-                                       '') == '1'
+            conn_state = net_state.get('network.{}.connected'.format(net), '') == '1'
             if conn_state:
                 active_net = net
                 net_type = net.upper()
                 if net in ['wan', 'wan2']:
-                    net_type = net_state.get('network.{}.proto'.format(net),
-                                             STATE_UNKNOWN).upper()
+                    net_type = net_state.get('network.{}.proto'.format(net), STATE_UNKNOWN).upper()
                 elif net == 'wwan':
                     net_type = 'Wireless'
                 break
 
     up, down = get_interface_speed(active_net)
     state = dict(
-        connected=connected,
+        connected = connected,
         connected_clients=num_clients,
         connection=dict(
             connection_type=net_type,
             up_speed=up,
             down_speed=down,
-            signal_strength=get_signal_strength(net_type)))
+            signal_strength=get_signal_strength(net_type)
+        )
+    )
     return state
 
 
@@ -286,7 +297,8 @@ def get_system_state():
         storage=storage_state,
         battery=battery_state,
         power=power_state,
-        network=network_state)
+        network=network_state
+    )
     return state
 
 
@@ -299,21 +311,21 @@ def get_software():
 
     :return: dict
     """
-    os_version = run_command(
-        ['uname', '-s', '-r', '-v', '-o'], output=True) or STATE_UNKNOWN
+    os_version = run_command(['uname', '-s', '-r', '-v', '-o'], output=True) or STATE_UNKNOWN
     firmware_version = get_firmware_version()
     packages_text = run_command(['opkg', 'list-installed'], output=True) or ''
-    package_data = dict(
-        [p.split(' - ') for p in packages_text.splitlines() if p])
+    package_data = dict([p.split(' - ') for p in packages_text.splitlines() if p])
     # we're only interested in a subset of packages
     package_list = []
     for package_name in BRCK_PACKAGES:
         version = package_data.get(package_name)
         installed = version is not None
-        package_list.append(
-            dict(name=package_name, version=version, installed=installed))
+        package_list.append(dict(name=package_name, version=version, installed=installed))
     return dict(
-        os=os_version, firmware=firmware_version, packages=package_list)
+        os=os_version,
+        firmware=firmware_version,
+        packages=package_list
+    )
 
 
 def get_diagnostics_data():
@@ -330,7 +342,7 @@ def get_diagnostics_data():
     client_data = run_command(['connected_clients'], output=True) or '{}'
     try:
         _data = json.loads(client_data)
-        status['clients'] = _data.get('clients', [])
+        status['clients'] = _data.get('clients', [ ])
     except ValueError as exc:
         LOG.error('Failed to load connected_clients: %r', exc)
     modem_temp = run_command(['querymodem', 'temp'], output=True)
@@ -346,45 +358,3 @@ def get_diagnostics_data():
     status['cpu'] = dict(temperature=cpu_temps)
     status['battery'] = dict(temperature=[bat_temp])
     return status
-
-
-def get_power_data():
-    """ 
-    Gets the Power data for the api as per specifications
-    Includes:
-        -battery voltage
-        -charge voltage
-        -charging status
-        -battery temperature
-        -MCU temperature
-        -unit temperature
-        -charging current
-        -whether charger is connected
-
-    return: dict
-    """
-    # get the charging_status, charging current and charge voltage
-    bat_stats = get_battery_status()
-    if bat_stats('charging') !=1
-
-
-    # get the temperature of the unit
-    # unit_temperature =
-    # storage_state = get_storage_status()
-    # battery_state = get_battery_status()
-    # power_state = get_soc_settings()
-    # network_state = get_network_status()
-    # state = dict(
-    #     storage=storage_state,
-    #     battery=battery_state,
-    #     power=power_state,
-    #     network=network_state)
-    # return state
-    battery_stats = dict(
-        charge_percentage=bat_stats('capacity'),
-        charging_status=bat_stats('status')
-        charging_current=bat_stats('charging_current'),
-        charge_voltage=bat_stats('voltage'),
-    )
-
-    return battery_stats

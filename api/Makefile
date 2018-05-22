@@ -1,4 +1,4 @@
-test:
+test:	
 	FLASK_TESTING=1 python -m pytest -vv --cov=local_api --cov-report html
 
 test.verbose:	

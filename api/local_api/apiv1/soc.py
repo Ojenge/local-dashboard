@@ -11,6 +11,7 @@ from brck.utils import uci_commit
 
 from .schema import Validator
 from .cache import cached, MINUTE
+
 """
 {'AlarmPwrOnHour': 6,
  'AlarmPwrOnMinute': 0,
@@ -40,18 +41,10 @@ MODE_VEHICLE = 'VEHICLE'
 MODE_MANUAL = 'MANUAL'
 MODES = [MODE_NORMAL, MODE_TIMED, MODE_ALWAYS_ON, MODE_VEHICLE, MODE_MANUAL]
 MODE_DEFAULTS = {
-    MODE_NORMAL: {
-        'retail': 1
-    },
-    MODE_ALWAYS_ON: {
-        'auto_start': 1
-    },
-    MODE_VEHICLE: {
-        'auto_start': 0
-    },
-    MODE_TIMED: {
-        'auto_start': 0
-    }
+    MODE_NORMAL: { 'retail': 1 },
+    MODE_ALWAYS_ON: {'auto_start': 1},
+    MODE_VEHICLE: { 'auto_start': 0},
+    MODE_TIMED: { 'auto_start': 0 }
 }
 
 
@@ -83,10 +76,10 @@ def parse_serial(raw_content, to_type=int):
     """Parses Serial Response into a dictionary
     :return: dict
     """
-    stripped = re.sub(r'[\{\}\"]', '', raw_content)
+    stripped = re.sub(r'[\{\}\"]', '',  raw_content)
     configs = stripped.split(',')
     tuples = [c.split(":", 1) for c in configs]
-    return dict([(k.strip(), to_type(v.strip())) for k, v in tuples])
+    return dict([(k.strip(), to_type(v.strip())) for k,v in tuples])
 
 
 @cached(timeout=(MINUTE * 10))
@@ -99,19 +92,14 @@ def get_soc_settings(no_cache=False):
     try:
         resp = read_serial('RDC')
         parsed = parse_serial(resp)
-        soc_settings[
-            'on_time'] = '{d[AlarmPwrOnHour]:02d}:{d[AlarmPwrOnMinute]:02d}'.format(
-                d=parsed)
-        soc_settings[
-            'off_time'] = '{d[PowerOffHour]:02d}:{d[PowerOffMinute]:02d}'.format(
-                d=parsed)
+        soc_settings['on_time'] = '{d[AlarmPwrOnHour]:02d}:{d[AlarmPwrOnMinute]:02d}'.format(d=parsed)
+        soc_settings['off_time'] = '{d[PowerOffHour]:02d}:{d[PowerOffMinute]:02d}'.format(d=parsed)
         soc_settings['soc_on'] = parsed['SocPwrOnLevel']
         soc_settings['soc_off'] = parsed['SocPwrOffLevel']
         soc_settings['delay_off'] = parsed['DelayedOffTimerEnable']
         soc_settings['delay_off_minutes'] = parsed['DelayOffTimerMinutes']
         soc_settings['retail'] = parsed['RetailMode']
         soc_settings['auto_start'] = parsed['IsAutoStart']
-        soc_settings['battery_temp'] = parsed['']
     except SyntaxError as e:
         LOG.error("Failed to parse SOC settings. Syntax error: %r", e)
     except Exception as e:
@@ -137,8 +125,7 @@ def get_firmware_version():
 
 @cached(timeout=(MINUTE * 10), ignore=[STATE_UNKNOWN])
 def get_battery_temperature():
-    """
-    Gets the current battery temperature
+    """Gets the current battery temperature
     """
     bat_temp = STATE_UNKNOWN
     try:
@@ -185,7 +172,6 @@ def validate_payload(payload):
         payload.update(MODE_DEFAULTS.get(mode, {}))
     return (validator, payload)
 
-
 def payload_to_command(payload):
     """Converts API payload to serial command
     """
@@ -200,12 +186,11 @@ def payload_to_command(payload):
     delay_off_minutes = payload.get('delay_off_minutes', 0)
     retail = payload.get('retail', 0)
     command = 'WRC%d,%d,%d,%d,%d,%d,%d,%d,%d,%d' % (soc_on, soc_off,
-                                                    on_date.hour,
-                                                    on_date.minute,
-                                                    off_date.hour,
-                                                    off_date.minute,
+                                                    on_date.hour, on_date.minute,
+                                                    off_date.hour, off_date.minute,
                                                     auto_start, delay_off,
-                                                    delay_off_minutes, retail)
+                                                    delay_off_minutes,
+                                                    retail)
     return command
 
 
@@ -217,7 +202,7 @@ def set_soc(payload):
     command = payload_to_command(payload)
     status = False
     port = None
-    try:
+    try:        
         port = serial.Serial(DEVICE, timeout=TIMEOUT)
         port.write(command)
         status = True
@@ -257,7 +242,10 @@ def get_power_config(**kwargs):
         configured = True
     else:
         mode = None
-    config = dict(configured=configured, mode=mode)
+    config = dict(
+        configured=configured,
+        mode=mode
+    )
     soc_settings = get_soc_settings(**kwargs)
     config.update(soc_settings)
     return config

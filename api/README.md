@@ -9,20 +9,9 @@ Implementation of a REST api to read and configure a SupaBRCK.
 The development environment can be initialized like so:
 
 ```bash
-virtualenv dash
-```
-start the virtualenv you have created above
-```
-cd dash/
-source bin/activate
-```
-Install the requirements:
-
-```
+mkvirtuenv dash
+# checkout brck-sdk
 python setup.py install
-```
-Install the dev requirements
-```
 pip install -r dev_requirements.txt
 ```
 
