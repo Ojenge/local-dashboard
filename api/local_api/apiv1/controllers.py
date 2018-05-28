@@ -11,7 +11,7 @@ from flask.views import MethodView
 from flask_login import (login_required, current_user)
 from .errors import APIError
 from .utils import (get_system_state, get_battery_status, get_software,
-                    get_diagnostics_data, get_power_data)
+                    get_diagnostics_data, get_power_data, get_modem_status)
 from .sim import (get_wan_connections, configure_sim)
 from .ethernet import (get_ethernet_networks, configure_ethernet)
 from .wifi import (get_wireless_config, configure_wifi)
@@ -300,6 +300,22 @@ class WIFIAPI(ProtectedView):
             raise APIError('Invalid Data', errors, 422)
 
 
+class ModemAPI(ProtectedView):
+
+    def get_config(self, **kwargs):
+        if 'live' in request.args:
+            kwargs['no_cache'] = True
+        config = get_modem_status(**kwargs)
+        return config
+
+    def get(self):
+        """Returns the current power configuration of the device
+
+        :return: string JSON representation of system state
+        """
+        return jsonify(self.get_config())
+
+
 api_blueprint.add_url_rule(
     '/auth', view_func=AuthenticationView.as_view('auth'), methods=[POST])
 api_blueprint.add_url_rule(
@@ -349,7 +365,9 @@ api_blueprint.add_url_rule(
     view_func=DiagnosticsAPI.as_view('diagnostics_api'),
     methods=[GET])
 api_blueprint.add_url_rule(
-    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET, PATCH])
-
+    '/modem', view_func=ModemAPI.as_view('modem_api'),
+    methods=[GET])
 api_blueprint.add_url_rule(
-    '/power/sample', view_func=SampleAPI.as_view('sample_api'), methods=[GET])
+    '/power', view_func=PowerAPI.as_view('power_api'),
+    methods=[GET, PATCH])
+

@@ -347,6 +347,18 @@ def get_diagnostics_data():
     status['battery'] = dict(temperature=[bat_temp])
     return status
 
+def get_modem_status():
+    """
+    get modem data
+    :return: json
+    """
+    modem_status = {}
+    modem_temp = run_command(['querymodem','temperature'], output=True)
+    modem_signal = run_command(['querymodem','signal'], output=True)
+    modem_status['temperature'] = float(modem_temp)
+    modem_status['signal'] = int(modem_signal)
+    return modem_status
+
 
 def get_power_data():
     """ 
@@ -365,7 +377,6 @@ def get_power_data():
     """
     # get the charging_status, charging current and charge voltage
     bat_stats = get_battery_status()
-    if bat_stats('charging') !=1
 
 
     # get the temperature of the unit
@@ -382,9 +393,9 @@ def get_power_data():
     # return state
     battery_stats = dict(
         charge_percentage=bat_stats('capacity'),
-        charging_status=bat_stats('status')
+        charging_status=bat_stats('status'),
         charging_current=bat_stats('charging_current'),
-        charge_voltage=bat_stats('voltage'),
+        charge_voltage=bat_stats('voltage')
     )
 
     return battery_stats
