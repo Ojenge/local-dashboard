@@ -176,9 +176,7 @@ def get_battery_status(no_cache=False):
         battery_level = 0
         LOG.error('Failed to ready battery capacity | Returned: %s',
                   battery_level)
-    state = dict(
-        state=state.upper(), 
-        battery_level=battery_level)
+    state = dict(state=state.upper(), battery_level=battery_level)
     state.update(extended)
     if 'charging current' in state:
         state['charging_current'] = state['charging current']
@@ -301,7 +299,7 @@ def get_software():
     """
     os_version = run_command(
         ['uname', '-s', '-r', '-v', '-o'], output=True) or STATE_UNKNOWN
-    firmware_version = get_firmware_version()
+    # firmware_version = get_firmware_version()
     packages_text = run_command(['opkg', 'list-installed'], output=True) or ''
     package_data = dict(
         [p.split(' - ') for p in packages_text.splitlines() if p])
@@ -312,8 +310,27 @@ def get_software():
         installed = version is not None
         package_list.append(
             dict(name=package_name, version=version, installed=installed))
-    return dict(
-        os=os_version, firmware=firmware_version, packages=package_list)
+    return dict(os=os_version, packages=package_list)
+
+
+def get_firmware():
+    """
+    returns the firmware version
+    :return: dict
+    """
+    firmware_version = get_firmware_version()
+    return dict(firmware=firmware_version)
+
+
+def get_os():
+    """
+    returns the os version
+    :return:dict
+    """
+    os_version = run_command(
+        ['uname', '-s', '-r', '-v', '-o'], output=True) or STATE_UNKNOWN
+
+    return dict(os=os_version)
 
 
 def get_diagnostics_data():
@@ -347,14 +364,15 @@ def get_diagnostics_data():
     status['battery'] = dict(temperature=[bat_temp])
     return status
 
+
 def get_modem_status():
     """
     get modem data
     :return: json
     """
     modem_status = {}
-    modem_temp = run_command(['querymodem','temperature'], output=True)
-    modem_signal = run_command(['querymodem','signal'], output=True)
+    modem_temp = run_command(['querymodem', 'temperature'], output=True)
+    modem_signal = run_command(['querymodem', 'signal'], output=True)
     modem_status['temperature'] = float(modem_temp)
     modem_status['signal'] = int(modem_signal)
     return modem_status
@@ -375,27 +393,19 @@ def get_power_data():
 
     return: dict
     """
-    # get the charging_status, charging current and charge voltage
     bat_stats = get_battery_status()
 
-
-    # get the temperature of the unit
-    # unit_temperature =
-    # storage_state = get_storage_status()
-    # battery_state = get_battery_status()
-    # power_state = get_soc_settings()
-    # network_state = get_network_status()
-    # state = dict(
-    #     storage=storage_state,
-    #     battery=battery_state,
-    #     power=power_state,
-    #     network=network_state)
-    # return state
     battery_stats = dict(
         charge_percentage=bat_stats('capacity'),
         charging_status=bat_stats('status'),
         charging_current=bat_stats('charging_current'),
-        charge_voltage=bat_stats('voltage')
-    )
+        charge_voltage=bat_stats('voltage'))
 
     return battery_stats
+
+
+def get_packages_data():
+    """
+    gets the list of packages installed and their versions
+    return:dict
+    """

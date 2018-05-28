@@ -11,7 +11,8 @@ from flask.views import MethodView
 from flask_login import (login_required, current_user)
 from .errors import APIError
 from .utils import (get_system_state, get_battery_status, get_software,
-                    get_diagnostics_data, get_power_data, get_modem_status)
+                    get_diagnostics_data, get_power_data, get_modem_status,
+                    get_firmware, get_os)
 from .sim import (get_wan_connections, configure_sim)
 from .ethernet import (get_ethernet_networks, configure_ethernet)
 from .wifi import (get_wireless_config, configure_wifi)
@@ -179,6 +180,23 @@ class SampleAPI(ProtectedView):
             raise APIError('Invalid Data', errors, 422)
 
 
+class OSAPI(ProtectedView):
+    def get(self):
+        """
+        gets the current operating system plus the OS time
+        """
+
+        return jsonify(get_os())
+
+
+class FirmwareAPI(ProtectedView):
+    def get(self):
+        """
+        gets the Firmware details including the firmware time
+        """
+        return jsonify(get_firmware())
+
+
 class SoftwareAPI(ProtectedView):
     def get(self):
         """Gets the current software state of the device (os, firmware, packages)
@@ -301,7 +319,6 @@ class WIFIAPI(ProtectedView):
 
 
 class ModemAPI(ProtectedView):
-
     def get_config(self, **kwargs):
         if 'live' in request.args:
             kwargs['no_cache'] = True
@@ -324,10 +341,7 @@ api_blueprint.add_url_rule(
     methods=[PATCH])
 sim_view = WANAPI.as_view('sim_api')
 api_blueprint.add_url_rule(
-    '/networks/sim/',
-    defaults={'sim_id': None},
-    view_func=sim_view,
-    methods=[GET])
+    '/sim', defaults={'sim_id': None}, view_func=sim_view, methods=[GET])
 api_blueprint.add_url_rule(
     '/networks/sim/<string(length=4):sim_id>',
     view_func=sim_view,
@@ -357,17 +371,17 @@ api_blueprint.add_url_rule(
 api_blueprint.add_url_rule(
     '/system', view_func=SystemAPI.as_view('system_api'), methods=[GET, PATCH])
 api_blueprint.add_url_rule(
-    '/system/software',
-    view_func=SoftwareAPI.as_view('software_api'),
-    methods=[GET])
+    '/packages', view_func=SoftwareAPI.as_view('software_api'), methods=[GET])
 api_blueprint.add_url_rule(
     '/system/diagnostics',
     view_func=DiagnosticsAPI.as_view('diagnostics_api'),
     methods=[GET])
 api_blueprint.add_url_rule(
-    '/modem', view_func=ModemAPI.as_view('modem_api'),
-    methods=[GET])
+    '/modem', view_func=ModemAPI.as_view('modem_api'), methods=[GET])
 api_blueprint.add_url_rule(
-    '/power', view_func=PowerAPI.as_view('power_api'),
-    methods=[GET, PATCH])
+    '/firmware', view_func=FirmwareAPI.as_view('firmware_api'), methods=[GET])
+api_blueprint.add_url_rule(
+    '/os', view_func=OSAPI.as_view('os_api'), methods=[GET])
 
+api_blueprint.add_url_rule(
+    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET, PATCH])
