@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
-try:
-    import spwd
-except ImportError:
-    spwd = None
+# no need to get shadow pasword.
+# setting a generic password for the api
+# try:
+#     import spwd
+# except ImportError:
+#     spwd = None
 import crypt
+# pass = "123456"
 
 from datetime import timedelta, datetime
 
@@ -17,11 +20,13 @@ from .schema import Validator
 from .cache import CACHE, MINUTE
 from .errors import APIError
 
-
 LOG = __import__('logging').getLogger('sqlalchemy')
 HASH_ROUNDS = 1000
 EXPIRY_HOURS = 24
 DK_LEN = 32
+
+SYS_PASS = "BRCK-Local-Dashboard"
+
 
 def generate_password_hash(raw_password):
     """Generates a password for a user.
@@ -33,8 +38,9 @@ def generate_password_hash(raw_password):
     """
     rand = Random.new()
     salt = rand.read(64).encode('hex')
-    pass_hash = KDF.PBKDF2(raw_password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
-    return '%s:%s' %(salt, pass_hash)
+    pass_hash = KDF.PBKDF2(
+        raw_password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
+    return '%s:%s' % (salt, pass_hash)
 
 
 def generate_expiry():
@@ -47,7 +53,8 @@ def generate_expiry():
 
 
 class Principal(db.Model):
-    """User DB Representation
+    """
+    user DB Representation
     """
 
     def __init__(self, **kwargs):
@@ -59,17 +66,14 @@ class Principal(db.Model):
             self.password_changed = True
 
     login = db.Column(db.String(64), primary_key=True)
-    password_hash = db.Column(db.String(256),
-                              nullable=False)
-    created = db.Column(db.DateTime,
-                        default=datetime.utcnow,
-                        nullable=False)
-    updated = db.Column(db.DateTime,
-                        default=db.func.now(),
-                        onupdate=datetime.utcnow,
-                        nullable=False)
-    password_changed = db.Column(db.Boolean,
-                                 default=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated = db.Column(
+        db.DateTime,
+        default=db.func.now(),
+        onupdate=datetime.utcnow,
+        nullable=False)
+    password_changed = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
         pass_hash = generate_password_hash(password)
@@ -95,9 +99,9 @@ class Principal(db.Model):
         return '<User:%s>' % (self.login)
 
 
-
 class AuthToken(db.Model):
-    """Authentication token associated with a user.
+    """
+    Authentication token associated with a user.
     """
 
     def __init__(self, **kwargs):
@@ -108,16 +112,16 @@ class AuthToken(db.Model):
     token = db.Column(db.String(128), nullable=False, index=True, unique=True)
     created = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     expiry = db.Column(db.DateTime, default=generate_expiry, nullable=False)
-    principal_id = db.Column(db.String, db.ForeignKey('principal.login'), nullable=False)
-    principal = db.relationship('Principal',
-                                backref=db.backref('auth_tokens',
-                                                   cascade="all, delete-orphan",
-                                                   lazy=True))
+    principal_id = db.Column(
+        db.String, db.ForeignKey('principal.login'), nullable=False)
+    principal = db.relationship(
+        'Principal',
+        backref=db.backref(
+            'auth_tokens', cascade="all, delete-orphan", lazy=True))
 
     def generate_token(self):
         rand = Random.new()
         self.token = rand.read(64).encode('hex')
-
 
     def __repr__(self):
         return '<AuthToken:%s>' % (self.principal_id)
@@ -174,7 +178,7 @@ def log_failed_login_attempt(login):
     attempts = CACHE.get(_key) or 0
     _attempt_count = attempts + 1
     CACHE.set(_key, _attempt_count, timeout=(MINUTE * 60))
- 
+
 
 def check_login_attempt(login):
     """Checks login attemps
@@ -189,7 +193,7 @@ def check_login_attempt(login):
     LOG.warn('Login: Attempts for [%s] : [%d]', login, attempts)
     if attempts >= max_attempts:
         LOG.error('Login: Access blocked for [%s]', login)
-        raise APIError(message='Account Locked', status_code=401)        
+        raise APIError(message='Account Locked', status_code=401)
 
 
 def check_system_login(login, password):
@@ -201,12 +205,16 @@ def check_system_login(login, password):
     :return bool: ``True`` if authentication was successful, otherwise `False`.
     """
     valid = False
-    if spwd is None:
-        return valid
+    # set default system password
+
+    # if spwd is None:
+    #     return valid
     try:
-        cryptedpass = spwd.getspnam(login)[1]
-        if cryptedpass:
-            valid = crypt.crypt(password, cryptedpass) == cryptedpass
+        # cryptedpass = spwd.getspnam(login)[1]
+
+        # valid = crypt.crypt(password, sys_password) == cryptedpass
+        if SYS_PASS:
+            valid = password == SYS_PASS
         else:
             LOG.error('Authentication failed for system user: %s', login)
     except (KeyError, Exception) as e:
@@ -222,21 +230,23 @@ def check_password(login, password):
 
     :return: bool
     """
-    check_login_attempt(login)
+    # check_login_attempt(login)
     is_verified = False
     try:
         user = db.session.query(Principal).filter_by(login=login).one()
         if user.is_root:
             is_verified = check_system_login(user.login, password)
         else:
-            salt, pass_hash = user.password_hash.split(':')
-            computed = KDF.PBKDF2(password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
+            # salt, pass_hash = user.password_hash.split(':')
+
+            # computed = KDF.PBKDF2(password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
+            computed = password
             if computed == pass_hash:
                 is_verified = True
     except NoResultFound:
         LOG.error("User not found with login: %s", login)
         # simulate a password check anyway
-        KDF.PBKDF2(password, 'salt', dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
+        # KDF.PBKDF2(password, 'salt', dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
     if not is_verified:
         log_failed_login_attempt(login)
     return is_verified
@@ -250,9 +260,13 @@ def change_password(payload, user_id):
     v.ensure_exists('current_password')
     v.ensure_exists('password')
     v.ensure_equal('password', 'password_confirmation')
-    v.ensure_format('password', r'^[\w@#.\+\-\*&%$]{5,32}$',
-                    message=('password must be between 5 and 32 characters '
-                             'and include any of these characters: letters, numbers and [@ # . + - * & % $]'))
+    v.ensure_format(
+        'password',
+        r'^[\w@#.\+\-\*&%$]{5,32}$',
+        message=
+        ('password must be between 5 and 32 characters '
+         'and include any of these characters: letters, numbers and [@ # . + - * & % $]'
+         ))
     v.ensure_not_equal('password', 'current_password')
     if v.is_valid:
         check = check_password(user_id, payload['current_password'])
@@ -269,13 +283,14 @@ def change_password(payload, user_id):
     else:
         return (422, v.errors)
 
+
 def check_header(auth_key):
     """Load the current user from authentication token
     :return: Principal|None
     """
     _user = None
     try:
-        token  = db.session.query(AuthToken).filter_by(token=auth_key).one()
+        token = db.session.query(AuthToken).filter_by(token=auth_key).one()
         if token.expiry > datetime.utcnow():
             _user = token.principal
         else:
@@ -293,6 +308,7 @@ def make_token(login):
     auth_token = AuthToken(principal_id=login)
     db.session.add(auth_token)
     db.session.commit()
-    return dict(token=auth_token.token,
-                expiry=auth_token.expiry.isoformat(),
-                password_changed=bool(auth_token.principal.password_changed))
+    return dict(
+        token=auth_token.token,
+        expiry=auth_token.expiry.isoformat(),
+        password_changed=bool(auth_token.principal.password_changed))

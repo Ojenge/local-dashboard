@@ -330,7 +330,7 @@ class ModemAPI(ProtectedView):
 
         :return: string JSON representation of system state
         """
-        return jsonify(self.get_config())
+        return jsonify(get_modem_status())
 
 
 api_blueprint.add_url_rule(
@@ -376,12 +376,11 @@ api_blueprint.add_url_rule(
     '/system/diagnostics',
     view_func=DiagnosticsAPI.as_view('diagnostics_api'),
     methods=[GET])
+
 api_blueprint.add_url_rule(
     '/modem', view_func=ModemAPI.as_view('modem_api'), methods=[GET])
+
 api_blueprint.add_url_rule(
     '/firmware', view_func=FirmwareAPI.as_view('firmware_api'), methods=[GET])
 api_blueprint.add_url_rule(
     '/os', view_func=OSAPI.as_view('os_api'), methods=[GET])
-
-api_blueprint.add_url_rule(
-    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET, PATCH])

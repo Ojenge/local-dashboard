@@ -368,13 +368,15 @@ def get_diagnostics_data():
 def get_modem_status():
     """
     get modem data
-    :return: json
+    :return: dict
     """
     modem_status = {}
     modem_temp = run_command(['querymodem', 'temperature'], output=True)
     modem_signal = run_command(['querymodem', 'signal'], output=True)
-    modem_status['temperature'] = float(modem_temp)
-    modem_status['signal'] = int(modem_signal)
+    if (modem_temp is not None):
+        modem_status['temperature'] = modem_temp
+    if (modem_signal is not None):
+        modem_status['signal'] = modem_signal
     return modem_status
 
 
@@ -402,10 +404,3 @@ def get_power_data():
         charge_voltage=bat_stats('voltage'))
 
     return battery_stats
-
-
-def get_packages_data():
-    """
-    gets the list of packages installed and their versions
-    return:dict
-    """
