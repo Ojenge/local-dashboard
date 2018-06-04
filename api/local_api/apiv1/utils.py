@@ -6,6 +6,7 @@ Utilities for interacting with the filesystem.
 import os
 import time
 import psutil
+
 try:
     import simplejson as json
 except ImportError:
@@ -373,10 +374,8 @@ def get_modem_status():
     modem_status = {}
     modem_temp = run_command(['querymodem', 'temperature'], output=True)
     modem_signal = run_command(['querymodem', 'signal'], output=True)
-    if (modem_temp is not None):
-        modem_status['temperature'] = modem_temp
-    if (modem_signal is not None):
-        modem_status['signal'] = modem_signal
+    modem_status['temperature'] = modem_temp
+    modem_status['signal'] = modem_signal
     return modem_status
 
 
