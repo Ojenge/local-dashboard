@@ -117,19 +117,16 @@ tags:
       Note that for Ethernet connections, when `dhcp_enabled` is flagged as
       `true`, network_information will be disregarded except `dns_servers` when
       provided.
+  - name: Power
+    description: >
+      The power state reports on power state of the device. It gives details
+      about the SupaBRCKS current power stats.
   - name: Sim
-    description: ''
-securityDefinitions:
-  XAuthTokenKey:
-    name: X-Auth-Token-Key
-    type: apiKey
-    in: header
-security:
-  - XAuthTokenKey: []
-parameters:
-  connectionId:
-    name: id
-    in: path
-    type: string
-    required: true
-    description: The unique ID of the device.
+    description: |
+      The SIM represents details on the SIMN status of the SB.
+  - name: Modem
+    description: |
+      Thsi gives the modem details of the SB.
+  - name: Packages
+    description: |
+      Gives detials about the packages insalled in the SB.

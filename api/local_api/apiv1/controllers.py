@@ -35,7 +35,8 @@ WIFI_ID_REGEX = re.compile(r'^WIFI[1]$')
 
 @api_blueprint.app_errorhandler(APIError)
 def handle_bad_data_error(error):
-    """API Error handler
+    """
+    API Error handler
     :return: flask.Response
     """
     response = jsonify(error.to_dict())
@@ -44,11 +45,13 @@ def handle_bad_data_error(error):
 
 
 class AuthenticationView(MethodView):
-    """Authentication views.
+    """
+    Authentication views.
     """
 
     def post(self):
-        """Responds with an authorized token or error.
+        """
+        Responds with an authorized token or error.
         :return:
         """
         payload = request.get_json()
@@ -57,18 +60,20 @@ class AuthenticationView(MethodView):
         if check_password(login, password):
             return jsonify(make_token(login))
         else:
-            raise APIError(message='Bad Credentials', status_code=401)
+            raise APIError(message='Wrong Credentials', status_code=401)
 
 
 class Ping(MethodView):
     def get(self):
-        """Provides a PING API
+        """
+        Provides a PING API
         """
         return jsonify(dict(about='SupaBRCK Local Dashboard', version='0.1'))
 
 
 class ProtectedView(MethodView):
-    """Protected view requiring authorization
+    """
+    Protected view requiring authorization
     """
 
     decorators = [login_required]
@@ -76,7 +81,8 @@ class ProtectedView(MethodView):
 
 class ChangePasswordView(ProtectedView):
     def patch(self):
-        """Sets a new user password
+        """
+        Sets a new user password
         :return: string json
         """
         payload = request.get_json() or {}
@@ -89,9 +95,10 @@ class ChangePasswordView(ProtectedView):
 
 class SystemAPI(ProtectedView):
     def get(self):
-        """Returns a JSON struct of the system API
+        """
+        Returns a JSON struct of the system API
 
-            See System API documentation
+        See System API documentation
 
         :return: string JSON representation of system state
         """
@@ -99,9 +106,10 @@ class SystemAPI(ProtectedView):
         return jsonify(state)
 
     def patch(self):
-        """Provides an API to perform system changes
+        """
+        Provides an API to perform system changes
 
-            See System API documentation (Configuring the system)
+        See System API documentation (Configuring the system)
         
         :return: string JSON representation of new system state or error
         """
@@ -131,53 +139,6 @@ class PowerAPI(ProtectedView):
         :return: string JSON representation of system state
         """
         return jsonify(self.get_config())
-
-    def patch(self):
-        """Provides an API to perform system power changes
-
-            See System API documentation (Configuring the system)
-        
-        :return: string JSON representation of new system state or error
-        """
-        payload = request.get_json() or {}
-        power_config = payload.get('power') or {}
-        status_code, errors = configure_power(power_config)
-        if status_code == HTTP_OK:
-            return jsonify(self.get_config(no_cache=True))
-        else:
-            raise APIError('Invalid Data', errors, 422)
-
-
-class SampleAPI(ProtectedView):
-    def get_config(self, **kwargs):
-        if 'live' in request.args:
-            kwargs['no_cache'] = True
-        config = get_power_config(**kwargs)
-        battery = get_battery_status(**kwargs)
-        config['battery'] = battery
-        return config
-
-    def get(self):
-        """Returns the current power configuration of the device
-
-        :return: string JSON representation of system state
-        """
-        return jsonify(self.get_config())
-
-    def patch(self):
-        """Provides an API to perform system power changes
-
-            See System API documentation (Configuring the system)
-        
-        :return: string JSON representation of new system state or error
-        """
-        payload = request.get_json() or {}
-        power_config = payload.get('power') or {}
-        status_code, errors = configure_power(power_config)
-        if status_code == HTTP_OK:
-            return jsonify(self.get_config(no_cache=True))
-        else:
-            raise APIError('Invalid Data', errors, 422)
 
 
 class OSAPI(ProtectedView):
@@ -379,6 +340,8 @@ api_blueprint.add_url_rule(
 
 api_blueprint.add_url_rule(
     '/modem', view_func=ModemAPI.as_view('modem_api'), methods=[GET])
+api_blueprint.add_url_rule(
+    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET])
 
 api_blueprint.add_url_rule(
     '/firmware', view_func=FirmwareAPI.as_view('firmware_api'), methods=[GET])
