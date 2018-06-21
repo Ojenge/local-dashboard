@@ -264,6 +264,11 @@ def test_ping(client):
     resp = client.get('/api/v1/ping')
     assert resp.status_code == 200
 
+    
+def test_device_mode(client):
+    resp = client.get('/api/v1/device-mode')
+    assert resp.status_code == 200
+
 
 def _test_expired_token(client, expired_headers):
     resp = client.get('/api/v1/system', headers=expired_headers)

@@ -4,8 +4,34 @@ import { NavLink, Link } from 'react-router-dom';
 
 import LogoMini from '../media/brck-logo-mini.svg';
 import LogoLarge from '../media/brck-logo-lg.svg';
+import API from '../utils/API'
 
 class Container extends Component {
+  constructor(props) {
+    super(props);
+      this.state = {
+        retailMode: 1
+      }
+  }
+
+  setDeviceMode = (err, res) => {
+    if (res.ok){
+      var retail;
+      if (res.body.mode == "RETAIL"){
+        retail = 1;
+      } else {
+        retail = 0;
+      }
+      this.setState({
+        retailMode: retail
+      });
+
+    }
+  }
+
+  componentDidMount(){
+    API.get_device_mode(this.setDeviceMode);
+  }
 
   renderHeader = () => {
     return (
@@ -51,7 +77,46 @@ class Container extends Component {
     );
   }
 
-  renderSideBar = () => {
+  renderRetailSideBar = () => {
+    return (
+      <aside className="main-sidebar">
+          <section className="sidebar">
+            <ul className="sidebar-menu" data-widget="tree">
+              {/* <li className="treeview main-dropdown">
+                <a href="#">
+                  <b className="caret"></b>
+                  <span className="main-dropdown-title">SupaBRCK DASHBOARD</span>      
+                </a>
+              </li> */}
+    
+              <li>
+                <NavLink to="/dashboard">
+                  <i className="fa fa-calendar"></i>
+                  <span>Dashboard</span>
+                  <span className="pull-right-container" />
+                </NavLink>
+              </li>
+              <li>
+                    <NavLink to="/connect-all">
+                      <i className="fa fa-wifi"></i>
+                      <span>Connectivity</span>
+                      <span className="pull-right-container" />
+                    </NavLink>
+              </li>
+              <li>
+                <NavLink to="/about">
+                  <i className="fa fa-linux"></i>
+                  <span>About</span>
+                  <span className="pull-right-container" />
+                </NavLink>
+              </li>
+            </ul>
+          </section>
+        </aside>
+    );
+  }
+
+  renderAdvancedSideBar = () => {
     return (
       <aside className="main-sidebar">
           <section className="sidebar">
@@ -133,7 +198,9 @@ class Container extends Component {
     return(
       <div className={"content-wrapper-wrapper"}>
         { this.renderHeader() }
-        { this.renderSideBar() }
+        {(this.state.retailMode)
+         ? this.renderRetailSideBar()
+         : this.renderAdvancedSideBar() }
         <div className="content-wrapper">
           { this.props.children }
         </div>

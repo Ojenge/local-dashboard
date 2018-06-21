@@ -18,7 +18,8 @@ from .utils import (
     get_system_state,
     get_battery_status,
     get_software,
-    get_diagnostics_data
+    get_diagnostics_data,
+    get_device_mode
 )
 from .sim import (
     get_wan_connections,
@@ -113,6 +114,13 @@ class ChangePasswordView(ProtectedView):
         else:
             raise APIError('Invalid Data', errors, 422)
 
+
+class DeviceModeAPI(MethodView):
+    def get(self):
+        """Returns the mode the device is in
+        """
+        mode = get_device_mode()
+        return jsonify({"mode": mode})
 
 
 class SystemAPI(ProtectedView):
@@ -348,3 +356,6 @@ api_blueprint.add_url_rule('/system/diagnostics',
 api_blueprint.add_url_rule('/power',
                            view_func=PowerAPI.as_view('power_api'),
                            methods=[GET, PATCH])
+api_blueprint.add_url_rule('/device-mode',
+                           view_func=DeviceModeAPI.as_view('device_mode_api'),
+                           methods=[GET])

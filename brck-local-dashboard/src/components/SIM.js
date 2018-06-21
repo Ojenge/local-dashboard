@@ -707,7 +707,7 @@ class SIMConnections extends Component {
   render() {
     var that = this;
     return (
-      <Container>
+      <div>
         <div>
           <Header>SIM Connectivity</Header>
           {(this.state.loaded)
@@ -726,7 +726,7 @@ class SIMConnections extends Component {
         { this.renderConfigureSimDialog() }
         { this.renderConfigureSimLockedDialog() }
         { this.renderSignalStatusDialog() }
-      </Container>
+      </div>
     );
   }
 }

@@ -133,8 +133,8 @@ def get_device_mode():
     """
     mode = STATE_UNKNOWN
     resp = uci_get('brck.soc.mode')
-    if resp and len(mode):
-        return mode
+    if resp and len(resp):
+        return resp
     return mode
 
 

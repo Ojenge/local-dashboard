@@ -403,7 +403,7 @@ class Ethernet extends Component {
   render() {
     var that = this;
     return (
-      <Container>
+      <div>
         <div>
           <Header>Ethernet Connectivity</Header>
           {(this.state.loaded)
@@ -420,7 +420,7 @@ class Ethernet extends Component {
         </div>
         { this.renderConfigureLANDialog() }
         { this.renderSignalStatusDialog() }
-      </Container>
+      </div>
     );
   }
 }

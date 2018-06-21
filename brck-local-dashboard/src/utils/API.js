@@ -55,6 +55,13 @@ const API = {
             .on('error', handleError(cb))
             .then(cb);
     },
+    get_device_mode: function(cb){
+        request.get(BASE_URL + '/device-mode')
+            .type('json')
+            .accept('json')
+            .timeout(LONG_TIMEOUT)
+            .end(cb)
+    },
     get_system: function(cb) {
         request.get(BASE_URL + '/system')
             .type('json')
