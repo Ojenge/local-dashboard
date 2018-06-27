@@ -358,3 +358,18 @@ def get_diagnostics_data():
     status['cpu'] = dict(temperature=cpu_temps)
     status['battery'] = dict(temperature=[bat_temp])
     return status
+
+
+def get_device_setup_data():
+    login = uci_get("brck.mqtt.username")
+    output = run_command(['ifconfig', 'wlan0'], output=True)
+    if output:
+        mac_addr = output.split("\n")[0].split("HWaddr")[1].strip()
+    else:
+        mac_addr = ""
+    return login, mac_addr
+
+
+def get_connection_state():
+    command = ['ping', '-c', '2', '8.8.8.8']
+    return run_command(command)

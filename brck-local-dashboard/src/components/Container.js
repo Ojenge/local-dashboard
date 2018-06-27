@@ -10,7 +10,9 @@ class Container extends Component {
   constructor(props) {
     super(props);
       this.state = {
-        retailMode: 1
+        retailMode: 1,
+        connected: false,
+        setupLink: ""
       }
   }
 
@@ -23,7 +25,9 @@ class Container extends Component {
         retail = 0;
       }
       this.setState({
-        retailMode: retail
+        retailMode: retail,
+        connected: res.body.connected,
+        setupLink: res.body.setup_link
       });
 
     }
@@ -102,6 +106,16 @@ class Container extends Component {
                       <span>Connectivity</span>
                       <span className="pull-right-container" />
                     </NavLink>
+              </li>
+              <li> 
+              {(this.state.connected)
+                ? <a href={this.state.setupLink} target="_blank"><i className="fa fa-cloud"></i>Cloud</a>
+                : <NavLink to="/connect-all">
+                      <i className="fa fa-cloud"></i>
+                      <span>Cloud</span>
+                      <span className="pull-right-container" />
+                    </NavLink>
+                }
               </li>
               <li>
                 <NavLink to="/about">

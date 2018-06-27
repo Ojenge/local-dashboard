@@ -19,7 +19,9 @@ from .utils import (
     get_battery_status,
     get_software,
     get_diagnostics_data,
-    get_device_mode
+    get_device_mode,
+    get_device_setup_data,
+    get_connection_state
 )
 from .sim import (
     get_wan_connections,
@@ -120,7 +122,11 @@ class DeviceModeAPI(MethodView):
         """Returns the mode the device is in
         """
         mode = get_device_mode()
-        return jsonify({"mode": mode})
+        login_id, mac_id = get_device_setup_data()
+        setup_link = "https://my.brck.com/setup/%s/%s/" % (login_id, mac_id)
+        connected = get_connection_state()
+        return jsonify({"mode": mode, "setup_link": setup_link,
+                        "connected": connected})
 
 
 class SystemAPI(ProtectedView):
