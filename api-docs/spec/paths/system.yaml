@@ -3,26 +3,7 @@ get:
     - System
   summary: Get system state
   responses:
-    200:
+    '200':
       description: The system state was retrieved without error
       schema:
         $ref: '#/definitions/System'
-patch:
-  tags:
-    - System
-  summary: Configure system
-  parameters:
-    - name: changes
-      in: body
-      required: true
-      schema:
-        $ref: '#/definitions/SystemChangeRequest'
-  responses:
-    200:
-      description: The system was updated successfully
-      schema:
-        $ref: '#/definitions/System'
-    400:
-      description: The system update failed
-      schema:
-        $ref: '#/definitions/Error'

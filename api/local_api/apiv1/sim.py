@@ -19,8 +19,7 @@ from .cache import cached, MINUTE
 LOG = __import__('logging').getLogger()
 
 SIM_STATUS_FILES = [
-    '/sys/class/gpio/gpio339/value',
-    '/sys/class/gpio/gpio340/value',
+    '/sys/class/gpio/gpio339/value', '/sys/class/gpio/gpio340/value',
     '/sys/class/gpio/gpio341/value'
 ]
 
@@ -31,22 +30,20 @@ REG_PIN = re.compile(r'^\d{4,8}$')
 REG_PUK = re.compile(r'^\d{8}$')
 REG_APN = re.compile(r'[\w\.\-]{1,64}')
 
-MOBILE_TECH_MAP = {
-    '0': 'GSM (EDGE)',
-    '2': 'UMTS (3G)',
-    '5': 'LTE (4G)'
-}
+MOBILE_TECH_MAP = {'0': 'GSM (EDGE)', '2': 'UMTS (3G)', '5': 'LTE (4G)'}
 
 
-@cached(timeout=(MINUTE*10), ignore=[{}])
+@cached(timeout=(MINUTE * 10), ignore=[{}])
 def get_modem_network_info(*args):
     """Gets network information.
     """
     net_info = {}
     try:
-        info_str = run_command(['querymodem', 'run', 'AT+XCELLINFO?'], output=True)
+        info_str = run_command(
+            ['querymodem', 'run', 'AT+XCELLINFO?'], output=True)
         if not info_str:
-            info_str = run_command(['querymodem', 'run', 'AT+XCELLINFO?'], output=True)
+            info_str = run_command(
+                ['querymodem', 'run', 'AT+XCELLINFO?'], output=True)
         LOG.debug("XCELL_INFO INFO: %r", info_str)
         cell_data = info_str.split(',')
         _mode, cell_type, _mcc, mnc, lac, cell_id = cell_data[:6]
@@ -54,11 +51,11 @@ def get_modem_network_info(*args):
             mnc=mnc,
             lac=int('0x{}'.format(lac), 16),
             cell_id=int('0x{}'.format(cell_id), 16),
-            net_type=MOBILE_TECH_MAP.get(cell_type, 'Unknown')
-        )
+            net_type=MOBILE_TECH_MAP.get(cell_type, 'Unknown'))
     except Exception as e:
         LOG.error("Failed to load modem network information: %r", e)
     return net_info
+
 
 def get_wan_connections(sim_id=None):
     """Returns list of SIM connections
@@ -104,7 +101,7 @@ def get_wan_connections(sim_id=None):
     active_sims = len([s for s in sim_statuses if s == '1'])
     for (i, sim_status) in enumerate(sim_statuses):
         key = i + 1
-        c_id = 'SIM%d' %(key)
+        c_id = 'SIM%d' % (key)
         name = 'SIM %d' % (key)
         available = False
         connected = False
@@ -114,10 +111,11 @@ def get_wan_connections(sim_id=None):
         if available:
             sim_state = get_sim_state(key)
             info['apn_configured'] = sim_state.get('apn', '') != ''
-            is_active_sim = (active_sims == 1 and net_connected) or (str(key) == active_sim)
+            is_active_sim = (active_sims == 1
+                             and net_connected) or (str(key) == active_sim)
             if is_active_sim and (not net_connected):
-                sim_status = run_command(['querymodem', 'check_pin'],
-                                         output=True) or ''
+                sim_status = run_command(
+                    ['querymodem', 'check_pin'], output=True) or ''
                 if REG_PIN_LOCK.match(sim_status):
                     info['pin_locked'] = True
                 else:
@@ -133,7 +131,8 @@ def get_wan_connections(sim_id=None):
                     ex_net_info = {}
                     connected = True
                     signal_strength = get_signal_strength('wan')
-                    operator = run_command(['querymodem', 'carrier'], output=True)
+                    operator = run_command(
+                        ['querymodem', 'carrier'], output=True)
                     imei = run_command(['querymodem', 'imei'], output=True)
                     imsi = run_command(['querymodem', 'imsi'], output=True)
                     if REG_ERROR.match(operator) or operator == "0":
@@ -144,18 +143,17 @@ def get_wan_connections(sim_id=None):
                         ex_net_info['imsi'] = imsi
                         ex_net_info['mcc'] = imsi[:3]
                         ex_net_info.update(get_modem_network_info(imsi, imei))
-                    ex_net_info.update(dict(
-                        operator=operator,
-                        signal_strength=signal_strength
-                    ))
+                    ex_net_info.update(
+                        dict(
+                            operator=operator,
+                            signal_strength=signal_strength))
                     info['network_info'] = ex_net_info
         c_data = dict(
             id=c_id,
             name=name,
             available=available,
             connected=connected,
-            info=info
-        )
+            info=info)
         conns.append(c_data)
     return conns
 
@@ -204,12 +202,13 @@ def configure_sim(sim_id, big_payload):
         pin = payload.get('pin', '')
         puk = payload.get('puk', '')
         net_config = payload.get('network', {})
-        errors = connect_sim(sim_id, 
-                             pin=pin,
-                             puk=puk,
-                             apn=net_config.get('apn', ''),
-                             username=net_config.get('username'),
-                             password=net_config.get('password', ''))
+        errors = connect_sim(
+            sim_id,
+            pin=pin,
+            puk=puk,
+            apn=net_config.get('apn', ''),
+            username=net_config.get('username'),
+            password=net_config.get('password', ''))
         validator.add_errors(errors)
     if validator.is_valid:
         return (200, 'OK')

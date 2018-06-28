@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 from __future__ import print_function
 
 import os
@@ -14,15 +13,11 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_socketio import SocketIO
 
-
 DB_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 PROD_DATABASE = 'sqlite:////opt/apps/local-dashboard/prod.sqlite3'
-DEFAULT_DATABASE = 'sqlite:///%s/dashboard.sqlite3' %(DB_ROOT)
-DATABASES = {
-    'development': DEFAULT_DATABASE,
-    'production':  PROD_DATABASE
-}
+DEFAULT_DATABASE = 'sqlite:///%s/dashboard.sqlite3' % (DB_ROOT)
+DATABASES = {'development': DEFAULT_DATABASE, 'production': PROD_DATABASE}
 ENV = os.getenv('FLASK_CONFIG', 'development')
 DATABASE_URI = DATABASES.get(ENV, DEFAULT_DATABASE)
 
@@ -52,7 +47,6 @@ login_manager.unauthorized_handler(auth.unauthorized)
 from local_api.apiv1.controllers import api_blueprint
 app.register_blueprint(api_blueprint, url_prefix='/api/v1')
 
-
 NS_SIM_CONNECTIVITY = '/sim-connectivity'
 
 socketio = SocketIO(app)
@@ -79,7 +73,8 @@ def send_system_state():
     """
     global connected_clients
     if connected_clients > 0:
-        socketio.emit('system', utils.get_system_state(), namespace='/dashboard')
+        socketio.emit(
+            'system', utils.get_system_state(), namespace='/dashboard')
         eventlet.call_after_global(5, send_system_state)
     else:
         app.logger.info('skipping sending system state | no clients conected')
@@ -94,10 +89,14 @@ def send_diagnostics_state():
     """
     global connected_clients
     if connected_clients > 0:
-        socketio.emit('diagnostics', utils.get_diagnostics_data(), namespace='/diagnostics')
+        socketio.emit(
+            'diagnostics',
+            utils.get_diagnostics_data(),
+            namespace='/diagnostics')
         eventlet.call_after_global(5, send_diagnostics_state)
     else:
-        app.logger.info('skipping sending diagnostic data | no connected clients')
+        app.logger.info(
+            'skipping sending diagnostic data | no connected clients')
 
 
 @socketio.on('connect', namespace='/dashboard')
@@ -116,7 +115,6 @@ def on_diagnostic_connect():
     eventlet.call_after_global(5, send_diagnostics_state)
     app.logger.info('user connected / diagnostics')
     socketio.emit('message', {'data': 'READY'}, namespace='/diagnostics')
-
 
 
 @socketio.on('connect', namespace=NS_SIM_CONNECTIVITY)

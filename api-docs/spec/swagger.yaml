@@ -102,7 +102,8 @@ tags:
   - name: System
     description: >
       The system represents the current state of the device including but not
-      limited to connection status, uptime, storage status, battery status. 
+      limited to `connection status`, `power`, `storage status`, `battery
+      status`. 
   - name: Network
     description: >
       The network state reports on the state of network connections available on
@@ -112,21 +113,34 @@ tags:
 
       WAN connection payloads will include a `wan` section.
 
-      Ethernet connection payloads will include a `ethernet` section
+      Ethernet connection payloads will include a `ethernet` section.
 
       Note that for Ethernet connections, when `dhcp_enabled` is flagged as
       `true`, network_information will be disregarded except `dns_servers` when
       provided.
-  - name: Power
+  - name: SIM
     description: >
-      The power state reports on power state of the device. It gives details
-      about the SupaBRCKS current power stats.
-  - name: Sim
-    description: |
-      The SIM represents details on the SIMN status of the SB.
+      The SIM reports on the current SIM status. Inlcuding if the SIM card is
+      present and has an active connection to either 3G or LTE.
   - name: Modem
-    description: |
-      Thsi gives the modem details of the SB.
+    description: >
+      Thsi gives the modem details of the modem. The payload includes `signal
+      strength` and `temperature`.
   - name: Packages
-    description: |
-      Gives detials about the packages insalled in the SB.
+    description: >
+      The pakcages endpoint gives a detailed list of the packages currently
+      installed in the SupaBRCK inlcuding their versions numbers.
+securityDefinitions:
+  XAuthTokenKey:
+    name: X-Auth-Token-Key
+    type: apiKey
+    in: header
+security:
+  - XAuthTokenKey: []
+parameters:
+  connectionId:
+    name: id
+    in: path
+    type: string
+    required: true
+    description: The unique ID of the device.

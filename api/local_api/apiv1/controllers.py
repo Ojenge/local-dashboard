@@ -12,7 +12,7 @@ from flask_login import (login_required, current_user)
 from .errors import APIError
 from .utils import (get_system_state, get_battery_status, get_software,
                     get_diagnostics_data, get_power_data, get_modem_status,
-                    get_firmware, get_os)
+                    get_firmware, get_os, get_connected_clients)
 from .sim import (get_wan_connections, configure_sim)
 from .ethernet import (get_ethernet_networks, configure_ethernet)
 from .wifi import (get_wireless_config, configure_wifi)
@@ -123,22 +123,12 @@ class SystemAPI(ProtectedView):
 
 
 class PowerAPI(ProtectedView):
-    def get_config(self, **kwargs):
-        if 'live' in request.args:
-            kwargs['no_cache'] = True
-        config = get_power_config(**kwargs)
-        battery = get_battery_status(**kwargs)
-        power = get_power_data(**kwargs)
-        config['battery'] = battery
-        config['power'] = power
-        return config
-
     def get(self):
         """Returns the current power configuration of the device
 
         :return: string JSON representation of system state
         """
-        return jsonify(self.get_config())
+        return jsonify(get_power_data())
 
 
 class OSAPI(ProtectedView):
@@ -291,15 +281,31 @@ class ModemAPI(ProtectedView):
 
         :return: string JSON representation of system state
         """
+
         return jsonify(get_modem_status())
+
+
+class DevicesAPI(ProtectedView):
+    def get(self):
+        """
+        Returns a list of devices connected to the SupaBRCK
+        :return:dict
+        """
+
+        return jsonify(get_connected_clients())
 
 
 api_blueprint.add_url_rule(
     '/auth', view_func=AuthenticationView.as_view('auth'), methods=[POST])
 api_blueprint.add_url_rule(
-    '/auth/password',
-    view_func=ChangePasswordView.as_view('change_password'),
-    methods=[PATCH])
+    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET])
+api_blueprint.add_url_rule(
+    '/clients', view_func=DevicesAPI.as_view('devices_api'), methods=[GET])
+
+# api_blueprint.add_url_rule(
+#     '/auth/password',
+#     view_func=ChangePasswordView.as_view('change_password'),
+#     methods=[PATCH])
 sim_view = WANAPI.as_view('sim_api')
 api_blueprint.add_url_rule(
     '/sim', defaults={'sim_id': None}, view_func=sim_view, methods=[GET])
@@ -340,9 +346,6 @@ api_blueprint.add_url_rule(
 
 api_blueprint.add_url_rule(
     '/modem', view_func=ModemAPI.as_view('modem_api'), methods=[GET])
-api_blueprint.add_url_rule(
-    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET])
-
 api_blueprint.add_url_rule(
     '/firmware', view_func=FirmwareAPI.as_view('firmware_api'), methods=[GET])
 api_blueprint.add_url_rule(

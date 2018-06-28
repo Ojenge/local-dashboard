@@ -28,6 +28,28 @@ EXPECTED_SOC_SETTINGS = {
     'auto_start': 1
 }
 
+DUMMY_POWER_DATA = """{
+    "battery_percentage": 100,
+    "battery_temperature": 28,
+    "charge_voltage": 13,
+    "charging_current": 0,
+    "charging_state": "DISCHARGING",
+    "cpu_temps": {
+        "temperature": [
+            48,
+            51
+        ]
+    }
+} """
+
+EXPECTED_POWER_DATA = dict(
+    battery_percentage=0,
+    battery_temperature=0,
+    charge_voltage=0,
+    charging_current=0,
+    charging_state="DISCHARGING",
+    cpu_temps=dict(temperature=dict(0, 0)))
+
 DUMMY_VERSION_RESPONSE = u'{"Firmware Version": 1.0.1-carp,"Build": "Oct 23 2017 13:37:04"}'
 EXPECTED_FIRMWARE_VERSION = '1.0.1-carp : Oct 23 2017 13:37:04'
 
@@ -100,8 +122,8 @@ def test_get_signal_strength():
     assert utils.get_signal_strength('wan') == 0
     assert utils.get_signal_strength('lan') == 100
     _side_effect = list(
-        chain(*[['ME936', v]
-                for v in ['99', '0', '1', '30', '31', '255', '']]))
+        chain(
+            *[['ME936', v] for v in ['99', '0', '1', '30', '31', '255', '']]))
     with mock.patch(
             'local_api.apiv1.utils.run_command', side_effect=_side_effect):
         assert utils.get_signal_strength('wan') == 99
@@ -112,8 +134,8 @@ def test_get_signal_strength():
         assert utils.get_signal_strength('wan') == 0
         assert utils.get_signal_strength('wan') == 0
     _side_effect = list(
-        chain(*[['MU736', v]
-                for v in ['99', '0', '1', '30', '31', '255', '']]))
+        chain(
+            *[['MU736', v] for v in ['99', '0', '1', '30', '31', '255', '']]))
     with mock.patch(
             'local_api.apiv1.utils.run_command', side_effect=_side_effect):
         assert utils.get_signal_strength('wan') == 0
@@ -142,6 +164,14 @@ def test_get_soc_settings():
             side_effect=[DUMMY_SOC_RESPONSE]):
         settings = soc.get_soc_settings()
         assert settings == EXPECTED_SOC_SETTINGS
+
+
+def test_get_power_data():
+    with mock.patch(
+            'local_api.apiv1.utils.get_power_data',
+            side_effect=[DUMMY_POWER_DATA]):
+        settings = soc.get_soc_settings()
+        assert settings == EXPECTED_POWER_DATA
 
 
 @pytest.mark.parametrize("payload,valid,out", SOC_SCENARIOS)

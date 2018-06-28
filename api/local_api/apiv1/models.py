@@ -25,7 +25,7 @@ HASH_ROUNDS = 1000
 EXPIRY_HOURS = 24
 DK_LEN = 32
 
-SYS_PASS = "BRCK-Local-Dashboard"
+SYS_PASS = "123456"
 
 
 def generate_password_hash(raw_password):

@@ -113,3 +113,5 @@ api/.pytest_cache/
 
 Project_Default.xml
 R_User_Library.xml
+sample.json
+sim.yaml
