@@ -21,7 +21,9 @@ from .utils import (
     get_diagnostics_data,
     get_device_mode,
     get_device_setup_data,
-    get_connection_state
+    get_connection_state,
+    get_retail_registration_token,
+    retail_device_registered
 )
 from .sim import (
     get_wan_connections,
@@ -123,7 +125,13 @@ class DeviceModeAPI(MethodView):
         """
         mode = get_device_mode()
         login_id, mac_id = get_device_setup_data()
-        setup_link = "https://my.brck.com/setup/%s/%s/" % (login_id, mac_id)
+        setup_link = "https://my.brck.com/"
+        if mode == "RETAIL":
+            if not retail_device_registered():
+                registration_token = get_retail_registration_token()
+                setup_link = "https://my.brck.com/setup/%s/%s/" % (
+                    login_id,
+                    registration_token)
         connected = get_connection_state()
         return jsonify({"mode": mode, "setup_link": setup_link,
                         "connected": connected})

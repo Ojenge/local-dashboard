@@ -7,13 +7,16 @@ Utilities for interacting with the filesystem.
 import os
 import time
 import psutil
+import hashlib
+import hmac
 try:
     import simplejson as json
 except ImportError:
     import json
 
 from brck.utils import run_command
-from brck.utils import uci_get
+from brck.utils import uci_get, uci_set, uci_commit
+from brck.utils import uci_show_config
 
 from .soc import (
     get_soc_settings,
@@ -373,3 +376,46 @@ def get_device_setup_data():
 def get_connection_state():
     command = ['ping', '-c', '2', '8.8.8.8']
     return run_command(command)
+
+
+
+def get_retail_registration_config():
+    config = uci_show_config('brck.handshake', True)['handshake']
+    product_id = config['product_id']
+
+    # Generate the request url
+    url = "{}/handshake/{}/retail_registration_token".format(config['api_url'],
+                                                             product_id)
+
+    # Generate the handshake token; X-Handshake-Auth-Token
+    auth_token = hmac.new(product_id,
+                          config['handshake_key'],
+                          hashlib.sha256).hexdigest()
+
+    # Request headers
+    headers = {
+        'Content-Type': 'application/json;charset=utf-8',
+        'X-Auth-Token': auth_token
+    }
+    login = uci_get("brck.mqtt.username")
+    return dict({'url': url, 'headers': headers, 'login': login})
+
+
+def get_retail_registration_token():
+    resp = uci_get('brck.retail.registration_token')
+    return resp
+
+
+def set_retail_registration_token(token):
+    uci_set('brck.retail.registration_token', token)
+    uci_commit('brck.retail')
+
+
+def retail_device_registered():
+    registered = uci_get('brck.retail.registered')
+    return registered == '1'
+
+
+def set_retail_device_registered():
+    uci_set('brck.retail.registered', '1')
+    uci_commit('brck.retail')

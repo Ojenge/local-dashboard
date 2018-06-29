@@ -12,3 +12,4 @@ pycrypto
 pyserial
 python-socketio
 SQLAlchemy
+requests

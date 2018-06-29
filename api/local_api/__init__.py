@@ -13,7 +13,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_socketio import SocketIO
-
+requests = eventlet.import_patched('requests')
 
 DB_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -133,5 +133,31 @@ def on_disconnect():
     app.logger.info('websocket client disconnected')
 
 
+def get_retail_registration_token():
+    device_mode = utils.get_device_mode()
+    if not device_mode == "RETAIL":
+        return
+    while not utils.retail_device_registered():
+        config = utils.get_retail_registration_config()
+        url = config['url']
+        headers = config['headers']
+        post_data = {'login': config['login'] }
+        try:
+            request = requests.post(url, json=post_data, headers=headers)
+            if request.status_code == 201:
+                token_data = request.json()
+                token = token_data['token']
+                registered = token_data['registered']
+                if registered:
+                    utils.set_retail_device_registered()
+                else:
+                    utils.set_retail_registration_token(token)
+        except requests.exceptions.ConnectionError:
+            pass
+        socketio.sleep(300)
+    return
+
+
 def create_app():
+    socketio.start_background_task(get_retail_registration_token)
     return app
