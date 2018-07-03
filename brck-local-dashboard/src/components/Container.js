@@ -107,16 +107,6 @@ class Container extends Component {
                       <span className="pull-right-container" />
                     </NavLink>
               </li>
-              <li> 
-              {(this.state.connected)
-                ? <a href={this.state.setupLink} target="_blank"><i className="fa fa-cloud"></i>Cloud</a>
-                : <NavLink to="/connect-all">
-                      <i className="fa fa-cloud"></i>
-                      <span>Cloud</span>
-                      <span className="pull-right-container" />
-                    </NavLink>
-                }
-              </li>
               <li>
                 <NavLink to="/about">
                   <i className="fa fa-linux"></i>

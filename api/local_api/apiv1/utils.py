@@ -373,12 +373,13 @@ def get_device_setup_data():
     return login, mac_addr
 
 
+@cached(timeout=(MINUTE * 1))
 def get_connection_state():
     command = ['ping', '-c', '2', '-W', '1', '8.8.8.8']
     return run_command(command)
 
 
-
+@cached(timeout=(MINUTE * 60))
 def get_retail_registration_config():
     config = uci_show_config('brck.handshake', True)['handshake']
     product_id = config['product_id']
