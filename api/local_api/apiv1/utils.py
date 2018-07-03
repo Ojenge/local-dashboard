@@ -374,7 +374,7 @@ def get_device_setup_data():
 
 
 def get_connection_state():
-    command = ['ping', '-c', '2', '8.8.8.8']
+    command = ['ping', '-c', '2', '-W', '1', '8.8.8.8']
     return run_command(command)
 
 

@@ -47,7 +47,7 @@ class SIMConnections extends Component {
 
   componentDidMount() {
     this.loadConnections();
-    this.interval = window.setInterval(this.loadConnections, 10000);
+    this.interval = window.setInterval(this.loadConnections, 15000);
     this.initializeSocket();
   }
 

@@ -6,7 +6,7 @@ const BASE_URL = 'http://local.brck.com/api/v1';
 const AUTH_HEADER = 'X-Auth-Token-Key';
 
 const TIMEOUT = {
-    response: 10000,
+    response: 15000,
     deadline: 15000
 };
 
