@@ -392,9 +392,9 @@ def test_get_sim_networks(client, headers):
                       headers=headers)
     assert resp.status_code == 200
     payload = load_json(resp)
-    assert payload[0]['id'] == 'SIM1'
-    assert payload[1]['id'] == 'SIM2'
-    assert payload[2]['id'] == 'SIM3'
+    assert payload[0]['id'] == 'SIM3'
+    assert payload[1]['id'] == 'SIM1'
+    assert payload[2]['id'] == 'SIM2'
 
 
 def test_get_sim_network(client, headers):
