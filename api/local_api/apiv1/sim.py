@@ -19,9 +19,9 @@ from .cache import cached, MINUTE
 LOG = __import__('logging').getLogger()
 
 SIM_STATUS_FILES = [
+    '/sys/class/gpio/gpio341/value',
     '/sys/class/gpio/gpio339/value',
-    '/sys/class/gpio/gpio340/value',
-    '/sys/class/gpio/gpio341/value'
+    '/sys/class/gpio/gpio340/value'
 ]
 
 REG_ERROR = re.compile('^.*(ERROR).*$')
