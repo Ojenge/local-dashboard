@@ -73,7 +73,7 @@ class Root extends Component {
 
   renderRetailRoutes = () => {
     return (
-      <div>
+      <div style={{height: "100%"}}>
       <PrivateRoute exact path='/connect-all' component={ Connections } />
       <PrivateRoute exact path='/about' component = { Software } />
       </div>
