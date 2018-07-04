@@ -123,7 +123,7 @@ class Software extends Component {
               </div>
             </div>
             {(this.state.retailMode)
-             ? <div></div>
+             ? null
              : this.renderSoftwarePackages() }
           </div>
         </div>
