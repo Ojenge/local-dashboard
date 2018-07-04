@@ -157,10 +157,6 @@ def get_wan_connections(sim_id=None):
             info=info
         )
         conns.append(c_data)
-    # sort hack
-    if len(conns) == 3:
-        conns.insert(0, conns[2])
-        del conns[3]
     return conns
 
 
