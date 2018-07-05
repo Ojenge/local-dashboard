@@ -420,3 +420,8 @@ def retail_device_registered():
 def set_retail_device_registered():
     uci_set('brck.retail.registered', '1')
     uci_commit('brck.retail')
+
+
+def get_device_id():
+    resp = uci_get('brck.auth.uuid')
+    return resp

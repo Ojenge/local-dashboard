@@ -23,7 +23,8 @@ from .utils import (
     get_device_setup_data,
     get_connection_state,
     get_retail_registration_token,
-    retail_device_registered
+    retail_device_registered,
+    get_device_id
 )
 from .sim import (
     get_wan_connections,
@@ -125,7 +126,8 @@ class DeviceModeAPI(MethodView):
         """
         mode = get_device_mode()
         login_id, mac_id = get_device_setup_data()
-        setup_link = "https://my.brck.com/"
+        device_id = get_device_id()
+        setup_link = "https://my.brck.com/devices/%s/" % device_id
         if mode == "RETAIL":
             if not retail_device_registered():
                 registration_token = get_retail_registration_token()
