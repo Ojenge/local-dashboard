@@ -10,18 +10,28 @@ from local_api.apiv1 import utils
 from local_api.apiv1 import soc
 from local_api.apiv1 import sim
 
-DUMMY_SOC_RESPONSE = """{"SocPwrOnLevel":15,"SocPwrOffLevel":5,"AlarmPwrOnHour":06,"AlarmPwrOnMinute":00,
-"PowerOffHour":20,"PowerOffMinute":01,"IsAutoStart":1,"DelayedOffTimerEnable":0,"DelayOffTimerMinutes":0,"RetailMode":0}
+DUMMY_SOC_RESPONSE = """{
+  "DelayedOffTimerEnable": 1,
+  "DelayOffTimerMinutes": 120,
+  "SocPwrOffLevel": 1,
+  "IsAutoStart": 0,
+  "AlarmPwrOnHour": 5,
+  "SocPwrOnLevel": 15,
+  "PowerOffMinute": 0,
+  "AlarmPwrOnMinute": 0,
+  "PowerOffHour": 22,
+  "RetailMode": 1
+}
 """
 EXPECTED_SOC_SETTINGS = {
     'soc_on': 15,
-    'soc_off': 5,
-    'on_time': '06:00',
-    'off_time': '20:01',
-    'delay_off': 0,
-    'delay_off_minutes': 0,
-    'retail': 0,
-    'auto_start': 1
+    'soc_off': 1,
+    'on_time': '05:00',
+    'off_time': '22:00',
+    'delay_off': 1,
+    'delay_off_minutes': 120,
+    'retail': 1,
+    'auto_start': 0
 }
 
 DUMMY_VERSION_RESPONSE = u'{"Firmware Version": 1.0.1-carp,"Build": "Oct 23 2017 13:37:04"}'
@@ -106,7 +116,7 @@ def test_get_signal_strength():
 
 
 def test_get_soc_settings():
-    with mock.patch('local_api.apiv1.soc.read_serial',
+    with mock.patch('local_api.apiv1.soc.run_command',
                     side_effect=[DUMMY_SOC_RESPONSE]):
         settings = soc.get_soc_settings()
         assert settings == EXPECTED_SOC_SETTINGS
@@ -124,12 +134,12 @@ def test_validate_soc_settings(payload, valid, out):
 
 
 def test_soc_command():
-    command = 'WRC15,5,6,0,20,1,1,0,0,0'
+    command = 'WRC15,1,5,0,22,0,0,1,120,1'
     assert soc.payload_to_command(EXPECTED_SOC_SETTINGS) == command
 
 
 def test_get_firmware_version():
-    with mock.patch('local_api.apiv1.soc.read_serial',
+    with mock.patch('local_api.apiv1.soc.run_command',
                     side_effect=[DUMMY_VERSION_RESPONSE]):
         version = soc.get_firmware_version()
         assert version == EXPECTED_FIRMWARE_VERSION

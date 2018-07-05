@@ -3,11 +3,13 @@
 import os
 import serial
 import re
+import json
 from datetime import datetime
 
 from brck.utils import uci_set
 from brck.utils import uci_get
 from brck.utils import uci_commit
+from brck.utils import run_command
 
 from .schema import Validator
 from .cache import cached, MINUTE
@@ -90,8 +92,8 @@ def get_soc_settings(no_cache=False):
     """
     soc_settings = {}
     try:
-        resp = read_serial('RDC')
-        parsed = parse_serial(resp)
+        resp = run_command(['querymcu', 'get_config'], output=True) or ''
+        parsed = json.loads(resp)
         soc_settings['on_time'] = '{d[AlarmPwrOnHour]:02d}:{d[AlarmPwrOnMinute]:02d}'.format(d=parsed)
         soc_settings['off_time'] = '{d[PowerOffHour]:02d}:{d[PowerOffMinute]:02d}'.format(d=parsed)
         soc_settings['soc_on'] = parsed['SocPwrOnLevel']
@@ -115,7 +117,7 @@ def get_firmware_version():
     """
     version = STATE_UNKNOWN
     try:
-        resp = read_serial('VER')
+        resp = run_command(['querymcu', 'version'], output=True) or ''
         parsed = parse_serial(resp, to_type=str)
         version = '{d[Firmware Version]} : {d[Build]}'.format(d=parsed)
     except Exception as e:
