@@ -56,8 +56,9 @@ def get_ethernet_networks(net_id=None):
             raise APIError(status_code=404, errors=[dict(network="not found")])
         uci_state = get_uci_state('network')
         _interface = INTERFACE_MAP.get(net, 'eth0')
-        connected = uci_state.get('network.{}.connected'.format(_interface)) == '1'
-        # connected = uci_state.get('network.{}.connected'.format(_interface)) == '1'
+        connected = uci_state.get('network.{}.connected'.format(interface)) == '1'
+        if not connected:
+            connected = uci_state.get('network.{}.connected'.format(_interface)) == '1'
         available = uci_state.get('network.{}.up'.format(interface)) == '1'
         dhcp_enabled = uci_state.get('network.{}.proto'.format(interface)) == 'dhcp'
         network_device = uci_state.get('network.{}.ifname'.format(interface))
