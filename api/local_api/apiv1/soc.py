@@ -131,7 +131,7 @@ def get_battery_temperature():
     """
     bat_temp = STATE_UNKNOWN
     try:
-        resp = read_serial('BAX') or ''
+        resp = run_command(['querymcu', 'battery', '--extended'], output=True) or ''
         matches = re.findall(REGEX_BAT_TEMP, resp)
         if len(matches) == 1:
             bat_temp = float(matches[0])
