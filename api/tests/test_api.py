@@ -79,8 +79,6 @@ EXPECTED_ETHERNET1_DISCONNECTED = dict(
     info=dict(
         dhcp_enabled=True,
         network=dict(
-            ipaddr='192.168.180.3',
-            netmask='255.255.255.0',
             gateway='',
             dns=''
         )
@@ -428,7 +426,7 @@ def test_get_ethernet_networks(client, headers):
     with mock.patch('local_api.apiv1.utils.run_command',
                     side_effect=[DISCONNECTED_UCI_STATE]):
         with mock.patch('local_api.apiv1.ethernet.psutil.net_if_addrs',
-                       side_effect=[DUMMY_PSUTIL_IF_ADDR]):
+                       side_effect=[{}]):
             resp = client.get('/api/v1/networks/ethernet/',
                             headers=headers)
             assert resp.status_code == 200
@@ -440,7 +438,7 @@ def test_get_ethernet_networks_single(client, headers):
     with mock.patch('local_api.apiv1.utils.run_command',
                     side_effect=[DISCONNECTED_UCI_STATE]):
         with mock.patch('local_api.apiv1.ethernet.psutil.net_if_addrs',
-                       side_effect=[DUMMY_PSUTIL_IF_ADDR]):
+                       side_effect=[{}]):
             resp = client.get('/api/v1/networks/ethernet/ETHERNET1',
                             headers=headers)
             assert resp.status_code == 200
@@ -478,7 +476,7 @@ def test_patch_ethernet_dhcp(client, headers):
     with mock.patch('local_api.apiv1.utils.run_command',
                     side_effect=[DISCONNECTED_UCI_STATE]):
         with mock.patch('local_api.apiv1.ethernet.psutil.net_if_addrs',
-                       side_effect=[DUMMY_PSUTIL_IF_ADDR]):
+                       side_effect=[{}]):
             resp = client.patch('/api/v1/networks/ethernet/ETHERNET1',
                                 content_type='application/json',
                                 data=json.dumps(test_payload),
@@ -503,7 +501,7 @@ def test_patch_ethernet_static(client, headers):
     with mock.patch('local_api.apiv1.utils.run_command',
                     side_effect=[DISCONNECTED_UCI_STATE]):
         with mock.patch('local_api.apiv1.ethernet.psutil.net_if_addrs',
-                       side_effect=[DUMMY_PSUTIL_IF_ADDR]):
+                       side_effect=[{}]):
                 resp = client.patch('/api/v1/networks/ethernet/ETHERNET1',
                                     content_type='application/json',
                                     data=json.dumps(test_payload),
@@ -520,7 +518,7 @@ def test_patch_ethernet_static_invalids(client, headers):
             network=dict(
                 ipaddr='x',
                 netmask='y',
-                dns='8.8.8.8 localhost'
+                dns='xadkalda090294029402940124'
             )
         )
     )

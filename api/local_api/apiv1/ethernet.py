@@ -67,6 +67,7 @@ def get_ethernet_networks(net_id=None):
         if interface_info:
             ipv4 = filter(lambda s: s.family == socket.AF_INET, interface_info)
             if len(ipv4) == 1:
+                net_data['connected'] = True
                 net_info.update(
                     dict(
                         ipaddr=ipv4[0].address,
