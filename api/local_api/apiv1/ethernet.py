@@ -29,6 +29,9 @@ NETWORKS = ['ETHERNET1']
 CONNECTION_MAP = {
     'ETHERNET1': 'lan'
 }
+INTERFACE_MAP = {
+    'ETHERNET1': 'eth0'
+}
 CONNECTION_NAMES = {
     'ETHERNET1': 'ETHERNET 1'
 }
@@ -51,9 +54,10 @@ def get_ethernet_networks(net_id=None):
         interface = CONNECTION_MAP.get(net, None)
         if interface is None:
             raise APIError(status_code=404, errors=[dict(network="not found")])
-        uci_path = 'network.{}'.format(interface)
-        uci_state = get_uci_state(uci_path)
-        connected = uci_state.get('network.{}.connected'.format(interface)) == '1'
+        uci_state = get_uci_state('network')
+        _interface = INTERFACE_MAP.get(net, 'eth0')
+        connected = uci_state.get('network.{}.connected'.format(_interface)) == '1'
+        # connected = uci_state.get('network.{}.connected'.format(_interface)) == '1'
         available = uci_state.get('network.{}.up'.format(interface)) == '1'
         dhcp_enabled = uci_state.get('network.{}.proto'.format(interface)) == 'dhcp'
         network_device = uci_state.get('network.{}.ifname'.format(interface))
@@ -67,7 +71,6 @@ def get_ethernet_networks(net_id=None):
         if interface_info:
             ipv4 = filter(lambda s: s.family == socket.AF_INET, interface_info)
             if len(ipv4) == 1:
-                net_data['connected'] = True
                 net_info.update(
                     dict(
                         ipaddr=ipv4[0].address,

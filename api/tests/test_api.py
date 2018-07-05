@@ -67,7 +67,8 @@ network.lan.proto='dhcp'
 network.lan.macaddr='42:1d:12:35:c6:36'
 network.lan.up='1'
 network.lan.device='eth0'
-network.lan.connected='1'"""
+network.lan.connected='1'
+network.eth0.connected='1'"""
 DUMMY_PSUTIL_IF_ADDR = {
     'eth0': [snic(family=2, address='192.168.180.3', netmask='255.255.255.0', broadcast='192.168.180.255', ptp=None)]
 }
