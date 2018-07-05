@@ -45,6 +45,10 @@ BRCK_PACKAGES = [
     'scan_wifi',
     'supabrck-core'
 ]
+INTERFACE_MAP = {
+    'lan': 'eth0',
+    'wan': '3g-wan'
+}
 
 def get_request_log(r):
     """Gets request metadata as a string for logging
@@ -228,6 +232,17 @@ def get_interface_speed(conn_name):
     return (up, down)
 
 
+
+def read_network_state_file(net_state):
+    try:
+        with open('/var/state/network') as f:
+            lines = f.read().splitlines()
+            net_state.update([l.replace("'", "").split('=') for l in lines])
+    except IOError:
+        pass
+    return net_state
+
+
 def get_network_status():
     """Gets the network state of the BRCK
 
@@ -258,9 +273,14 @@ def get_network_status():
     if net_order:
         nets = [n.strip() for n in net_order.split(' ')]
         net_state = get_uci_state('network')
+        net_state = read_network_state_file(net_state)
         for net in nets:
-            conn_state = net_state.get('network.{}.connected'.format(net), '') == '1'
-            if conn_state:
+            mapped_net = INTERFACE_MAP.get(net, '')
+            conn_state = net_state.get('network.{}.connected'.format(net), '')
+            if not conn_state:
+                conn_state = net_state.get('network.{}.connected'.format(mapped_net), '')
+            net_connected = conn_state == '1'
+            if net_connected:
                 active_net = net
                 net_type = net.upper()
                 if net in ['wan', 'wan2']:

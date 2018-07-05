@@ -519,7 +519,7 @@ def test_patch_ethernet_static_invalids(client, headers):
             network=dict(
                 ipaddr='x',
                 netmask='y',
-                dns='xadkalda090294029402940124'
+                dns='8.8.8.8 localhost'
             )
         )
     )
