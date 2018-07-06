@@ -92,11 +92,11 @@ class Validator(object):
                     options = ','.join(superset)
                     self.errors[key] = 'must be one of {}'.format(options)
 
-    def ensure_passes_test(self, key, func, required=True):
+    def ensure_passes_test(self, key, func, required=True, msg=None):
         if key not in self.errors:
             try:
                 v = self.data.get(key)
                 if v or required:
                     func(self.data.get(key))
             except Exception as e:
-                self.errors[key] = 'invalid format'
+                self.errors[key] = msg or 'invalid format'

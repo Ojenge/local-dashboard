@@ -42,6 +42,9 @@ from .soc import (
     configure_power,
     get_power_config
 )
+from .storage import (
+    configure_ftp
+)
 from .models import (
     check_password,
     make_token,
@@ -121,6 +124,7 @@ class ChangePasswordView(ProtectedView):
 
 
 class DeviceModeAPI(MethodView):
+
     def get(self):
         """Returns the mode the device is in
         """
@@ -224,6 +228,24 @@ class DiagnosticsAPI(ProtectedView):
         Raw information may also be downloaded.
         """
         return jsonify(get_diagnostics_data())
+
+
+
+class FTPConfigurationAPI(ProtectedView):
+    """FTP Configuration views.
+    """
+
+    def post(self):
+        """Configures FTP Account.
+        """
+
+        payload = request.get_json()
+        status_code, errors = configure_ftp(payload)
+        if status_code == HTTP_OK:
+            return jsonify(dict(created=True))
+        else:
+            raise APIError('Invalid Data', errors, 422)
+
 
 
 class WANAPI(ProtectedView):
@@ -375,3 +397,6 @@ api_blueprint.add_url_rule('/power',
 api_blueprint.add_url_rule('/device-mode',
                            view_func=DeviceModeAPI.as_view('device_mode_api'),
                            methods=[GET])
+api_blueprint.add_url_rule('/ftp',
+                           view_func=FTPConfigurationAPI.as_view('ftp_api'),
+                           methods=[POST])
