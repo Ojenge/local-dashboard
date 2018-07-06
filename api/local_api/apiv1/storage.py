@@ -54,6 +54,10 @@ def create_user(login, password):
     return run_command(['adduser', '-D', '-H', '-h', FTP_DIRECTORY, login])
 
 
+def update_ownership(login):
+    return run_command(['chown', '-R', login, FTP_DIRECTORY])
+
+
 def configure_ftp(config):
     """Creates FTP user with home directory as FTP directory
     """
@@ -66,6 +70,8 @@ def configure_ftp(config):
         if existing_user is None:
             if not create_user(_login, _password):
                 v.add_error('login', 'Failed to set up user')
+            else:
+                update_ownership(_login)
         else:
             if _login != existing_user:
                 v.add_error('login', 'FTP user has already been set up')
