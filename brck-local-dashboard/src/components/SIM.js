@@ -410,7 +410,6 @@ class SIMConnections extends Component {
                     We can't connect to the internet with your SIM card. Please ensure the SIM is Data Enabled, has credit and has valid APN
                   </div>
 
-                  <p>The 3G/4G modem supports all GSM and HSPA+ providers, but unfortunately not CDMA (Verizon and Sprint in the U.S).</p>
                   <p>In case you don't know your APN settings, please contact your service provider.</p>
 
                 </div>
