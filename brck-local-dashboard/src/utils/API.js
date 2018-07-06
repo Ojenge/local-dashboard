@@ -166,6 +166,25 @@ const API = {
             .timeout(TIMEOUT)
             .on('error', handleError(cb))
             .then(cb);
+    },
+    get_storage: function(cb) {
+        request.get(BASE_URL + '/ftp')
+            .type('json')
+            .accept('json')
+            .set(AUTH_HEADER, Auth.getToken())
+            .timeout(TIMEOUT)
+            .on('error', handleError(cb))
+            .then(cb);
+    },
+    configure_ftp: function(payload, cb) {
+        request.post(BASE_URL + '/ftp')
+            .type('json')
+            .accept('json')
+            .send(payload)
+            .set(AUTH_HEADER, Auth.getToken())
+            .timeout(TIMEOUT)
+            .on('error', handleError(cb))
+            .then(cb);
     }
 }
 

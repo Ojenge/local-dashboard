@@ -20,6 +20,7 @@ import Power from './Power';
 import Auth from '../utils/Auth';
 import Software from './Software';
 import Diagnostics from './Diagnostics';
+import Storage from './Storage';
 
 const CHANGE_PASSWORD_PATH = '/change-password';
 
@@ -75,6 +76,7 @@ class Root extends Component {
     return (
       <div style={{height: "100%"}}>
       <PrivateRoute exact path='/connect-all' component={ Connections } />
+      <PrivateRoute exact path='/content' component={ Storage } />
       <PrivateRoute exact path='/about' component = { Software } />
       </div>
     );
