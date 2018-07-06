@@ -145,7 +145,7 @@ class Dashboard extends Component {
               { this.renderBatteryInfo(this.state.system.battery.battery_level) }
               <div className="info-box-content">
                 <h4>CHARGE LEVEL</h4>
-                <p>{ this.state.system.battery.battery_level }%</p>
+                <p>{ this.state.system.battery.battery_level }% <span className="charge-status">({ this.state.system.battery.state })</span></p>
               </div>
             </div>
           </div>
