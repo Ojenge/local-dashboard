@@ -172,7 +172,7 @@ def get_sim_state(sim_id):
     state = get_uci_state(state_path)
     if state:
         sim_state['active'] = state.get('brck.sim%d.active' % sim_id) == '1'
-        sim_state['apn'] = state.get('brck.sim%d.apn' % sim_id)
+        sim_state['apn'] = state.get('brck.sim%d.apn' % sim_id, '')
         sim_state['username'] = state.get('brck.sim%d.username' % sim_id)
         sim_state['password'] = state.get('brck.sim%d.password' % sim_id)
     return sim_state
