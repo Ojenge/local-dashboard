@@ -101,11 +101,18 @@ class Container extends Component {
                 </NavLink>
               </li>
               <li>
-                    <NavLink to="/connect-all">
-                      <i className="fa fa-wifi"></i>
-                      <span>Connectivity</span>
-                      <span className="pull-right-container" />
-                    </NavLink>
+                  <NavLink to="/connect-all">
+                    <i className="fa fa-wifi"></i>
+                    <span>Connectivity</span>
+                    <span className="pull-right-container" />
+                  </NavLink>
+              </li>
+              <li>
+                  <NavLink to="/content">
+                    <i className="fa fa-folder"></i>
+                    <span>Content</span>
+                    <span className="pull-right-container" />
+                  </NavLink>
               </li>
               <li>
                 <NavLink to="/about">

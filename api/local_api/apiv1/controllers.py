@@ -18,6 +18,7 @@ from .utils import (
     get_system_state,
     get_battery_status,
     get_software,
+    get_storage_status,
     get_diagnostics_data,
     get_device_mode,
     get_device_setup_data,
@@ -234,6 +235,16 @@ class DiagnosticsAPI(ProtectedView):
 class FTPConfigurationAPI(ProtectedView):
     """FTP Configuration views.
     """
+    def get(self):
+        """Returns a JSON struct of the storage state
+
+            See System API documentation
+
+        :return: string JSON representation of storage state
+        """
+        state = get_storage_status()
+        return jsonify(storage=state)
+
 
     def post(self):
         """Configures FTP Account.
@@ -399,4 +410,4 @@ api_blueprint.add_url_rule('/device-mode',
                            methods=[GET])
 api_blueprint.add_url_rule('/ftp',
                            view_func=FTPConfigurationAPI.as_view('ftp_api'),
-                           methods=[POST])
+                           methods=[GET, POST])
