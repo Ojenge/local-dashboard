@@ -171,7 +171,7 @@ def get_storage_status(mount_point='/storage/data'):
     return state
 
 
-@cached(timeout=(MINUTE / 12))
+@cached(timeout=(MINUTE / 2))
 def get_battery_status(no_cache=False):
     """Gets the battery status of the BRCK device.
 
