@@ -4,7 +4,10 @@
 """
 
 import subprocess
-import spwd
+try:
+    import spwd
+except ImportError:
+    spwd = None
 import pwd
 
 from brck.utils import run_command
