@@ -208,7 +208,7 @@ def configure_sim(sim_id, big_payload):
                              pin=pin,
                              puk=puk,
                              apn=net_config.get('apn', ''),
-                             username=net_config.get('username'),
+                             username=net_config.get('username', ''),
                              password=net_config.get('password', ''))
         validator.add_errors(errors)
     if validator.is_valid:
