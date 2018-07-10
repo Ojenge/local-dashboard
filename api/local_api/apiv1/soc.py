@@ -80,7 +80,8 @@ def parse_serial(raw_content, to_type=int):
     """
     stripped = re.sub(r'[\{\}\"]', '',  raw_content)
     configs = stripped.split(',')
-    tuples = [c.split(":", 1) for c in configs]
+    tuples = [c.split(":", 1) for c in configs if c]
+    tuples = filter(lambda t: len(t) == 2, tuples)
     return dict([(k.strip(), to_type(v.strip())) for k,v in tuples])
 
 

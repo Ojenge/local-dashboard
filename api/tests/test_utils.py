@@ -36,6 +36,20 @@ EXPECTED_SOC_SETTINGS = {
 
 DUMMY_VERSION_RESPONSE = u'{"Firmware Version": 1.0.1-carp,"Build": "Oct 23 2017 13:37:04"}'
 EXPECTED_FIRMWARE_VERSION = '1.0.1-carp : Oct 23 2017 13:37:04'
+BAT_SIDE_EFFECT = """{
+  "iadp": 136,
+  "soc": 98,
+  "charging": 1,
+  "charging current": 0,
+  "voltage": 12
+}
+"""
+EXPECTED_BAT_CONFIG = dict(
+    state='CHARGING',
+    battery_level=98,
+    voltage=12,
+    charging_current=0
+)
 
 NORMAL_SOC_SETTINGS = dict(mode='NORMAL', soc_on=10, soc_off=5)
 SOC_SCENARIOS = [
@@ -182,3 +196,9 @@ def test_get_modem_net_info():
             assert sim.get_modem_network_info() == expected
             assert sim.get_modem_network_info() == expected_01
             assert sim.get_modem_network_info() == {}
+
+
+def test_get_battery():
+    with mock.patch('local_api.apiv1.utils.run_command',
+                     side_effect=[BAT_SIDE_EFFECT]):
+                     assert utils.get_battery_status(no_cache=True) == EXPECTED_BAT_CONFIG

@@ -121,6 +121,14 @@ TEST_USER = 'test_user'
 TEST_PASSWORD = 'test_password'
 ROOT_USER = 'root'
 ROOT_PASSWORD = 'fakepass'
+BAT_SIDE_EFFECT = """{
+  "iadp": 136,
+  "soc": 98,
+  "charging": 1,
+  "charging current": 0,
+  "voltage": 12
+}
+"""
 EXPECTED_BATTERY =  dict(state='CHARGING',
                          battery_level=98,
                          charging_current=0,
@@ -297,7 +305,7 @@ def test_system_battery_api(client, headers):
         with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
             with mock.patch('local_api.apiv1.utils.run_command',
                             side_effect=DUMMY_STATE):
-                with mock.patch('local_api.apiv1.utils.read_file', side_effect=BATTERY_SIDE_EFFECTS):
+                with mock.patch('local_api.apiv1.utils.get_battery_status', side_effect=[EXPECTED_BATTERY]):
                     resp = client.get('/api/v1/system', headers=headers)
                     assert(resp.status_code == 200)
                     payload = load_json(resp)
@@ -309,8 +317,8 @@ def test_network_status_api(client, headers):
     with mock.patch('local_api.apiv1.utils.get_interface_speed', side_effect=[(0, 0)]):
         with mock.patch('local_api.apiv1.utils.uci_get', side_effects=['ALWAYS_ON']):
             with mock.patch('local_api.apiv1.utils.run_command',
-                            side_effect=[DUMMY_CHILLY_RESP, DUMMY_NETWORK_ORDER, DUMMY_WAN_STATE_RESP, '31']):
-                with mock.patch('local_api.apiv1.utils.read_file', side_effect=BATTERY_SIDE_EFFECTS):
+                            side_effect=[DUMMY_CHILLY_RESP, DUMMY_NETWORK_ORDER, DUMMY_WAN_STATE_RESP, '31', BAT_SIDE_EFFECT]):
+                with mock.patch('local_api.apiv1.utils.get_battery_status', side_effect=[EXPECTED_BATTERY]):
                     resp = client.get('/api/v1/system', headers=headers)
                     assert resp.status_code == 200
                     payload = load_json(resp)
@@ -338,7 +346,7 @@ def test_patch_system_ok(client, headers):
 
 def test_get_power_config_not_configured(client, headers):
     not_configured = dict(configured=False, mode=None, battery=EXPECTED_BATTERY)
-    with mock.patch('local_api.apiv1.utils.read_file', side_effect=BATTERY_SIDE_EFFECTS):
+    with mock.patch('local_api.apiv1.utils.run_command', side_effect=[BAT_SIDE_EFFECT]):
         with mock.patch('local_api.apiv1.soc.get_power_config',
                         side_effect=[not_configured]):
             resp = client.get('/api/v1/power',
@@ -355,7 +363,7 @@ def test_get_power_config_configured(client, headers):
                       battery=EXPECTED_BATTERY)
     with mock.patch('local_api.apiv1.soc.uci_get',
                     side_effect=['ALWAYS_ON']):
-        with mock.patch('local_api.apiv1.utils.read_file', side_effect=BATTERY_SIDE_EFFECTS):
+        with mock.patch('local_api.apiv1.utils.run_command', side_effect=[BAT_SIDE_EFFECT]):
             resp = client.get('/api/v1/power',
                             content_type='application/json',
                             headers=headers)

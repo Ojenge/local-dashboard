@@ -171,7 +171,7 @@ def get_storage_status(mount_point='/storage/data'):
     return state
 
 
-@cached(timeout=(MINUTE * 5))
+@cached(timeout=(MINUTE / 12))
 def get_battery_status(no_cache=False):
     """Gets the battery status of the BRCK device.
 
@@ -183,28 +183,27 @@ def get_battery_status(no_cache=False):
 
     :return: dict
     """
-    if no_cache:
-        run_command(['check_battery'])
-    state = read_file('/tmp/battery/status') or STATE_UNKNOWN
-    battery_level = read_file('/tmp/battery/capacity') or 0
-    extended = read_file('/tmp/battery/status_ex') or '{}'
+    bat_info = {}
+    state = STATE_UNKNOWN
+    battery_level = 0
     try:
-        battery_level = int(battery_level)
-        extended = json.loads(extended)
-    except ValueError:
-        battery_level = 0
-        LOG.error('Failed to ready battery capacity | Returned: %s', battery_level)
-    state = dict(
+        raw = run_command(['querymcu', 'battery'], output=True)
+        bat_info = json.loads(raw)
+        battery_level = bat_info['soc']
+        state = 'charging' if bat_info['charging'] == 1 else 'discharging'
+        bat_info.pop('soc')
+        bat_info.pop('iadp')
+        bat_info.pop('charging')
+    except Exception:
+        LOG.error('Failed to read battery capacity | Returned: %s', battery_level)
+    bat_info.update(dict(
         state=state.upper(),
         battery_level=battery_level
-    )
-    state.update(extended)
-    if 'charging current' in state:
-        state['charging_current'] = state['charging current']
-        state.pop('charging current')
-    if 'iadp' in state:
-        state.pop('iadp')
-    return state
+    ))
+    if 'charging current' in bat_info:
+        bat_info['charging_current'] = bat_info['charging current']
+        bat_info.pop('charging current')
+    return bat_info
 
 
 def get_interface_speed(conn_name):
@@ -313,9 +312,9 @@ def get_system_state():
     :return: dict
     """
     storage_state = get_storage_status()
-    battery_state = get_battery_status()
     power_state = get_soc_settings()
     network_state = get_network_status()
+    battery_state = get_battery_status()
     state = dict(
         storage=storage_state,
         battery=battery_state,
