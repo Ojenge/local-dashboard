@@ -25,7 +25,9 @@ def unauthorized():
 
 
 def load_user(r):
-    """Loads authenticated used from API key.
+    """
+    Loads authenticated user from API key.
+
     """
     _user = None
     key = r.headers.get(AUTH_HEADER)
@@ -38,8 +40,9 @@ def load_user(r):
 def authenticated_only(f):
     @functools.wraps(f)
     def wrapped(*args, **kwargs):
-        if not current_user.is_authenticated:
+        if not current_user.is_root:
             disconnect()
+
         else:
             return f(*args, **kwargs)
 

@@ -57,6 +57,7 @@ class AuthenticationView(MethodView):
         payload = request.get_json()
         login = payload.get('login')
         password = payload.get('password')
+
         if check_password(login, password):
             return jsonify(make_token(login))
         else:
@@ -277,7 +278,8 @@ class ModemAPI(ProtectedView):
         return config
 
     def get(self):
-        """Returns the current power configuration of the device
+        """
+        Returns the current power configuration of the device
 
         :return: string JSON representation of system state
         """
@@ -294,18 +296,22 @@ class DevicesAPI(ProtectedView):
 
         return jsonify(get_connected_clients())
 
+    # @app.before_request
+    # def require_authorization():
+    #     from flask import request
+    #     from flask.ext.login import current_user
+
+    #     if not (current_user.is_authenticated or request.endpoint == 'login'):
+    #         return login_manager.unauthorized()
+
 
 api_blueprint.add_url_rule(
     '/auth', view_func=AuthenticationView.as_view('auth'), methods=[POST])
-api_blueprint.add_url_rule(
-    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET])
-api_blueprint.add_url_rule(
-    '/clients', view_func=DevicesAPI.as_view('devices_api'), methods=[GET])
 
-# api_blueprint.add_url_rule(
-#     '/auth/password',
-#     view_func=ChangePasswordView.as_view('change_password'),
-#     methods=[PATCH])
+api_blueprint.add_url_rule(
+    '/auth/password',
+    view_func=ChangePasswordView.as_view('change_password'),
+    methods=[PATCH])
 sim_view = WANAPI.as_view('sim_api')
 api_blueprint.add_url_rule(
     '/sim', defaults={'sim_id': None}, view_func=sim_view, methods=[GET])
@@ -338,12 +344,16 @@ api_blueprint.add_url_rule(
 api_blueprint.add_url_rule(
     '/system', view_func=SystemAPI.as_view('system_api'), methods=[GET, PATCH])
 api_blueprint.add_url_rule(
-    '/packages', view_func=SoftwareAPI.as_view('software_api'), methods=[GET])
-api_blueprint.add_url_rule(
     '/system/diagnostics',
     view_func=DiagnosticsAPI.as_view('diagnostics_api'),
     methods=[GET])
 
+api_blueprint.add_url_rule(
+    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET])
+api_blueprint.add_url_rule(
+    '/clients', view_func=DevicesAPI.as_view('devices_api'), methods=[GET])
+api_blueprint.add_url_rule(
+    '/packages', view_func=SoftwareAPI.as_view('software_api'), methods=[GET])
 api_blueprint.add_url_rule(
     '/modem', view_func=ModemAPI.as_view('modem_api'), methods=[GET])
 api_blueprint.add_url_rule(

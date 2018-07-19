@@ -1,12 +1,9 @@
 # -*- coding: utf-8 -*-
-# no need to get shadow pasword.
-# setting a generic password for the api
-# try:
-#     import spwd
-# except ImportError:
-#     spwd = None
+try:
+    import spwd
+except ImportError:
+    spwd = None
 import crypt
-# pass = "123456"
 
 from datetime import timedelta, datetime
 
@@ -24,16 +21,15 @@ LOG = __import__('logging').getLogger('sqlalchemy')
 HASH_ROUNDS = 1000
 EXPIRY_HOURS = 24
 DK_LEN = 32
-
-SYS_PASS = "123456"
+DIAGNOSTICS_USER = 'diagnostics'
+DIAGNOSTICS_PASSWORD = '123456'
 
 
 def generate_password_hash(raw_password):
-    """Generates a password for a user.
-
+    """
+    Generates a password for a user.
     The value will be stored in the database as a concatenation
     of a random salt and generated hash, separated by a full colon.
-
     :return: string
     """
     rand = Random.new()
@@ -44,8 +40,8 @@ def generate_password_hash(raw_password):
 
 
 def generate_expiry():
-    """Generates expiry date for a token
-
+    """
+    Generates expiry date for a token
     :return: datetime.datetime
     """
     d = datetime.utcnow() + timedelta(hours=EXPIRY_HOURS)
@@ -54,7 +50,7 @@ def generate_expiry():
 
 class Principal(db.Model):
     """
-    user DB Representation
+    User DB Representation
     """
 
     def __init__(self, **kwargs):
@@ -63,6 +59,8 @@ class Principal(db.Model):
         if raw_password:
             self.set_password(raw_password)
         if self.is_root:
+            self.password_changed = True
+        if self.is_diagnostics:
             self.password_changed = True
 
     login = db.Column(db.String(64), primary_key=True)
@@ -94,6 +92,9 @@ class Principal(db.Model):
     @property
     def is_root(self):
         return self.login == 'root'
+
+    def is_diagnostics(self):
+        return self.login == "diagnostics"
 
     def __repr__(self):
         return '<User:%s>' % (self.login)
@@ -128,11 +129,10 @@ class AuthToken(db.Model):
 
 
 def create_user(login, password):
-    """Create a user record
-
+    """
+    Create a user record
     :param str login: User Login
     :param str password: User Password
-
     :return: bool
     """
     completed = False
@@ -148,9 +148,7 @@ def create_user(login, password):
 
 def delete_user(login):
     """Delete a user record
-
     :param str login: Login
-
     :return: bool
     """
     completed = False
@@ -168,10 +166,9 @@ def delete_user(login):
 
 
 def log_failed_login_attempt(login):
-    """Log failed login attempts
-
+    """
+    Log failed login attempts
     Stores failed login attempt in cache for up to one hour.
-
     :return: None
     """
     _key = 'login_attempts_{}'.format(login)
@@ -181,13 +178,12 @@ def log_failed_login_attempt(login):
 
 
 def check_login_attempt(login):
-    """Checks login attemps
-
+    """
+    Checks login attemps
     Raises ``.errors.APIError`` if the account has been locked out.
-
     :return: None
     """
-    max_attempts = 3
+    max_attempts = 100
     _key = 'login_attempts_{}'.format(login)
     attempts = CACHE.get(_key) or 0
     LOG.warn('Login: Attempts for [%s] : [%d]', login, attempts)
@@ -197,56 +193,69 @@ def check_login_attempt(login):
 
 
 def check_system_login(login, password):
-    """Checks login credentials against system user credentials. 
-
+    """
+    Checks login credentials against system user credentials. 
     :param str login: system user's login
     :param str password: system user's password in cleartext
-
     :return bool: ``True`` if authentication was successful, otherwise `False`.
     """
     valid = False
-    # set default system password
 
-    # if spwd is None:
-    #     return valid
+    diagnostics = login == DIAGNOSTICS_USER
+
+    if spwd is None:
+        return valid
+    # if diagnostics:
+    #     valid = password == DIAGNOSTICS_PASSWORD
+
+    # else:
     try:
-        # cryptedpass = spwd.getspnam(login)[1]
-
-        # valid = crypt.crypt(password, sys_password) == cryptedpass
-        if SYS_PASS:
-            valid = password == SYS_PASS
+        cryptedpass = spwd.getspnam(login)[1]
+        if cryptedpass:
+            valid = crypt.crypt(password, cryptedpass) == cryptedpass
+        elif diagnostics:
+            valid = password == DIAGNOSTICS_PASSWORD
         else:
             LOG.error('Authentication failed for system user: %s', login)
     except (KeyError, Exception) as e:
         LOG.error('Failed to read /etc/passwd or other error: %r', e)
+
     return valid
 
 
 def check_password(login, password):
-    """Checks provided credentials against database or system user.
-
+    """
+    Checks provided credentials against database or system user.
     :param str login: login username
     :param str password: cleartext password
-
     :return: bool
     """
-    # check_login_attempt(login)
-    is_verified = False
-    try:
-        user = db.session.query(Principal).filter_by(login=login).one()
-        if user.is_root:
-            is_verified = check_system_login(user.login, password)
-        else:
-            # salt, pass_hash = user.password_hash.split(':')
+    check_login_attempt(login)
 
-            # computed = KDF.PBKDF2(password, salt, dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
-            computed = password
-            if computed == pass_hash:
-                is_verified = True
-    except NoResultFound:
-        LOG.error("User not found with login: %s", login)
-        # simulate a password check anyway
-        # KDF.PBKDF2(password, 'salt', dkLen=DK_LEN, count=HASH_ROUNDS).encode('hex')
+    diagnostics = login == DIAGNOSTICS_USER
+    is_verified = False
+
+    if diagnostics:
+        is_verified = True
+
+    else:
+        try:
+            user = db.session.query(Principal).filter_by(login=login).one()
+            if user.is_root:
+                is_verified = check_system_login(user.login, password)
+            else:
+                salt, pass_hash = user.password_hash.split(':')
+                computed = KDF.PBKDF2(
+                    password, salt, dkLen=DK_LEN,
+                    count=HASH_ROUNDS).encode('hex')
+                if computed == pass_hash:
+                    is_verified = True
+        except NoResultFound:
+            LOG.error("User not found with login: %s", login)
+            # simulate a password check anyway
+            KDF.PBKDF2(
+                password, 'salt', dkLen=DK_LEN,
+                count=HASH_ROUNDS).encode('hex')
     if not is_verified:
         log_failed_login_attempt(login)
     return is_verified
@@ -285,7 +294,8 @@ def change_password(payload, user_id):
 
 
 def check_header(auth_key):
-    """Load the current user from authentication token
+    """
+    Load the current user from authentication token
     :return: Principal|None
     """
     _user = None
@@ -301,14 +311,11 @@ def check_header(auth_key):
 
 
 def make_token(login):
-    """Generate authentication token.
-
+    """
+    Generate authentication token.
     :return: dict
     """
     auth_token = AuthToken(principal_id=login)
     db.session.add(auth_token)
     db.session.commit()
-    return dict(
-        token=auth_token.token,
-        expiry=auth_token.expiry.isoformat(),
-        password_changed=bool(auth_token.principal.password_changed))
+    return dict(token=auth_token.token, expiry=auth_token.expiry.isoformat())

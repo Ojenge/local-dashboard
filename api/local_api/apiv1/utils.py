@@ -33,7 +33,8 @@ BRCK_PACKAGES = [
 
 
 def get_request_log(r):
-    """Gets request metadata as a string for logging
+    """
+    Gets request metadata as a string for logging
 
     Includes: user agent, remote address, path
 
@@ -43,7 +44,8 @@ def get_request_log(r):
 
 
 def get_uci_state(option, command='show', as_dict=True):
-    """Gets the uci state stored at `option`
+    """
+    Gets the uci state stored at `option`
 
     :param str option: the name of the uci option
     :param str command: the command to run on state (`show` or `get`)
@@ -151,8 +153,8 @@ def get_storage_status(mount_point='/storage/data'):
     return state
 
 
-@cached(timeout=(MINUTE * 5))
-def get_battery_status(no_cache=False):
+@cached(timeout=(MINUTE / 6))
+def get_battery_status(no_cache=True):
     """Gets the battery status of the BRCK device.
 
         Sample Response:
@@ -163,9 +165,6 @@ def get_battery_status(no_cache=False):
 
     :return: dict
     """
-    if no_cache:
-        run_command(['check_battery'])
-
     state = read_file('/tmp/battery/status') or STATE_UNKNOWN
     battery_level = read_file('/tmp/battery/capacity') or 0
     extended = read_file('/tmp/battery/status_ex') or '{}'
@@ -373,33 +372,70 @@ def get_modem_status():
     modem_status = {}
     modem_temp = run_command(['querymodem', 'temperature'], output=True)
     modem_signal = run_command(['querymodem', 'signal'], output=True)
+    network_mode = run_command(['querymodem', 'network_mode'], output=True)
 
     modem_status['temperature'] = modem_temp
     modem_status['signal'] = modem_signal
+    modem_status['mode'] = network_mode
+
     return modem_status
 
 
 def get_power_data():
     """ 
     Gets the Power data for the api as per specifications
-    Includes:
-        -battery voltage
-        -charge voltage
-        -charging status
-        -battery temperature
-        -MCU temperature
-        -unit temperature
-        -charging current
-        -whether charger is connected
+    "Power"
+    {
+        "battery_level": 100,
+        "battery_temperature": 28,
+        "charge_voltage": 13,
+        "charging_current": 0,
+        "charging_state": "DISCHARGING",
+        "battery_temp": 28
+    }
 
     return: dict
     """
-    bat_stats = get_battery_status()
+    status = dict(get_battery_status())
+    bat_temp = get_battery_temperature()
 
-    battery_stats = dict(
-        charge_percentage=bat_stats('capacity'),
-        charging_status=bat_stats('status'),
-        charging_current=bat_stats('charging_current'),
-        charge_voltage=bat_stats('voltage'))
+    power = dict(
+        battery_percentage=status['battery_level'],
+        battery_voltage=status['voltage'],
+        charging_current=status['charging_current'],
+        charging_state=status['state'],
+        battery_temp=bat_temp)
 
-    return battery_stats
+    return power
+
+
+def get_connected_clients():
+    """
+    gets the list of clients connected plus their upload and download packets
+    structure:
+    "clients": [
+        {
+            "connected_time": "1182",
+            "idle_time": "50",
+            "ip": "192.168.180.2",
+            "mac_address": "dc:a9:04:81:74:4b",
+            "name": "Unknown",
+            "rx_bytes": "3952727",
+            "session_id": "5b32003c00000001",
+            "signal": "-52 dBm",
+            "tx_bytes": "13786615"
+        }
+    ]
+  :return:dict
+
+    """
+
+    status = {}
+    client_data = run_command(['connected_clients'], output=True) or '{}'
+    try:
+        _data = json.loads(client_data)
+        status['clients'] = _data.get('clients', [])
+    except ValueError as exc:
+        LOG.error('Failed to load connected_clients: %r', exc)
+
+    return status

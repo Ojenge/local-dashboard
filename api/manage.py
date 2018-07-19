@@ -36,6 +36,7 @@ def del_user(login):
     else:
         print("[ERROR] User with login [{}] not deleted.".format(login))
 
+
 @manager.command
 def add_root_user():
     print('\n---------------------------\n')
@@ -45,10 +46,24 @@ def add_root_user():
     if status:
         print('[SUCCESS] Root user has been created')
     else:
-        print('[ERROR] Root user creation failed. This may already have been done.')
-    
+        print(
+            '[ERROR] Root user creation failed. This may already have been done.'
+        )
+
+
+@manager.command
+def add_diagnostics_user():
+    print('\n---------------------------\n')
+    print("Adding diagnostics user...")
+    fake_diagnostics_pass = hexlify(urandom(64))
+    status = create_user('diagnostics', fake_root_pass)
+    if status:
+        print('[SUCCESS] Diagnostics user has been created')
+    else:
+        print(
+            '[ERROR] Diagnostics user creation failed. This may already have been done.'
+        )
 
 
 if __name__ == '__main__':
     manager.run()
-    
