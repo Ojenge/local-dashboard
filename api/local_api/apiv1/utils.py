@@ -6,13 +6,16 @@ Utilities for interacting with the filesystem.
 import os
 import time
 import psutil
+import hashlib
+import hmac
 try:
     import simplejson as json
 except ImportError:
     import json
 
 from brck.utils import run_command
-from brck.utils import uci_get
+from brck.utils import uci_get, uci_set, uci_commit
+from brck.utils import uci_show_config
 
 from .soc import (get_soc_settings, get_firmware_version,
                   get_battery_temperature)
@@ -30,6 +33,7 @@ BRCK_PACKAGES = [
     'gps-monitor', 'moja', 'moja-captive', 'python-brck-sdk', 'querymodem',
     'scan_wifi', 'supabrck-core'
 ]
+INTERFACE_MAP = {'lan': 'eth0', 'wan': '3g-wan'}
 
 
 def get_request_log(r):
@@ -126,8 +130,8 @@ def get_device_mode():
     """
     mode = STATE_UNKNOWN
     resp = uci_get('brck.soc.mode')
-    if resp and len(mode):
-        return mode
+    if resp and len(resp):
+        return resp
     return mode
 
 
@@ -153,8 +157,8 @@ def get_storage_status(mount_point='/storage/data'):
     return state
 
 
-@cached(timeout=(MINUTE / 6))
-def get_battery_status(no_cache=True):
+@cached(timeout=(MINUTE / 2))
+def get_battery_status(no_cache=False):
     """Gets the battery status of the BRCK device.
 
         Sample Response:
@@ -165,24 +169,25 @@ def get_battery_status(no_cache=True):
 
     :return: dict
     """
-    state = read_file('/tmp/battery/status') or STATE_UNKNOWN
-    battery_level = read_file('/tmp/battery/capacity') or 0
-    extended = read_file('/tmp/battery/status_ex') or '{}'
+    bat_info = {}
+    state = STATE_UNKNOWN
+    battery_level = 0
     try:
-        battery_level = int(battery_level)
-        extended = json.loads(extended)
-    except ValueError:
-        battery_level = 0
-        LOG.error('Failed to ready battery capacity | Returned: %s',
+        raw = run_command(['querymcu', 'battery'], output=True)
+        bat_info = json.loads(raw)
+        battery_level = bat_info['soc']
+        state = 'charging' if bat_info['charging'] == 1 else 'discharging'
+        bat_info.pop('soc')
+        bat_info.pop('iadp')
+        bat_info.pop('charging')
+    except Exception:
+        LOG.error('Failed to read battery capacity | Returned: %s',
                   battery_level)
-    state = dict(state=state.upper(), battery_level=battery_level)
-    state.update(extended)
-    if 'charging current' in state:
-        state['charging_current'] = state['charging current']
-        state.pop('charging current')
-    if 'iadp' in state:
-        state.pop('iadp')
-    return state
+    bat_info.update(dict(state=state.upper(), battery_level=battery_level))
+    if 'charging current' in bat_info:
+        bat_info['charging_current'] = bat_info['charging current']
+        bat_info.pop('charging current')
+    return bat_info
 
 
 def get_interface_speed(conn_name):
@@ -208,6 +213,16 @@ def get_interface_speed(conn_name):
                 down = int((down1 - down0) / delta)
             CACHE.set(cache_key, new_speed)
     return (up, down)
+
+
+def read_network_state_file(net_state):
+    try:
+        with open('/var/state/network') as f:
+            lines = f.read().splitlines()
+            net_state.update([l.replace("'", "").split('=') for l in lines])
+    except IOError:
+        pass
+    return net_state
 
 
 def get_network_status():
@@ -241,10 +256,15 @@ def get_network_status():
     if net_order:
         nets = [n.strip() for n in net_order.split(' ')]
         net_state = get_uci_state('network')
+        net_state = read_network_state_file(net_state)
         for net in nets:
-            conn_state = net_state.get('network.{}.connected'.format(net),
-                                       '') == '1'
-            if conn_state:
+            mapped_net = INTERFACE_MAP.get(net, '')
+            conn_state = net_state.get('network.{}.connected'.format(net), '')
+            if not conn_state:
+                conn_state = net_state.get(
+                    'network.{}.connected'.format(mapped_net), '')
+            net_connected = conn_state == '1'
+            if net_connected:
                 active_net = net
                 net_type = net.upper()
                 if net in ['wan', 'wan2']:
@@ -276,9 +296,9 @@ def get_system_state():
     :return: dict
     """
     storage_state = get_storage_status()
-    battery_state = get_battery_status()
     power_state = get_soc_settings()
     network_state = get_network_status()
+    battery_state = get_battery_status()
     state = dict(
         storage=storage_state,
         battery=battery_state,
@@ -439,3 +459,66 @@ def get_connected_clients():
         LOG.error('Failed to load connected_clients: %r', exc)
 
     return status
+
+
+def get_device_setup_data():
+    login = uci_get("brck.mqtt.username")
+    output = run_command(['ifconfig', 'wlan0'], output=True)
+    if output:
+        mac_addr = output.split("\n")[0].split("HWaddr")[1].strip()
+    else:
+        mac_addr = ""
+    return login, mac_addr
+
+
+@cached(timeout=(MINUTE * 1))
+def get_connection_state():
+    command = ['ping', '-c', '2', '-W', '1', '8.8.8.8']
+    return run_command(command)
+
+
+@cached(timeout=(MINUTE * 60))
+def get_retail_registration_config():
+    config = uci_show_config('brck.handshake', True)['handshake']
+    product_id = config['product_id']
+
+    # Generate the request url
+    url = "{}/handshake/{}/retail_registration_token".format(
+        config['api_url'], product_id)
+
+    # Generate the handshake token; X-Handshake-Auth-Token
+    auth_token = hmac.new(product_id, config['handshake_key'],
+                          hashlib.sha256).hexdigest()
+
+    # Request headers
+    headers = {
+        'Content-Type': 'application/json;charset=utf-8',
+        'X-Auth-Token': auth_token
+    }
+    login = uci_get("brck.mqtt.username")
+    return dict({'url': url, 'headers': headers, 'login': login})
+
+
+def get_retail_registration_token():
+    resp = uci_get('brck.retail.registration_token')
+    return resp
+
+
+def set_retail_registration_token(token):
+    uci_set('brck.retail.registration_token', token)
+    uci_commit('brck.retail')
+
+
+def retail_device_registered():
+    registered = uci_get('brck.retail.registered')
+    return registered == '1'
+
+
+def set_retail_device_registered():
+    uci_set('brck.retail.registered', '1')
+    uci_commit('brck.retail')
+
+
+def get_device_id():
+    resp = uci_get('brck.auth.uuid')
+    return resp

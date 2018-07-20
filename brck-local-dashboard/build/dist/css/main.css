@@ -383,6 +383,17 @@ ul {
 	  padding-right: 5px;
 }
 
+.connection-dash-stats span.charge-status{
+    font-size: 13px;
+    color: #8e8e8e;
+    font-weight: normal;
+    text-transform: lowercase;
+    display: inline-block;
+}
+.connection-dash-stats span.charge-status:first-letter { 
+    text-transform: uppercase; 
+}
+
 /*Dash Stats -- Tablets*/
 
 @media only screen and (min-width: 768px) and (max-width: 1025px) {

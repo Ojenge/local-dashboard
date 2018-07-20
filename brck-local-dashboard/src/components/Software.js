@@ -12,12 +12,29 @@ class Software extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      loaded: false
+      loaded: false,
+      retailMode: 1
     }
   }
 
   componentDidMount() {
+    API.get_device_mode(this.setDeviceMode);
     this.loadState();
+  }
+
+  setDeviceMode = (err, res) => {
+    if (res.ok){
+      var retail;
+      if (res.body.mode == "RETAIL"){
+        retail = 1;
+      } else {
+        retail = 0;
+      }
+      this.setState({
+        retailMode: retail
+      });
+
+    }
   }
 
   loadState = () => {
@@ -52,6 +69,34 @@ class Software extends Component {
     )
   }
 
+  renderSoftwarePackages = () => {
+    return (
+        <div class="box">
+          <div class="box-header">
+            <h3 class="box-title">Software Packages</h3>
+          </div>
+          <div class="box-body table-responsive no-padding">
+            <table class="table table-hover">
+              <tbody>
+                <tr>
+                  <th>Package Name</th>
+                  <th>Version</th>
+                </tr>
+                {this.state.software.packages.map(function(pkg, index) {
+                  return (
+                    <tr key={ "opkg-id-"+ index }>
+                      <td>{ pkg.name }</td>
+                      <td>{ pkg.installed ? <span>{ pkg.version }</span> : <span className="label label-danger">NOT INSTALLED</span> }</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>      
+    );
+  }   
+
   renderBody = () => {
     return (
       <div className="content container-fluid">
@@ -77,30 +122,9 @@ class Software extends Component {
                 </table>
               </div>
             </div>
-
-            <div class="box">
-              <div class="box-header">
-                <h3 class="box-title">Software Packages</h3>
-              </div>
-              <div class="box-body table-responsive no-padding">
-                <table class="table table-hover">
-                  <tbody>
-                    <tr>
-                      <th>Package Name</th>
-                      <th>Version</th>
-                    </tr>
-                    {this.state.software.packages.map(function(pkg, index) {
-                      return (
-                        <tr key={ "opkg-id-"+ index }>
-                          <td>{ pkg.name }</td>
-                          <td>{ pkg.installed ? <span>{ pkg.version }</span> : <span className="label label-danger">NOT INSTALLED</span> }</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+            {(this.state.retailMode)
+             ? null
+             : this.renderSoftwarePackages() }
           </div>
         </div>
       </div>

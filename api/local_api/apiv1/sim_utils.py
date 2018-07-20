@@ -172,7 +172,7 @@ def get_sim_state(sim_id):
     state = get_uci_state(state_path)
     if state:
         sim_state['active'] = state.get('brck.sim%d.active' % sim_id) == '1'
-        sim_state['apn'] = state.get('brck.sim%d.apn' % sim_id)
+        sim_state['apn'] = state.get('brck.sim%d.apn' % sim_id, '')
         sim_state['username'] = state.get('brck.sim%d.username' % sim_id)
         sim_state['password'] = state.get('brck.sim%d.password' % sim_id)
     return sim_state
@@ -324,6 +324,7 @@ def connect_sim_actual(sim_id, modem_id, previous_sim):
             check_imei_status = run_command(['querymodem', 'imei'], output=True)
             LOG.warn("SIM|IMEI STATUS|%s", check_imei_status)
             requires_input = False
+            wan_up_done = False
             if not REG_ERROR.match(check_imei_status):
                 emit_event(io, SIM_DETECTED, ns)
                 emit_event(io, CHECK_PIN, ns)
@@ -426,6 +427,7 @@ def connect_sim_actual(sim_id, modem_id, previous_sim):
                             emit_event(io, START_WAN, ns)
                             LOG.warn("Bringing up WAN")
                             run_command(['ifup', 'wan'])
+                            wan_up_done = True
                             emit_event(io, WAIT_CONNECTION, ns)
                             _connected = False
                             for _ in xrange(6):
@@ -446,8 +448,9 @@ def connect_sim_actual(sim_id, modem_id, previous_sim):
             LOG.error('No such modem configuration exists: SIM: %d MODEM: %d', sim_id, modem_id)
             emit_event(io, NO_MODEM, ns)
         if not requires_input:
-            LOG.warn("Bringing up WAN")
-            run_command(['ifup', 'wan'])
+            if not wan_up_done:
+                LOG.warn("Bringing up WAN")
+                run_command(['ifup', 'wan'])
             emit_event(io, ENABLE_3G_MONITOR, ns)
             LOG.warn('Enabling 3G Monitor')
             enable_service(THREEG_MONITOR_SERVICE)

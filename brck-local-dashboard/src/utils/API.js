@@ -6,7 +6,7 @@ const BASE_URL = 'http://local.brck.com/api/v1';
 const AUTH_HEADER = 'X-Auth-Token-Key';
 
 const TIMEOUT = {
-    response: 10000,
+    response: 15000,
     deadline: 15000
 };
 
@@ -54,6 +54,13 @@ const API = {
             .timeout(TIMEOUT)
             .on('error', handleError(cb))
             .then(cb);
+    },
+    get_device_mode: function(cb){
+        request.get(BASE_URL + '/device-mode')
+            .type('json')
+            .accept('json')
+            .timeout(LONG_TIMEOUT)
+            .end(cb)
     },
     get_system: function(cb) {
         request.get(BASE_URL + '/system')
@@ -155,6 +162,25 @@ const API = {
     get_diagnostic_data: function(cb) {
         request.get(BASE_URL + '/system/diagnostics')
             .type('json')
+            .set(AUTH_HEADER, Auth.getToken())
+            .timeout(TIMEOUT)
+            .on('error', handleError(cb))
+            .then(cb);
+    },
+    get_storage: function(cb) {
+        request.get(BASE_URL + '/ftp')
+            .type('json')
+            .accept('json')
+            .set(AUTH_HEADER, Auth.getToken())
+            .timeout(TIMEOUT)
+            .on('error', handleError(cb))
+            .then(cb);
+    },
+    configure_ftp: function(payload, cb) {
+        request.post(BASE_URL + '/ftp')
+            .type('json')
+            .accept('json')
+            .send(payload)
             .set(AUTH_HEADER, Auth.getToken())
             .timeout(TIMEOUT)
             .on('error', handleError(cb))

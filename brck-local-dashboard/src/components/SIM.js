@@ -47,7 +47,7 @@ class SIMConnections extends Component {
 
   componentDidMount() {
     this.loadConnections();
-    this.interval = window.setInterval(this.loadConnections, 10000);
+    this.interval = window.setInterval(this.loadConnections, 15000);
     this.initializeSocket();
   }
 
@@ -410,7 +410,6 @@ class SIMConnections extends Component {
                     We can't connect to the internet with your SIM card. Please ensure the SIM is Data Enabled, has credit and has valid APN
                   </div>
 
-                  <p>The 3G/4G modem supports all GSM and HSPA+ providers, but unfortunately not CDMA (Verison and Sprint in the U.S).</p>
                   <p>In case you don't know your APN settings, please contact your service provider.</p>
 
                 </div>
@@ -529,7 +528,12 @@ class SIMConnections extends Component {
             </div>
             <div className="modal-footer">
               { (this.state.last_event == ENABLE_3G_MONITOR)
-                ? <a href="." onClick={ this.handleCloseConnecting } className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim-connect">Done</a>
+                ? [
+                  (this.state.conn_error
+                   ? <div><a href="#" onClick={(e) => this.handleConfigureAPN(this.state.current_sim) } value={this.state.sim_id} className="btn btn-primary pull-left" data-toggle="modal" data-target="#sim2" data-dismiss="modal">Configure APN</a>
+                   <a href="." onClick={ this.handleCloseConnecting } className="btn btn-default pull-right" data-toggle="modal" data-target="#sim-connect">Done</a>
+                   </div>
+                   : <a href="." onClick={ this.handleCloseConnecting } className="btn btn-primary btn-block" data-toggle="modal" data-target="#sim-connect">Done</a> )]
                 : null
               }
             </div>
@@ -707,7 +711,7 @@ class SIMConnections extends Component {
   render() {
     var that = this;
     return (
-      <Container>
+      <div>
         <div>
           <Header>SIM Connectivity</Header>
           {(this.state.loaded)
@@ -726,7 +730,7 @@ class SIMConnections extends Component {
         { this.renderConfigureSimDialog() }
         { this.renderConfigureSimLockedDialog() }
         { this.renderSignalStatusDialog() }
-      </Container>
+      </div>
     );
   }
 }

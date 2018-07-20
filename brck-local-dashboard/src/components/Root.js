@@ -6,9 +6,11 @@ import {
     Redirect
 } from 'react-router-dom';
 
+import API from '../utils/API';
 import Dashboard from './Dashboard';
-import SIMConnections from './SIM';
-import Ethernet from './Ethernet';
+import SIMConnectionsContainer from './SIMContainer'
+import EthernetContainer from './EthernetContainer'
+import Connections from './Connections'
 import WIFI from './WIFI';
 import Login from './Login';
 import Logout from './Logout';
@@ -18,6 +20,7 @@ import Power from './Power';
 import Auth from '../utils/Auth';
 import Software from './Software';
 import Diagnostics from './Diagnostics';
+import Storage from './Storage';
 
 const CHANGE_PASSWORD_PATH = '/change-password';
 
@@ -43,6 +46,54 @@ const PrivateRoute = ({ component: Component, ...rest }) => {
 
 
 class Root extends Component {
+  constructor(props) {
+    super(props);
+      this.state = {
+        retailMode: 1
+      }
+  }
+
+  setDeviceMode = (err, res) => {
+    if (res.ok){
+      var retail;
+      if (res.body.mode == "RETAIL"){
+        retail = 1;
+      } else {
+        retail = 0;
+      }
+      this.setState({
+        retailMode: retail
+      });
+
+    }
+  }
+
+  componentDidMount(){
+    API.get_device_mode(this.setDeviceMode);
+  }
+
+  renderRetailRoutes = () => {
+    return (
+      <div style={{height: "100%"}}>
+      <PrivateRoute exact path='/connect-all' component={ Connections } />
+      <PrivateRoute exact path='/content' component={ Storage } />
+      <PrivateRoute exact path='/about' component = { Software } />
+      </div>
+    );
+  }
+
+  renderAdvancedRoutes = () => {
+    return (
+      <div>
+      <PrivateRoute exact path='/connect-sim' component={ SIMConnectionsContainer } />
+      <PrivateRoute exact path='/connect-lan' component={ EthernetContainer } />
+      <PrivateRoute exact path='/connect-wifi' component={ WIFI } />
+      <PrivateRoute exact path='/power' component={ Power } />
+      <PrivateRoute exact path='/about' component = { Software } />
+      <PrivateRoute exact path='/diagnostics' component = { Diagnostics } />
+      </div>
+    );
+  }
 
   render() {
     return (
@@ -53,17 +104,13 @@ class Root extends Component {
           <PrivateRoute exact path={CHANGE_PASSWORD_PATH} component={ ChangePassword } />
           <PrivateRoute exact path="/logout" component={ Logout } />
           <PrivateRoute exact path='/dashboard' component={ Dashboard } />
-          <PrivateRoute exact path='/connect-sim' component={ SIMConnections } />
-          <PrivateRoute exact path='/connect-lan' component={ Ethernet } />
-          <PrivateRoute exact path='/connect-wifi' component={ WIFI } />
-          <PrivateRoute exact path='/power' component={ Power } />
-          <PrivateRoute exact path='/about' component = { Software } />
-          <PrivateRoute exact path='/diagnostics' component = { Diagnostics } />
+          {(this.state.retailMode)
+          ? this.renderRetailRoutes()
+          : this.renderAdvancedRoutes() }
         </div>
-    </Router>
+      </Router>  
     );
   }
 }
-
 
 export default Root;

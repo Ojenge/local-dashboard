@@ -3,11 +3,13 @@
 import os
 import serial
 import re
+import json
 from datetime import datetime
 
 from brck.utils import uci_set
 from brck.utils import uci_get
 from brck.utils import uci_commit
+from brck.utils import run_command
 
 from .schema import Validator
 from .cache import cached, MINUTE
@@ -85,8 +87,14 @@ def parse_serial(raw_content, to_type=int):
     """
     stripped = re.sub(r'[\{\}\"]', '', raw_content)
     configs = stripped.split(',')
+<<<<<<< HEAD
     tuples = [c.split(":", 1) for c in configs]
     return dict([(k.strip(), to_type(v.strip())) for k, v in tuples])
+=======
+    tuples = [c.split(":", 1) for c in configs if c]
+    tuples = filter(lambda t: len(t) == 2, tuples)
+    return dict([(k.strip(), to_type(v.strip())) for k,v in tuples])
+>>>>>>> a4cfd842c5cf16afa0adb17d532a8d45e973f05e
 
 
 @cached(timeout=(MINUTE * 10))
@@ -97,6 +105,7 @@ def get_soc_settings(no_cache=False):
     """
     soc_settings = {}
     try:
+<<<<<<< HEAD
         resp = read_serial('RDC')
         parsed = parse_serial(resp)
         soc_settings[
@@ -105,6 +114,12 @@ def get_soc_settings(no_cache=False):
         soc_settings[
             'off_time'] = '{d[PowerOffHour]:02d}:{d[PowerOffMinute]:02d}'.format(
                 d=parsed)
+=======
+        resp = run_command(['querymcu', 'get_config'], output=True) or ''
+        parsed = json.loads(resp)
+        soc_settings['on_time'] = '{d[AlarmPwrOnHour]:02d}:{d[AlarmPwrOnMinute]:02d}'.format(d=parsed)
+        soc_settings['off_time'] = '{d[PowerOffHour]:02d}:{d[PowerOffMinute]:02d}'.format(d=parsed)
+>>>>>>> a4cfd842c5cf16afa0adb17d532a8d45e973f05e
         soc_settings['soc_on'] = parsed['SocPwrOnLevel']
         soc_settings['soc_off'] = parsed['SocPwrOffLevel']
         soc_settings['delay_off'] = parsed['DelayedOffTimerEnable']
@@ -127,7 +142,7 @@ def get_firmware_version():
     """
     version = STATE_UNKNOWN
     try:
-        resp = read_serial('VER')
+        resp = run_command(['querymcu', 'version'], output=True) or ''
         parsed = parse_serial(resp, to_type=str)
         version = '{d[Firmware Version]} : {d[Build]}'.format(d=parsed)
     except Exception as e:
@@ -142,7 +157,7 @@ def get_battery_temperature():
     """
     bat_temp = STATE_UNKNOWN
     try:
-        resp = read_serial('BAX') or ''
+        resp = run_command(['querymcu', 'battery', '--extended'], output=True) or ''
         matches = re.findall(REGEX_BAT_TEMP, resp)
         if len(matches) == 1:
             bat_temp = float(matches[0])
