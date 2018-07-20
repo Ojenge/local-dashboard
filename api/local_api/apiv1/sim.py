@@ -202,22 +202,13 @@ def configure_sim(sim_id, big_payload):
         pin = payload.get('pin', '')
         puk = payload.get('puk', '')
         net_config = payload.get('network', {})
-<<<<<<< HEAD
         errors = connect_sim(
             sim_id,
             pin=pin,
             puk=puk,
             apn=net_config.get('apn', ''),
-            username=net_config.get('username'),
+            username=net_config.get('username', ''),
             password=net_config.get('password', ''))
-=======
-        errors = connect_sim(sim_id, 
-                             pin=pin,
-                             puk=puk,
-                             apn=net_config.get('apn', ''),
-                             username=net_config.get('username', ''),
-                             password=net_config.get('password', ''))
->>>>>>> a4cfd842c5cf16afa0adb17d532a8d45e973f05e
         validator.add_errors(errors)
     if validator.is_valid:
         return (200, 'OK')

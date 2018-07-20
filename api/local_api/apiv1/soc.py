@@ -87,14 +87,9 @@ def parse_serial(raw_content, to_type=int):
     """
     stripped = re.sub(r'[\{\}\"]', '', raw_content)
     configs = stripped.split(',')
-<<<<<<< HEAD
-    tuples = [c.split(":", 1) for c in configs]
-    return dict([(k.strip(), to_type(v.strip())) for k, v in tuples])
-=======
     tuples = [c.split(":", 1) for c in configs if c]
     tuples = filter(lambda t: len(t) == 2, tuples)
-    return dict([(k.strip(), to_type(v.strip())) for k,v in tuples])
->>>>>>> a4cfd842c5cf16afa0adb17d532a8d45e973f05e
+    return dict([(k.strip(), to_type(v.strip())) for k, v in tuples])
 
 
 @cached(timeout=(MINUTE * 10))
@@ -105,21 +100,14 @@ def get_soc_settings(no_cache=False):
     """
     soc_settings = {}
     try:
-<<<<<<< HEAD
-        resp = read_serial('RDC')
-        parsed = parse_serial(resp)
+        resp = run_command(['querymcu', 'get_config'], output=True) or ''
+        parsed = json.loads(resp)
         soc_settings[
             'on_time'] = '{d[AlarmPwrOnHour]:02d}:{d[AlarmPwrOnMinute]:02d}'.format(
                 d=parsed)
         soc_settings[
             'off_time'] = '{d[PowerOffHour]:02d}:{d[PowerOffMinute]:02d}'.format(
                 d=parsed)
-=======
-        resp = run_command(['querymcu', 'get_config'], output=True) or ''
-        parsed = json.loads(resp)
-        soc_settings['on_time'] = '{d[AlarmPwrOnHour]:02d}:{d[AlarmPwrOnMinute]:02d}'.format(d=parsed)
-        soc_settings['off_time'] = '{d[PowerOffHour]:02d}:{d[PowerOffMinute]:02d}'.format(d=parsed)
->>>>>>> a4cfd842c5cf16afa0adb17d532a8d45e973f05e
         soc_settings['soc_on'] = parsed['SocPwrOnLevel']
         soc_settings['soc_off'] = parsed['SocPwrOffLevel']
         soc_settings['delay_off'] = parsed['DelayedOffTimerEnable']
@@ -157,7 +145,8 @@ def get_battery_temperature():
     """
     bat_temp = STATE_UNKNOWN
     try:
-        resp = run_command(['querymcu', 'battery', '--extended'], output=True) or ''
+        resp = run_command(
+            ['querymcu', 'battery', '--extended'], output=True) or ''
         matches = re.findall(REGEX_BAT_TEMP, resp)
         if len(matches) == 1:
             bat_temp = float(matches[0])
@@ -214,13 +203,9 @@ def payload_to_command(payload):
     delay_off = payload.get('delay_off', 0)
     delay_off_minutes = payload.get('delay_off_minutes', 0)
     retail = payload.get('retail', 0)
-    command = 'WRC%d,%d,%d,%d,%d,%d,%d,%d,%d,%d' % (soc_on, soc_off,
-                                                    on_date.hour,
-                                                    on_date.minute,
-                                                    off_date.hour,
-                                                    off_date.minute,
-                                                    auto_start, delay_off,
-                                                    delay_off_minutes, retail)
+    command = 'WRC%d,%d,%d,%d,%d,%d,%d,%d,%d,%d' % (
+        soc_on, soc_off, on_date.hour, on_date.minute, off_date.hour,
+        off_date.minute, auto_start, delay_off, delay_off_minutes, retail)
     return command
 
 

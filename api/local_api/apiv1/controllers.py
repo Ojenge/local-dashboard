@@ -11,49 +11,18 @@ from flask.views import MethodView
 from flask_login import (login_required, current_user)
 from .errors import APIError
 
-from .utils import (
-    get_system_state,
-    get_battery_status,
-    get_software,
-    get_storage_status,
-    get_diagnostics_data,
-    get_device_mode,
-    get_device_setup_data,
-    get_connection_state,
-    get_retail_registration_token,
-    retail_device_registered,
-    get_power_data,
-    get_device_id,
-    get_modem_status,
-    get_firmware,
-    get_os, 
-    get_connected_clients
-)
-from .sim import (
-    get_wan_connections,
-    configure_sim
-)
-from .ethernet import (
-    get_ethernet_networks,
-    configure_ethernet
-)
-from .wifi import (
-    get_wireless_config,
-    configure_wifi
-)
-from .soc import (
-    configure_power,
-    get_power_config
-)
-from .storage import (
-    configure_ftp
-)
-from .models import (
-    check_password,
-    make_token,
-    change_password
-)
-
+from .utils import (get_system_state, get_battery_status, get_software,
+                    get_storage_status, get_diagnostics_data, get_device_mode,
+                    get_device_setup_data, get_connection_state,
+                    get_retail_registration_token, retail_device_registered,
+                    get_power_data, get_device_id, get_modem_status,
+                    get_firmware, get_os, get_connected_clients)
+from .sim import (get_wan_connections, configure_sim)
+from .ethernet import (get_ethernet_networks, configure_ethernet)
+from .wifi import (get_wireless_config, configure_wifi)
+from .soc import (configure_power, get_power_config)
+from .storage import (configure_ftp)
+from .models import (check_password, make_token, change_password)
 
 api_blueprint = Blueprint('apiv1', __name__)
 
@@ -131,7 +100,6 @@ class ChangePasswordView(ProtectedView):
 
 
 class DeviceModeAPI(MethodView):
-
     def get(self):
         """Returns the mode the device is in
         """
@@ -143,11 +111,13 @@ class DeviceModeAPI(MethodView):
             if not retail_device_registered():
                 registration_token = get_retail_registration_token()
                 setup_link = "https://my.brck.com/setup/%s/%s/" % (
-                    login_id,
-                    registration_token)
+                    login_id, registration_token)
         connected = get_connection_state()
-        return jsonify({"mode": mode, "setup_link": setup_link,
-                        "connected": connected})
+        return jsonify({
+            "mode": mode,
+            "setup_link": setup_link,
+            "connected": connected
+        })
 
 
 class SystemAPI(ProtectedView):
@@ -230,10 +200,10 @@ class DiagnosticsAPI(ProtectedView):
         return jsonify(get_diagnostics_data())
 
 
-
 class FTPConfigurationAPI(ProtectedView):
     """FTP Configuration views.
     """
+
     def get(self):
         """Returns a JSON struct of the storage state
 
@@ -243,7 +213,6 @@ class FTPConfigurationAPI(ProtectedView):
         """
         state = get_storage_status()
         return jsonify(storage=state)
-
 
     def post(self):
         """Configures FTP Account.
@@ -255,7 +224,6 @@ class FTPConfigurationAPI(ProtectedView):
             return jsonify(dict(created=True))
         else:
             raise APIError('Invalid Data', errors, 422)
-
 
 
 class WANAPI(ProtectedView):
@@ -380,25 +348,19 @@ class DevicesAPI(ProtectedView):
 
         return jsonify(get_connected_clients())
 
-    # @app.before_request
-    # def require_authorization():
-    #     from flask import request
-    #     from flask.ext.login import current_user
-
-    #     if not (current_user.is_authenticated or request.endpoint == 'login'):
-    #         return login_manager.unauthorized()
-
 
 api_blueprint.add_url_rule(
     '/auth', view_func=AuthenticationView.as_view('auth'), methods=[POST])
-
 api_blueprint.add_url_rule(
     '/auth/password',
     view_func=ChangePasswordView.as_view('change_password'),
     methods=[PATCH])
 sim_view = WANAPI.as_view('sim_api')
 api_blueprint.add_url_rule(
-    '/sim', defaults={'sim_id': None}, view_func=sim_view, methods=[GET])
+    '/networks/sim/',
+    defaults={'sim_id': None},
+    view_func=sim_view,
+    methods=[GET])
 api_blueprint.add_url_rule(
     '/networks/sim/<string(length=4):sim_id>',
     view_func=sim_view,
@@ -414,36 +376,33 @@ api_blueprint.add_url_rule(
     view_func=eth_view,
     methods=[GET, PATCH])
 wifi_view = WIFIAPI.as_view('wif_api')
-api_blueprint.add_url_rule('/networks/wifi/',
-                           defaults={'net_id': None},
-                           view_func=wifi_view,
-                           methods=[GET])
-api_blueprint.add_url_rule('/networks/wifi/<string(length=5):net_id>',
-                           view_func=wifi_view,
-                           methods=[GET, PATCH])
-api_blueprint.add_url_rule('/ping',
-                           view_func=Ping.as_view('ping'),
-                           methods=[GET])
-api_blueprint.add_url_rule('/system',
-                           view_func=SystemAPI.as_view('system_api'),
-                           methods=[GET, PATCH])
-api_blueprint.add_url_rule('/system/software',
-                           view_func=SoftwareAPI.as_view('software_api'),
-                           methods=[GET])
-api_blueprint.add_url_rule('/system/diagnostics',
-                           view_func=DiagnosticsAPI.as_view('diagnostics_api'),
-                           methods=[GET])
-api_blueprint.add_url_rule('/power',
-                           view_func=PowerAPI.as_view('power_api'),
-                           methods=[GET, PATCH])
-api_blueprint.add_url_rule('/device-mode',
-                           view_func=DeviceModeAPI.as_view('device_mode_api'),
-                           methods=[GET])
-api_blueprint.add_url_rule('/ftp',
-                           view_func=FTPConfigurationAPI.as_view('ftp_api'),
-                           methods=[GET, POST]),
-                           api_blueprint.add_url_rule(
-    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET])
+api_blueprint.add_url_rule(
+    '/networks/wifi/',
+    defaults={'net_id': None},
+    view_func=wifi_view,
+    methods=[GET])
+api_blueprint.add_url_rule(
+    '/networks/wifi/<string(length=5):net_id>',
+    view_func=wifi_view,
+    methods=[GET, PATCH])
+api_blueprint.add_url_rule(
+    '/ping', view_func=Ping.as_view('ping'), methods=[GET])
+api_blueprint.add_url_rule(
+    '/system', view_func=SystemAPI.as_view('system_api'), methods=[GET, PATCH])
+api_blueprint.add_url_rule(
+    '/system/diagnostics',
+    view_func=DiagnosticsAPI.as_view('diagnostics_api'),
+    methods=[GET])
+api_blueprint.add_url_rule(
+    '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET, PATCH])
+api_blueprint.add_url_rule(
+    '/device-mode',
+    view_func=DeviceModeAPI.as_view('device_mode_api'),
+    methods=[GET])
+api_blueprint.add_url_rule(
+    '/ftp',
+    view_func=FTPConfigurationAPI.as_view('ftp_api'),
+    methods=[GET, POST])
 api_blueprint.add_url_rule(
     '/clients', view_func=DevicesAPI.as_view('devices_api'), methods=[GET])
 api_blueprint.add_url_rule(
