@@ -56,7 +56,7 @@ def add_diagnostics_user():
     print('\n---------------------------\n')
     print("Adding diagnostics user...")
     fake_diagnostics_pass = hexlify(urandom(64))
-    status = create_user('diagnostics', fake_root_pass)
+    status = create_user('diagnostics', fake_diagnostics_pass)
     if status:
         print('[SUCCESS] Diagnostics user has been created')
     else:
