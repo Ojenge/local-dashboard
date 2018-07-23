@@ -25,7 +25,9 @@ def add_admin_user():
         if status:
             print('[SUCCESS] Admin user has been created')
         else:
-            print('[ERROR] Admin user creation failed. This may already have been done.')
+            print(
+                '[ERROR] Admin user creation failed. This may already have been done.'
+            )
     else:
         print("Adding admin user disabled in non-retail mode")
 

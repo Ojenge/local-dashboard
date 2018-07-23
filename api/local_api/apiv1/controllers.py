@@ -149,13 +149,43 @@ class SystemAPI(ProtectedView):
             raise APIError('Invalid Data', errors, 422)
 
 
-class PowerAPI(ProtectedView):
+class BatteryAPI(ProtectedView):
     def get(self):
         """Returns the current power configuration of the device
 
         :return: string JSON representation of system state
         """
         return jsonify(get_power_data())
+
+
+class PowerAPI(ProtectedView):
+    def get_config(self, **kwargs):
+        if 'live' in request.args:
+            kwargs['no_cache'] = True
+        config = get_power_config(**kwargs)
+        battery = get_battery_status(**kwargs)
+        config['battery'] = battery
+        return config
+
+    def get(self):
+        """Returns the current power configuration of the device
+        :return: string JSON representation of system state
+        """
+        return jsonify(self.get_config())
+
+    def patch(self):
+        """Provides an API to perform system power changes
+            See System API documentation (Configuring the system)
+        
+        :return: string JSON representation of new system state or error
+        """
+        payload = request.get_json() or {}
+        power_config = payload.get('power') or {}
+        status_code, errors = configure_power(power_config)
+        if status_code == HTTP_OK:
+            return jsonify(self.get_config(no_cache=True))
+        else:
+            raise APIError('Invalid Data', errors, 422)
 
 
 class OSAPI(ProtectedView):
@@ -176,6 +206,15 @@ class FirmwareAPI(ProtectedView):
 
 
 class SoftwareAPI(ProtectedView):
+    def get(self):
+        """Gets the current software state of the device (os, firmware, packages)
+
+        :return: JSON representation of software version.
+        """
+        return jsonify(get_software())
+
+
+class PackagesAPI(ProtectedView):
     def get(self):
         """Gets the current software state of the device (os, firmware, packages)
 
@@ -390,11 +429,20 @@ api_blueprint.add_url_rule(
 api_blueprint.add_url_rule(
     '/system', view_func=SystemAPI.as_view('system_api'), methods=[GET, PATCH])
 api_blueprint.add_url_rule(
+    '/system/software',
+    view_func=SoftwareAPI.as_view('software_api'),
+    methods=[GET])
+
+api_blueprint.add_url_rule(
     '/system/diagnostics',
     view_func=DiagnosticsAPI.as_view('diagnostics_api'),
     methods=[GET])
 api_blueprint.add_url_rule(
     '/power', view_func=PowerAPI.as_view('power_api'), methods=[GET, PATCH])
+api_blueprint.add_url_rule(
+    '/battery',
+    view_func=BatteryAPI.as_view('battery_api'),
+    methods=[GET, PATCH])
 api_blueprint.add_url_rule(
     '/device-mode',
     view_func=DeviceModeAPI.as_view('device_mode_api'),
@@ -406,7 +454,7 @@ api_blueprint.add_url_rule(
 api_blueprint.add_url_rule(
     '/clients', view_func=DevicesAPI.as_view('devices_api'), methods=[GET])
 api_blueprint.add_url_rule(
-    '/packages', view_func=SoftwareAPI.as_view('software_api'), methods=[GET])
+    '/packages', view_func=PackagesAPI.as_view('packages_api'), methods=[GET])
 api_blueprint.add_url_rule(
     '/modem', view_func=ModemAPI.as_view('modem_api'), methods=[GET])
 api_blueprint.add_url_rule(

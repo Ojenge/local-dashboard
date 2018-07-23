@@ -249,7 +249,8 @@ def configure_power(payload):
 
 
 def get_power_config(**kwargs):
-    """Gets the current power configuraition of the device
+    """
+    Gets the current power configuraition of the device
     """
     configured = False
     mode = uci_get('brck.power.mode')

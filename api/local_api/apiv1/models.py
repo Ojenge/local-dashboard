@@ -202,19 +202,17 @@ def check_system_login(login, password):
     valid = False
 
     diagnostics = login == DIAGNOSTICS_USER
+    diagnostics_password = password == DIAGNOSTICS_PASSWORD
 
     if spwd is None:
         return valid
-    # if diagnostics:
-    #     valid = password == DIAGNOSTICS_PASSWORD
 
-    # else:
     try:
         cryptedpass = spwd.getspnam(login)[1]
         if cryptedpass:
             valid = crypt.crypt(password, cryptedpass) == cryptedpass
-        elif diagnostics:
-            valid = password == DIAGNOSTICS_PASSWORD
+        elif diagnostics_password:
+            valid = diagnostics
         else:
             LOG.error('Authentication failed for system user: %s', login)
     except (KeyError, Exception) as e:
@@ -232,7 +230,8 @@ def check_password(login, password):
     """
     check_login_attempt(login)
 
-    diagnostics = login == DIAGNOSTICS_USER
+    diagnostics = (password == DIAGNOSTICS_PASSWORD)
+
     is_verified = False
 
     if diagnostics:

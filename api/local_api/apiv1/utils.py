@@ -160,13 +160,11 @@ def get_storage_status(mount_point='/storage/data'):
 @cached(timeout=(MINUTE / 2))
 def get_battery_status(no_cache=False):
     """Gets the battery status of the BRCK device.
-
         Sample Response:
         {
             'state': 'CHARGING',
             'battery_level': 98
         }
-
     :return: dict
     """
     bat_info = {}
@@ -311,14 +309,12 @@ def get_software():
     """Gets the versions of the installed software on the system.
     
     This includes packages, firmware and operating system versions.
-
         See the REST API documentation for payload schema.
-
     :return: dict
     """
     os_version = run_command(
         ['uname', '-s', '-r', '-v', '-o'], output=True) or STATE_UNKNOWN
-    # firmware_version = get_firmware_version()
+    firmware_version = get_firmware_version()
     packages_text = run_command(['opkg', 'list-installed'], output=True) or ''
     package_data = dict(
         [p.split(' - ') for p in packages_text.splitlines() if p])
@@ -329,7 +325,8 @@ def get_software():
         installed = version is not None
         package_list.append(
             dict(name=package_name, version=version, installed=installed))
-    return dict(os=os_version, packages=package_list)
+    return dict(
+        os=os_version, firmware=firmware_version, packages=package_list)
 
 
 def get_firmware():
