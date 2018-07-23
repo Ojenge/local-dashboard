@@ -185,6 +185,14 @@ def get_battery_status(no_cache=False):
     if 'charging current' in bat_info:
         bat_info['charging_current'] = bat_info['charging current']
         bat_info.pop('charging current')
+    else:
+        bat_info['charging_current'] = 0
+
+    if 'voltage' in bat_info:
+        bat_info['voltage'] = bat_info['voltage']
+    else:
+        bat_info['voltage'] = 0
+
     return bat_info
 
 
@@ -407,7 +415,7 @@ def get_power_data():
         "battery_temperature": 28,
         "charge_voltage": 13,
         "charging_current": 0,
-        "charging_state": "DISCHARGING",
+        "charging_state": "CHARGING",
         "battery_temp": 28
     }
 
@@ -418,7 +426,7 @@ def get_power_data():
 
     power = dict(
         battery_percentage=status['battery_level'],
-        battery_voltage=status['voltage'],
+        charging_voltage=status['voltage'],
         charging_current=status['charging_current'],
         charging_state=status['state'],
         battery_temp=bat_temp)

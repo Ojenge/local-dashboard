@@ -45,61 +45,93 @@ BAT_SIDE_EFFECT = """{
 }
 """
 EXPECTED_BAT_CONFIG = dict(
-    state='CHARGING',
-    battery_level=98,
-    voltage=12,
-    charging_current=0
-)
+    state='CHARGING', battery_level=98, voltage=12, charging_current=0)
 
 NORMAL_SOC_SETTINGS = dict(mode='NORMAL', soc_on=10, soc_off=5)
 SOC_SCENARIOS = [
     (dict(mode='NORMAL', soc_on=10, soc_off=5), True,
      dict(mode='NORMAL', soc_on=10, soc_off=5, retail=1)),
-
-     (dict(mode='TIMED'), False, True),
-
-     (dict(mode='ALWAYS_ON'), True, dict(mode='ALWAYS_ON', auto_start=1)),
-
-     (dict(mode='ALWAYS_ON', soc_on=10, soc_off=2), True,
-
-      dict(mode='ALWAYS_ON', soc_on=10, soc_off=2, auto_start=1)),
-
-     (dict(mode='VEHICLE'), True,
-      dict(mode='VEHICLE', auto_start=0)),
-
-     (dict(mode='VEHICLE', delay_off_minutes=10), True,
-      dict(mode='VEHICLE', delay_off_minutes=10, delay_off=1, auto_start=0)),
-
-     (dict(mode='MANUAL'), True, True),
-
-     (dict(mode='MANUAL', delay_off_minutes=1), True,
-      dict(mode='MANUAL', delay_off=1, delay_off_minutes=1, auto_start=0)),
-
-     (dict(mode='MANUAL', delay_off_minutes=0), False, True),
-
-     (dict(mode='MANUAL', delay_off_minutes=120), False, True),
+    (dict(mode='TIMED'), False, True),
+    (dict(mode='ALWAYS_ON'), True, dict(mode='ALWAYS_ON', auto_start=1)),
+    (dict(mode='ALWAYS_ON', soc_on=10, soc_off=2), True,
+     dict(mode='ALWAYS_ON', soc_on=10, soc_off=2, auto_start=1)),
+    (dict(mode='VEHICLE'), True, dict(mode='VEHICLE', auto_start=0)),
+    (dict(mode='VEHICLE', delay_off_minutes=10), True,
+     dict(mode='VEHICLE', delay_off_minutes=10, delay_off=1, auto_start=0)),
+    (dict(mode='MANUAL'), True, True),
+    (dict(mode='MANUAL', delay_off_minutes=1), True,
+     dict(mode='MANUAL', delay_off=1, delay_off_minutes=1, auto_start=0)),
+    (dict(mode='MANUAL', delay_off_minutes=0), False, True),
+    (dict(mode='MANUAL', delay_off_minutes=120), False, True),
 ]
 
-EXPECTED_PACKAGE_VERSIONS = [
-    {'installed': True, 'name': '3g-monitor', 'version': 'v0.0.24-9'},
-    {'installed': True, 'name': 'battery-monitor', 'version': 'v0.0.24-9'},
-    {'installed': True, 'name': 'connected_clients', 'version': 'v0.0.24-9'},
-    {'installed': True, 'name': 'core-services', 'version': 'v0.0.2-rc13-6'},
-    {'installed': True, 'name': 'gps-monitor', 'version': 'v0.0.24-9'},
-    {'installed': True, 'name': 'moja', 'version': 'v1.0.19-rc32-1'},
-    {'installed': True, 'name': 'moja-captive', 'version': 'v1.0.7-rc2-9'},
-    {'installed': True, 'name': 'python-brck-sdk', 'version': 'v0.0.1-rc28-3'},
-    {'installed': True, 'name': 'querymodem', 'version': 'v0.0.24-9'},
-    {'installed': True, 'name': 'scan_wifi', 'version': 'v0.0.24-9'},
-    {'installed': True, 'name': 'supabrck-core', 'version': 'v0.11.3-5'}]
+EXPECTED_PACKAGE_VERSIONS = [{
+    'installed': True,
+    'name': '3g-monitor',
+    'version': 'v0.0.24-9'
+}, {
+    'installed': True,
+    'name': 'battery-monitor',
+    'version': 'v0.0.24-9'
+}, {
+    'installed': True,
+    'name': 'connected_clients',
+    'version': 'v0.0.24-9'
+}, {
+    'installed': True,
+    'name': 'core-services',
+    'version': 'v0.0.2-rc13-6'
+}, {
+    'installed': True,
+    'name': 'gps-monitor',
+    'version': 'v0.0.24-9'
+}, {
+    'installed': True,
+    'name': 'moja',
+    'version': 'v1.0.19-rc32-1'
+}, {
+    'installed': True,
+    'name': 'moja-captive',
+    'version': 'v1.0.7-rc2-9'
+}, {
+    'installed': True,
+    'name': 'python-brck-sdk',
+    'version': 'v0.0.1-rc28-3'
+}, {
+    'installed': True,
+    'name': 'querymodem',
+    'version': 'v0.0.24-9'
+}, {
+    'installed': True,
+    'name': 'scan_wifi',
+    'version': 'v0.0.24-9'
+}, {
+    'installed': True,
+    'name': 'supabrck-core',
+    'version': 'v0.11.3-5'
+}]
+
+DUMMY_CLIENT_DATA = (
+    '{ "clients": [ { "mac_address": "34:13:e8:3e:d0:7d",'
+    ' "name": "Unknown", "ip": "192.168.180.3", "connected_time": "88", "idle_time": "10",'
+    '"rx_bytes": "130425", "tx_bytes": "149626", "signal": "-45 dBm" } ] }')
+EXPECTED_CLIENT_DATA = (
+    '{ "clients": [ { "mac_address": "34:13:e8:3e:d0:7d",'
+    ' "name": "Unknown", "ip": "192.168.180.3", "connected_time": "88", "idle_time": "10",'
+    '"rx_bytes": "130425", "tx_bytes": "149626", "signal": "-45 dBm" } ] }')
+
+# DUMMY_FIRMWARE_DATA = ('{"firmware": "1.0.2-darter : Mar 15 2018 17:15:18"')
+# EXPECTED_FIRMWARE_DATA = ('{"firmware": "1.0.2-darter : Mar 15 2018 17:15:18"')
 
 
 def test_get_signal_strength():
     assert utils.get_signal_strength('wan') == 0
     assert utils.get_signal_strength('lan') == 100
-    _side_effect = list(chain(*[['ME936', v] for v in ['99', '0', '1', '30', '31', '255', '']]))
-    with mock.patch('local_api.apiv1.utils.run_command',
-                    side_effect=_side_effect):
+    _side_effect = list(
+        chain(
+            *[['ME936', v] for v in ['99', '0', '1', '30', '31', '255', '']]))
+    with mock.patch(
+            'local_api.apiv1.utils.run_command', side_effect=_side_effect):
         assert utils.get_signal_strength('wan') == 99
         assert utils.get_signal_strength('wan') == 0
         assert utils.get_signal_strength('wan') == 1
@@ -107,9 +139,11 @@ def test_get_signal_strength():
         assert utils.get_signal_strength('wan') == 31
         assert utils.get_signal_strength('wan') == 0
         assert utils.get_signal_strength('wan') == 0
-    _side_effect = list(chain(*[['MU736', v] for v in ['99', '0', '1', '30', '31', '255', '']]))
-    with mock.patch('local_api.apiv1.utils.run_command',
-                    side_effect=_side_effect):
+    _side_effect = list(
+        chain(
+            *[['MU736', v] for v in ['99', '0', '1', '30', '31', '255', '']]))
+    with mock.patch(
+            'local_api.apiv1.utils.run_command', side_effect=_side_effect):
         assert utils.get_signal_strength('wan') == 0
         assert utils.get_signal_strength('wan') == 0
         assert utils.get_signal_strength('wan') == 3
@@ -117,9 +151,10 @@ def test_get_signal_strength():
         assert utils.get_signal_strength('wan') == 100
         assert utils.get_signal_strength('wan') == 0
         assert utils.get_signal_strength('wan') == 0
-    _side_effect = list(chain(*[[None, v] for v in ['99', '0', '1', '30', '31', '255', '']]))
-    with mock.patch('local_api.apiv1.utils.run_command',
-                    side_effect=_side_effect):
+    _side_effect = list(
+        chain(*[[None, v] for v in ['99', '0', '1', '30', '31', '255', '']]))
+    with mock.patch(
+            'local_api.apiv1.utils.run_command', side_effect=_side_effect):
         assert utils.get_signal_strength('wan') == 0
         assert utils.get_signal_strength('wan') == 0
         assert utils.get_signal_strength('wan') == 3
@@ -130,8 +165,9 @@ def test_get_signal_strength():
 
 
 def test_get_soc_settings():
-    with mock.patch('local_api.apiv1.soc.run_command',
-                    side_effect=[DUMMY_SOC_RESPONSE]):
+    with mock.patch(
+            'local_api.apiv1.soc.run_command',
+            side_effect=[DUMMY_SOC_RESPONSE]):
         settings = soc.get_soc_settings()
         assert settings == EXPECTED_SOC_SETTINGS
 
@@ -153,8 +189,9 @@ def test_soc_command():
 
 
 def test_get_firmware_version():
-    with mock.patch('local_api.apiv1.soc.run_command',
-                    side_effect=[DUMMY_VERSION_RESPONSE]):
+    with mock.patch(
+            'local_api.apiv1.soc.run_command',
+            side_effect=[DUMMY_VERSION_RESPONSE]):
         version = soc.get_firmware_version()
         assert version == EXPECTED_FIRMWARE_VERSION
 
@@ -164,41 +201,45 @@ def test_get_software():
     expected_os_version = 'LATEST'
     v_file = os.path.join(os.path.dirname(__file__), 'packages-installed.txt')
     with open(v_file) as fd:
-         package_version_response = fd.read()
-         with mock.patch('local_api.apiv1.utils.get_firmware_version',
-                        side_effect=[EXPECTED_FIRMWARE_VERSION]):
-            with mock.patch('local_api.apiv1.utils.run_command',
-                            side_effect=[expected_os_version, package_version_response]):
+        package_version_response = fd.read()
+        with mock.patch(
+                'local_api.apiv1.utils.get_firmware_version',
+                side_effect=[EXPECTED_FIRMWARE_VERSION]):
+            with mock.patch(
+                    'local_api.apiv1.utils.run_command',
+                    side_effect=[
+                        expected_os_version, package_version_response
+                    ]):
                 versions = utils.get_software()
                 assert versions['os'] == expected_os_version
                 assert versions['firmware'] == EXPECTED_FIRMWARE_VERSION
                 assert versions['packages'] == EXPECTED_PACKAGE_VERSIONS
 
 
-
 def test_get_modem_net_info():
     _xcell_info = '0,2,639,  3,017a,72731,306,10637, 52,  9,255'
     _xcell_info_01 = '0,2,639, 23,017a,72731,306,10637, 52,  9,255'
-    expected = dict(
-        mnc='  3',
-        net_type='UMTS (3G)',
-        cell_id=468785,
-        lac=378
-    )
+    expected = dict(mnc='  3', net_type='UMTS (3G)', cell_id=468785, lac=378)
     expected_01 = dict(
-        mnc=' 23',
-        net_type='UMTS (3G)',
-        cell_id=468785,
-        lac=378
-    )
-    with mock.patch('local_api.apiv1.sim.run_command',
+        mnc=' 23', net_type='UMTS (3G)', cell_id=468785, lac=378)
+    with mock.patch(
+            'local_api.apiv1.sim.run_command',
             side_effect=[_xcell_info, _xcell_info_01, '']):
-            assert sim.get_modem_network_info() == expected
-            assert sim.get_modem_network_info() == expected_01
-            assert sim.get_modem_network_info() == {}
+        assert sim.get_modem_network_info() == expected
+        assert sim.get_modem_network_info() == expected_01
+        assert sim.get_modem_network_info() == {}
 
 
 def test_get_battery():
-    with mock.patch('local_api.apiv1.utils.run_command',
-                     side_effect=[BAT_SIDE_EFFECT]):
-                     assert utils.get_battery_status(no_cache=True) == EXPECTED_BAT_CONFIG
+    with mock.patch(
+            'local_api.apiv1.utils.run_command',
+            side_effect=[BAT_SIDE_EFFECT]):
+        assert utils.get_battery_status(no_cache=False) == EXPECTED_BAT_CONFIG
+
+
+def test_get_connected_clients():
+    with mock.patch(
+            'local_api.apiv1.utils.get_connected_clients',
+            side_effect=[DUMMY_CLIENT_DATA]):
+        clients = utils.get_connected_clients()
+        assert clients == EXPECTED_CLIENT_DATA
