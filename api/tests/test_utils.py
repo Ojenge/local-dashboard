@@ -120,8 +120,13 @@ EXPECTED_CLIENT_DATA = (
     ' "name": "Unknown", "ip": "192.168.180.3", "connected_time": "88", "idle_time": "10",'
     '"rx_bytes": "130425", "tx_bytes": "149626", "signal": "-45 dBm" } ] }')
 
-# DUMMY_FIRMWARE_DATA = ('{"firmware": "1.0.2-darter : Mar 15 2018 17:15:18"')
-# EXPECTED_FIRMWARE_DATA = ('{"firmware": "1.0.2-darter : Mar 15 2018 17:15:18"')
+DUMMY_OS_DATA = ('{"os": "#223 SMP Tue Mar 20 16:03:17 UTC 2018"}')
+
+EXPECTED_OS_DATA = ('{"os": "#223 SMP Tue Mar 20 16:03:17 UTC 2018"}')
+
+DUMMY_MODEM_STATUS = dict(mode="NO SERVICE", signal=50, temperature=36.58)
+
+EXPECTED_MODEM_STATUS = dict(mode="NO SERVICE", signal=50, temperature=36.58)
 
 
 def test_get_signal_strength():
@@ -243,3 +248,19 @@ def test_get_connected_clients():
             side_effect=[DUMMY_CLIENT_DATA]):
         clients = utils.get_connected_clients()
         assert clients == EXPECTED_CLIENT_DATA
+
+
+def test_get_os():
+    with mock.patch(
+            'local_api.apiv1.utils.get_os', side_effect=[DUMMY_OS_DATA]):
+        os_version = utils.get_os()
+        assert os_version == EXPECTED_OS_DATA
+
+
+def test_get_modem_status():
+    with mock.patch(
+            'local_api.apiv1.utils.get_modem_status',
+            side_effect=[DUMMY_MODEM_STATUS]):
+
+        modem_status = utils.get_modem_status()
+        assert modem_status == EXPECTED_MODEM_STATUS

@@ -186,12 +186,12 @@ def get_battery_status(no_cache=False):
         bat_info['charging_current'] = bat_info['charging current']
         bat_info.pop('charging current')
     else:
-        bat_info['charging_current'] = 0
+        bat_info['charging_current'] = STATE_UNKNOWN
 
     if 'voltage' in bat_info:
         bat_info['voltage'] = bat_info['voltage']
     else:
-        bat_info['voltage'] = 0
+        bat_info['voltage'] = STATE_UNKNOWN
 
     return bat_info
 
@@ -351,8 +351,7 @@ def get_os():
     returns the os version
     :return:dict
     """
-    os_version = run_command(
-        ['uname', '-s', '-r', '-v', '-o'], output=True) or STATE_UNKNOWN
+    os_version = run_command(['uname', '-v'], output=True) or STATE_UNKNOWN
 
     return dict(os=os_version)
 
@@ -395,9 +394,12 @@ def get_modem_status():
     :return: dict
     """
     modem_status = {}
-    modem_temp = run_command(['querymodem', 'temperature'], output=True)
-    modem_signal = run_command(['querymodem', 'signal'], output=True)
-    network_mode = run_command(['querymodem', 'network_mode'], output=True)
+    modem_temp = run_command(
+        ['querymodem', 'temperature'], output=True) or STATE_UNKNOWN
+    modem_signal = run_command(
+        ['querymodem', 'signal'], output=True) or STATE_UNKNOWN
+    network_mode = run_command(
+        ['querymodem', 'network_mode'], output=True) or STATE_UNKNOWN
 
     modem_status['temperature'] = modem_temp
     modem_status['signal'] = modem_signal
